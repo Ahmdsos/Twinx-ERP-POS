@@ -79,6 +79,7 @@ return [
     */
     'numbering' => [
         'journal_entry' => ['prefix' => 'JE', 'padding' => 6],
+        'stock_movement' => ['prefix' => 'SM', 'padding' => 6],
         'quotation' => ['prefix' => 'QT', 'padding' => 6],
         'sales_order' => ['prefix' => 'SO', 'padding' => 6],
         'sales_invoice' => ['prefix' => 'INV', 'padding' => 6],

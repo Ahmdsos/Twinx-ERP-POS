@@ -7,4 +7,5 @@ return [
     Modules\Core\Providers\CoreServiceProvider::class,
     Modules\Auth\Providers\AuthServiceProvider::class,
     Modules\Accounting\Providers\AccountingServiceProvider::class,
+    Modules\Inventory\Providers\InventoryServiceProvider::class,
 ];

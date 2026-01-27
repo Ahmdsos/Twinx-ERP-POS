@@ -1,0 +1,10 @@
+<?php
+
+return [
+    App\Providers\AppServiceProvider::class,
+
+    // Twinx ERP Modules
+    Modules\Core\Providers\CoreServiceProvider::class,
+    Modules\Auth\Providers\AuthServiceProvider::class,
+];
+

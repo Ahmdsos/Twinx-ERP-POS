@@ -47,10 +47,10 @@ return [
     'inventory' => [
         // Costing method: 'fifo' or 'average'
         'costing_method' => env('ERP_COSTING_METHOD', 'fifo'),
-        
+
         // Allow negative stock (backorders)
         'allow_negative_stock' => env('ERP_ALLOW_NEGATIVE_STOCK', false),
-        
+
         // Low stock threshold percentage
         'low_stock_threshold' => env('ERP_LOW_STOCK_THRESHOLD', 10),
     ],
@@ -63,10 +63,10 @@ return [
     'accounting' => [
         // Auto-post journal entries (false = require manual posting)
         'auto_post_journals' => env('ERP_AUTO_POST_JOURNALS', false),
-        
+
         // Journal entry number prefix
         'journal_prefix' => env('ERP_JOURNAL_PREFIX', 'JE'),
-        
+
         // Require narration/description for journal entries
         'require_journal_narration' => true,
     ],
@@ -78,6 +78,7 @@ return [
     | Prefixes and formats for various document types
     */
     'numbering' => [
+        'journal_entry' => ['prefix' => 'JE', 'padding' => 6],
         'quotation' => ['prefix' => 'QT', 'padding' => 6],
         'sales_order' => ['prefix' => 'SO', 'padding' => 6],
         'sales_invoice' => ['prefix' => 'INV', 'padding' => 6],

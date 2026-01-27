@@ -22,7 +22,7 @@ class StockReportService
     {
         $query = ProductStock::query()
             ->with(['product', 'warehouse'])
-            ->where('quantity_on_hand', '>', 0);
+            ->where('quantity', '>', 0);
 
         if ($warehouseId) {
             $query->where('warehouse_id', $warehouseId);
@@ -35,7 +35,7 @@ class StockReportService
         $totalValue = 0;
 
         foreach ($stocks as $stock) {
-            $value = $stock->quantity_on_hand * $stock->average_cost;
+            $value = $stock->quantity * $stock->average_cost;
 
             $items[] = [
                 'product_id' => $stock->product_id,
@@ -43,12 +43,12 @@ class StockReportService
                 'product_name' => $stock->product->name,
                 'warehouse_id' => $stock->warehouse_id,
                 'warehouse_name' => $stock->warehouse->name,
-                'quantity_on_hand' => (float) $stock->quantity_on_hand,
+                'quantity' => (float) $stock->quantity,
                 'average_cost' => round($stock->average_cost, 4),
                 'total_value' => round($value, 2),
             ];
 
-            $totalQty += $stock->quantity_on_hand;
+            $totalQty += $stock->quantity;
             $totalValue += $value;
         }
 
@@ -85,17 +85,17 @@ class StockReportService
                 : $product->stocks;
 
             foreach ($stocks as $stock) {
-                if ($stock->quantity_on_hand < $product->min_stock_level) {
+                if ($stock->quantity < $product->min_stock_level) {
                     $alerts[] = [
                         'product_id' => $product->id,
                         'sku' => $product->sku,
                         'product_name' => $product->name,
                         'warehouse_id' => $stock->warehouse_id,
                         'warehouse_name' => $stock->warehouse->name,
-                        'current_stock' => (float) $stock->quantity_on_hand,
+                        'current_stock' => (float) $stock->quantity,
                         'min_level' => (float) $product->min_stock_level,
                         'reorder_qty' => (float) $product->reorder_quantity,
-                        'shortage' => round($product->min_stock_level - $stock->quantity_on_hand, 4),
+                        'shortage' => round($product->min_stock_level - $stock->quantity, 4),
                     ];
                 }
             }
@@ -189,9 +189,9 @@ class StockReportService
         $summary = [];
 
         foreach ($warehouses as $warehouse) {
-            $totalQty = $warehouse->stocks->sum('quantity_on_hand');
-            $totalValue = $warehouse->stocks->sum(fn($s) => $s->quantity_on_hand * $s->average_cost);
-            $productCount = $warehouse->stocks->where('quantity_on_hand', '>', 0)->count();
+            $totalQty = $warehouse->stocks->sum('quantity');
+            $totalValue = $warehouse->stocks->sum(fn($s) => $s->quantity * $s->average_cost);
+            $productCount = $warehouse->stocks->where('quantity', '>', 0)->count();
 
             $summary[] = [
                 'warehouse_id' => $warehouse->id,

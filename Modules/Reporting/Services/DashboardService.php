@@ -127,7 +127,7 @@ class DashboardService
     {
         // Total stock value
         $totalValue = ProductStock::query()
-            ->selectRaw('SUM(quantity_on_hand * average_cost) as total')
+            ->selectRaw('SUM(quantity * average_cost) as total')
             ->value('total') ?? 0;
 
         // Low stock count

@@ -8,4 +8,5 @@ return [
     Modules\Auth\Providers\AuthServiceProvider::class,
     Modules\Accounting\Providers\AccountingServiceProvider::class,
     Modules\Inventory\Providers\InventoryServiceProvider::class,
+    Modules\Purchasing\Providers\PurchasingServiceProvider::class,
 ];

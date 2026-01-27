@@ -9,4 +9,5 @@ return [
     Modules\Accounting\Providers\AccountingServiceProvider::class,
     Modules\Inventory\Providers\InventoryServiceProvider::class,
     Modules\Purchasing\Providers\PurchasingServiceProvider::class,
+    Modules\Sales\Providers\SalesServiceProvider::class,
 ];

@@ -18,13 +18,13 @@ enum SalesOrderStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::DRAFT => 'Draft',
-            self::CONFIRMED => 'Confirmed',
-            self::PROCESSING => 'Processing',
-            self::PARTIAL => 'Partially Delivered',
-            self::DELIVERED => 'Delivered',
-            self::INVOICED => 'Invoiced',
-            self::CANCELLED => 'Cancelled',
+            self::DRAFT => 'مسودة',
+            self::CONFIRMED => 'مؤكد',
+            self::PROCESSING => 'قيد التنفيذ',
+            self::PARTIAL => 'تسليم جزئي',
+            self::DELIVERED => 'تم التسليم',
+            self::INVOICED => 'تمت الفوترة',
+            self::CANCELLED => 'ملغي',
         };
     }
 

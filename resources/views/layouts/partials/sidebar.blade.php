@@ -95,10 +95,24 @@
             </a>
         </li>
         <li class="nav-item">
+            <a href="{{ route('deliveries.index') }}"
+                class="nav-link text-white {{ request()->routeIs('deliveries.*') ? 'active' : '' }}">
+                <i class="bi bi-truck me-2"></i>
+                أوامر التسليم
+            </a>
+        </li>
+        <li class="nav-item">
             <a href="{{ route('sales-invoices.index') }}"
                 class="nav-link text-white {{ request()->routeIs('sales-invoices.*') ? 'active' : '' }}">
                 <i class="bi bi-receipt me-2"></i>
                 فواتير البيع
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('customer-payments.index') }}"
+                class="nav-link text-white {{ request()->routeIs('customer-payments.*') ? 'active' : '' }}">
+                <i class="bi bi-cash-coin me-2"></i>
+                المدفوعات
             </a>
         </li>
 
@@ -118,6 +132,27 @@
                 class="nav-link text-white {{ request()->routeIs('purchase-orders.*') ? 'active' : '' }}">
                 <i class="bi bi-bag me-2"></i>
                 أوامر الشراء
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('grns.index') }}"
+                class="nav-link text-white {{ request()->routeIs('grns.*') ? 'active' : '' }}">
+                <i class="bi bi-box-seam me-2"></i>
+                استلام البضاعة
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('purchase-invoices.index') }}"
+                class="nav-link text-white {{ request()->routeIs('purchase-invoices.*') ? 'active' : '' }}">
+                <i class="bi bi-receipt me-2"></i>
+                فواتير الشراء
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('supplier-payments.index') }}"
+                class="nav-link text-white {{ request()->routeIs('supplier-payments.*') ? 'active' : '' }}">
+                <i class="bi bi-cash me-2"></i>
+                مدفوعات الموردين
             </a>
         </li>
 

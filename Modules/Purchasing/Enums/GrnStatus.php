@@ -14,9 +14,9 @@ enum GrnStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::DRAFT => 'Draft',
-            self::COMPLETED => 'Completed',
-            self::CANCELLED => 'Cancelled',
+            self::DRAFT => 'مسودة',
+            self::COMPLETED => 'مكتمل',
+            self::CANCELLED => 'ملغى',
         };
     }
 

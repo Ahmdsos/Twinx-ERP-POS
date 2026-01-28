@@ -10,6 +10,14 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\WarehouseController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\StockController;
+use App\Http\Controllers\SalesOrderController;
+use App\Http\Controllers\DeliveryOrderController;
+use App\Http\Controllers\SalesInvoiceController;
+use App\Http\Controllers\CustomerPaymentController;
+use App\Http\Controllers\PurchaseOrderController;
+use App\Http\Controllers\GrnController;
+use App\Http\Controllers\PurchaseInvoiceController;
+use App\Http\Controllers\SupplierPaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -71,12 +79,27 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('customers', CustomerController::class);
     Route::get('customers/{customer}/statement', [CustomerController::class, 'statement'])->name('customers.statement');
 
-    // Sales Orders (placeholder routes - to be implemented in Sprint 8)
-    Route::get('sales-orders', fn() => view('sales.orders.index'))->name('sales-orders.index');
-    Route::get('sales-orders/create', fn() => view('sales.orders.create'))->name('sales-orders.create');
+    // Sales Orders - Full Resource + Actions
+    Route::resource('sales-orders', SalesOrderController::class)->parameters(['sales-orders' => 'salesOrder']);
+    Route::post('sales-orders/{salesOrder}/confirm', [SalesOrderController::class, 'confirm'])->name('sales-orders.confirm');
+    Route::post('sales-orders/{salesOrder}/cancel', [SalesOrderController::class, 'cancel'])->name('sales-orders.cancel');
+    Route::get('sales-orders/product-info', [SalesOrderController::class, 'getProductInfo'])->name('sales-orders.product-info');
+
+    // Delivery Orders
+    Route::resource('deliveries', DeliveryOrderController::class)->parameters(['deliveries' => 'delivery']);
+    Route::post('deliveries/{delivery}/ship', [DeliveryOrderController::class, 'ship'])->name('deliveries.ship');
+    Route::post('deliveries/{delivery}/complete', [DeliveryOrderController::class, 'complete'])->name('deliveries.complete');
+    Route::post('deliveries/{delivery}/cancel', [DeliveryOrderController::class, 'cancel'])->name('deliveries.cancel');
 
     // Sales Invoices
-    Route::get('sales-invoices', fn() => view('sales.invoices.index'))->name('sales-invoices.index');
+    Route::resource('sales-invoices', SalesInvoiceController::class)->parameters(['sales-invoices' => 'salesInvoice']);
+    Route::get('sales-invoices/{salesInvoice}/print', [SalesInvoiceController::class, 'print'])->name('sales-invoices.print');
+    Route::post('sales-invoices/{salesInvoice}/cancel', [SalesInvoiceController::class, 'cancel'])->name('sales-invoices.cancel');
+
+    // Customer Payments
+    Route::resource('customer-payments', CustomerPaymentController::class)->parameters(['customer-payments' => 'customerPayment']);
+    Route::get('customer-payments/{customerPayment}/print', [CustomerPaymentController::class, 'print'])->name('customer-payments.print');
+    Route::get('customer-payments/customer/{customer}/invoices', [CustomerPaymentController::class, 'getCustomerInvoices'])->name('customer-payments.customer-invoices');
 
     // ==========================================
     // PURCHASING MODULE
@@ -85,9 +108,24 @@ Route::middleware(['auth'])->group(function () {
     // Suppliers - Full Resource
     Route::resource('suppliers', SupplierController::class);
 
-    // Purchase Orders (placeholder routes - to be implemented in Sprint 9)
-    Route::get('purchase-orders', fn() => view('purchasing.orders.index'))->name('purchase-orders.index');
-    Route::get('purchase-orders/create', fn() => view('purchasing.orders.create'))->name('purchase-orders.create');
+    // Purchase Orders
+    Route::resource('purchase-orders', PurchaseOrderController::class)->parameters(['purchase-orders' => 'purchaseOrder']);
+    Route::post('purchase-orders/{purchaseOrder}/approve', [PurchaseOrderController::class, 'approve'])->name('purchase-orders.approve');
+    Route::post('purchase-orders/{purchaseOrder}/cancel', [PurchaseOrderController::class, 'cancel'])->name('purchase-orders.cancel');
+    Route::get('purchase-orders/product-info', [PurchaseOrderController::class, 'getProductInfo'])->name('purchase-orders.product-info');
+
+    // Goods Received Notes (GRN)
+    Route::resource('grns', GrnController::class)->only(['index', 'create', 'store', 'show']);
+    Route::post('grns/{grn}/cancel', [GrnController::class, 'cancel'])->name('grns.cancel');
+
+    // Purchase Invoices
+    Route::resource('purchase-invoices', PurchaseInvoiceController::class)->only(['index', 'create', 'store', 'show']);
+    Route::get('purchase-invoices/{purchaseInvoice}/print', [PurchaseInvoiceController::class, 'print'])->name('purchase-invoices.print');
+    Route::post('purchase-invoices/{purchaseInvoice}/cancel', [PurchaseInvoiceController::class, 'cancel'])->name('purchase-invoices.cancel');
+
+    // Supplier Payments
+    Route::resource('supplier-payments', SupplierPaymentController::class)->only(['index', 'create', 'store', 'show']);
+    Route::get('supplier-payments/{supplierPayment}/print', [SupplierPaymentController::class, 'print'])->name('supplier-payments.print');
 
     // ==========================================
     // INVENTORY MODULE

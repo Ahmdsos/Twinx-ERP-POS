@@ -16,11 +16,11 @@ enum DeliveryStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::DRAFT => 'Draft',
-            self::READY => 'Ready to Ship',
-            self::SHIPPED => 'Shipped',
-            self::DELIVERED => 'Delivered',
-            self::CANCELLED => 'Cancelled',
+            self::DRAFT => 'مسودة',
+            self::READY => 'جاهز للشحن',
+            self::SHIPPED => 'تم الشحن',
+            self::DELIVERED => 'تم التسليم',
+            self::CANCELLED => 'ملغي',
         };
     }
 

@@ -74,7 +74,7 @@ class StockReportService
         $query = Product::query()
             ->with(['stocks.warehouse'])
             ->where('is_active', true)
-            ->where('min_stock_level', '>', 0);
+            ->where('reorder_level', '>', 0);
 
         $products = $query->get();
         $alerts = [];
@@ -85,7 +85,7 @@ class StockReportService
                 : $product->stocks;
 
             foreach ($stocks as $stock) {
-                if ($stock->quantity < $product->min_stock_level) {
+                if ($stock->quantity < $product->reorder_level) {
                     $alerts[] = [
                         'product_id' => $product->id,
                         'sku' => $product->sku,
@@ -93,9 +93,9 @@ class StockReportService
                         'warehouse_id' => $stock->warehouse_id,
                         'warehouse_name' => $stock->warehouse->name,
                         'current_stock' => (float) $stock->quantity,
-                        'min_level' => (float) $product->min_stock_level,
+                        'min_level' => (float) $product->reorder_level,
                         'reorder_qty' => (float) $product->reorder_quantity,
-                        'shortage' => round($product->min_stock_level - $stock->quantity, 4),
+                        'shortage' => round($product->reorder_level - $stock->quantity, 4),
                     ];
                 }
             }

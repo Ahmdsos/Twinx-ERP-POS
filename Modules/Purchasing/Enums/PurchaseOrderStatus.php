@@ -18,13 +18,13 @@ enum PurchaseOrderStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::DRAFT => 'Draft',
-            self::PENDING => 'Pending Approval',
-            self::APPROVED => 'Approved',
-            self::SENT => 'Sent to Supplier',
-            self::PARTIAL => 'Partially Received',
-            self::RECEIVED => 'Fully Received',
-            self::CANCELLED => 'Cancelled',
+            self::DRAFT => 'مسودة',
+            self::PENDING => 'في انتظار الموافقة',
+            self::APPROVED => 'معتمد',
+            self::SENT => 'مرسل للمورد',
+            self::PARTIAL => 'استلام جزئي',
+            self::RECEIVED => 'تم الاستلام',
+            self::CANCELLED => 'ملغى',
         };
     }
 

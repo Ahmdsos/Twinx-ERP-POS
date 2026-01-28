@@ -98,6 +98,14 @@ class Product extends Model
         return $this->hasMany(ProductStock::class);
     }
 
+    /**
+     * Alias for stock() - used by StockReportService
+     */
+    public function stocks(): HasMany
+    {
+        return $this->stock();
+    }
+
     public function stockMovements(): HasMany
     {
         return $this->hasMany(StockMovement::class);

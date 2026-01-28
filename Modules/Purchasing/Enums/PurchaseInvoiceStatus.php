@@ -16,11 +16,11 @@ enum PurchaseInvoiceStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::DRAFT => 'Draft',
-            self::PENDING => 'Pending Payment',
-            self::PARTIAL => 'Partially Paid',
-            self::PAID => 'Paid',
-            self::CANCELLED => 'Cancelled',
+            self::DRAFT => 'مسودة',
+            self::PENDING => 'في انتظار الدفع',
+            self::PARTIAL => 'مدفوعة جزئياً',
+            self::PAID => 'مدفوعة بالكامل',
+            self::CANCELLED => 'ملغاة',
         };
     }
 

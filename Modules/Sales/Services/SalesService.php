@@ -66,7 +66,7 @@ class SalesService
                 $so->lines()->create([
                     'product_id' => $lineData['product_id'],
                     'quantity' => $lineData['quantity'],
-                    'unit_price' => $lineData['unit_price'] ?? $product->sale_price,
+                    'unit_price' => $lineData['unit_price'] ?? $product->selling_price,
                     'discount_percent' => $lineData['discount_percent'] ?? 0,
                     'tax_percent' => $lineData['tax_percent'] ?? $product->tax_rate ?? 0,
                     'unit_id' => $lineData['unit_id'] ?? $product->unit_id,

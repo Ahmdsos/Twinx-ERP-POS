@@ -61,6 +61,20 @@
                 التصنيفات
             </a>
         </li>
+        <li class="nav-item">
+            <a href="{{ route('units.index') }}"
+                class="nav-link text-white {{ request()->routeIs('units.*') ? 'active' : '' }}">
+                <i class="bi bi-rulers me-2"></i>
+                وحدات القياس
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('stock.index') }}"
+                class="nav-link text-white {{ request()->routeIs('stock.*') ? 'active' : '' }}">
+                <i class="bi bi-arrow-left-right me-2"></i>
+                حركات المخزون
+            </a>
+        </li>
 
         <!-- Sales Section -->
         <li class="nav-item mt-3">

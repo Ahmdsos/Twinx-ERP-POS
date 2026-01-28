@@ -20,15 +20,15 @@ enum MovementType: string
     public function label(): string
     {
         return match ($this) {
-            self::PURCHASE => 'Purchase Receipt',
-            self::SALE => 'Sales Issue',
-            self::ADJUSTMENT_IN => 'Adjustment In',
-            self::ADJUSTMENT_OUT => 'Adjustment Out',
-            self::TRANSFER_IN => 'Transfer In',
-            self::TRANSFER_OUT => 'Transfer Out',
-            self::RETURN_IN => 'Customer Return',
-            self::RETURN_OUT => 'Supplier Return',
-            self::INITIAL => 'Initial Stock',
+            self::PURCHASE => 'استلام شراء',
+            self::SALE => 'صرف بيع',
+            self::ADJUSTMENT_IN => 'تسوية زيادة',
+            self::ADJUSTMENT_OUT => 'تسوية نقص',
+            self::TRANSFER_IN => 'تحويل وارد',
+            self::TRANSFER_OUT => 'تحويل صادر',
+            self::RETURN_IN => 'مرتجع عميل',
+            self::RETURN_OUT => 'مرتجع مورد',
+            self::INITIAL => 'رصيد افتتاحي',
         };
     }
 

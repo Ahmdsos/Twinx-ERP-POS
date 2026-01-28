@@ -67,8 +67,8 @@
                                 </td>
                                 <td>{{ $product->category?->name ?? '-' }}</td>
                                 <td class="money">{{ number_format($product->cost_price, 2) }}</td>
-                                <td class="money text-success">{{ number_format($product->sale_price, 2) }}</td>
-                                <td>{{ $product->unit?->symbol ?? '-' }}</td>
+                                <td class="money text-success">{{ number_format($product->selling_price, 2) }}</td>
+                                <td>{{ $product->unit?->abbreviation ?? '-' }}</td>
                                 <td>
                                     @if($product->is_active)
                                         <span class="badge bg-success">نشط</span>

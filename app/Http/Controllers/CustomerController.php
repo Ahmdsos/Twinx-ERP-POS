@@ -140,4 +140,33 @@ class CustomerController extends Controller
         return redirect()->route('customers.index')
             ->with('success', 'تم حذف العميل بنجاح');
     }
+
+    /**
+     * Display customer account statement
+     */
+    public function statement(Request $request, Customer $customer)
+    {
+        $fromDate = $request->get('from_date', now()->startOfMonth()->format('Y-m-d'));
+        $toDate = $request->get('to_date', now()->format('Y-m-d'));
+
+        // Calculate opening balance (sum of all transactions before from_date)
+        $openingBalance = 0; // TODO: Calculate from actual transactions
+
+        // Get transactions in period
+        $transactions = collect(); // TODO: Fetch from invoices and payments
+
+        // Calculate totals
+        $totalInvoices = $transactions->where('type', 'invoice')->sum('amount');
+        $totalPayments = $transactions->where('type', 'payment')->sum('amount');
+        $balance = $openingBalance + $totalInvoices - $totalPayments;
+
+        return view('sales.customers.statement', compact(
+            'customer',
+            'transactions',
+            'openingBalance',
+            'totalInvoices',
+            'totalPayments',
+            'balance'
+        ));
+    }
 }

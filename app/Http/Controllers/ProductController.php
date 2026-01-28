@@ -10,6 +10,11 @@ use Modules\Inventory\Enums\ProductType;
 
 /**
  * ProductController - Product management web UI
+ * 
+ * Field mapping (form -> database):
+ * - sale_price -> selling_price
+ * - min_stock_level -> min_stock
+ * - Relationship: stock() not stocks()
  */
 class ProductController extends Controller
 {
@@ -73,14 +78,36 @@ class ProductController extends Controller
             'cost_price' => 'required|numeric|min:0',
             'sale_price' => 'required|numeric|min:0',
             'min_stock_level' => 'numeric|min:0',
+            'max_stock_level' => 'nullable|numeric|min:0',
             'reorder_quantity' => 'numeric|min:0',
             'tax_rate' => 'numeric|min:0|max:100',
             'is_active' => 'boolean',
+            'is_sellable' => 'boolean',
+            'is_purchasable' => 'boolean',
         ]);
 
-        $validated['type'] = ProductType::from($validated['type']);
+        // Map form fields to database columns
+        $data = [
+            'name' => $validated['name'],
+            'sku' => $validated['sku'],
+            'barcode' => $validated['barcode'] ?? null,
+            'type' => ProductType::from($validated['type']),
+            'category_id' => $validated['category_id'] ?? null,
+            'unit_id' => $validated['unit_id'],
+            'description' => $validated['description'] ?? null,
+            'cost_price' => $validated['cost_price'],
+            'selling_price' => $validated['sale_price'], // Map sale_price -> selling_price
+            'min_stock' => $validated['min_stock_level'] ?? 0, // Map min_stock_level -> min_stock
+            'max_stock' => $validated['max_stock_level'] ?? null,
+            'reorder_quantity' => $validated['reorder_quantity'] ?? 0,
+            'tax_rate' => $validated['tax_rate'] ?? 14,
+            'is_active' => $request->has('is_active'),
+            'is_sellable' => $request->has('is_sellable'),
+            'is_purchasable' => $request->has('is_purchasable'),
+            'created_by' => auth()->id(),
+        ];
 
-        Product::create($validated);
+        Product::create($data);
 
         return redirect()->route('products.index')
             ->with('success', 'تم إنشاء المنتج بنجاح');
@@ -91,7 +118,8 @@ class ProductController extends Controller
      */
     public function show(Product $product)
     {
-        $product->load(['category', 'unit', 'stocks.warehouse']);
+        // Use correct relationship name: stock() not stocks()
+        $product->load(['category', 'unit', 'stock.warehouse']);
 
         return view('inventory.products.show', compact('product'));
     }
@@ -124,14 +152,36 @@ class ProductController extends Controller
             'cost_price' => 'required|numeric|min:0',
             'sale_price' => 'required|numeric|min:0',
             'min_stock_level' => 'numeric|min:0',
+            'max_stock_level' => 'nullable|numeric|min:0',
             'reorder_quantity' => 'numeric|min:0',
             'tax_rate' => 'numeric|min:0|max:100',
             'is_active' => 'boolean',
+            'is_sellable' => 'boolean',
+            'is_purchasable' => 'boolean',
         ]);
 
-        $validated['type'] = ProductType::from($validated['type']);
+        // Map form fields to database columns
+        $data = [
+            'name' => $validated['name'],
+            'sku' => $validated['sku'],
+            'barcode' => $validated['barcode'] ?? null,
+            'type' => ProductType::from($validated['type']),
+            'category_id' => $validated['category_id'] ?? null,
+            'unit_id' => $validated['unit_id'],
+            'description' => $validated['description'] ?? null,
+            'cost_price' => $validated['cost_price'],
+            'selling_price' => $validated['sale_price'],
+            'min_stock' => $validated['min_stock_level'] ?? 0,
+            'max_stock' => $validated['max_stock_level'] ?? null,
+            'reorder_quantity' => $validated['reorder_quantity'] ?? 0,
+            'tax_rate' => $validated['tax_rate'] ?? 14,
+            'is_active' => $request->has('is_active'),
+            'is_sellable' => $request->has('is_sellable'),
+            'is_purchasable' => $request->has('is_purchasable'),
+            'updated_by' => auth()->id(),
+        ];
 
-        $product->update($validated);
+        $product->update($data);
 
         return redirect()->route('products.index')
             ->with('success', 'تم تحديث المنتج بنجاح');
@@ -142,7 +192,8 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
-        if ($product->stocks()->where('quantity_on_hand', '>', 0)->exists()) {
+        // Use correct relationship and column name: stock() and quantity
+        if ($product->stock()->where('quantity', '>', 0)->exists()) {
             return back()->with('error', 'لا يمكن حذف منتج له مخزون');
         }
 

@@ -12,7 +12,7 @@
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0"><i class="bi bi-book me-2"></i>القيود اليومية</h5>
-            <a href="{{ route('journals.create') }}" class="btn btn-primary">
+            <a href="{{ route('journal-entries.create') }}" class="btn btn-primary">
                 <i class="bi bi-plus-circle me-1"></i>قيد جديد
             </a>
         </div>
@@ -20,7 +20,7 @@
             <i class="bi bi-journal-text fs-1 text-muted"></i>
             <h5 class="mt-3">قسم القيود اليومية</h5>
             <p class="text-muted">سيتم إضافة عرض القيود قريباً</p>
-            <a href="{{ route('journals.create') }}" class="btn btn-primary">
+            <a href="{{ route('journal-entries.create') }}" class="btn btn-primary">
                 <i class="bi bi-plus-circle me-1"></i>إنشاء قيد جديد
             </a>
         </div>

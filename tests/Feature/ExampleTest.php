@@ -2,17 +2,30 @@
 
 namespace Tests\Feature;
 
-// use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+/**
+ * ExampleTest - Basic application health tests
+ */
 class ExampleTest extends TestCase
 {
     /**
-     * A basic test example.
+     * Test the application redirects to login when not authenticated.
      */
-    public function test_the_application_returns_a_successful_response(): void
+    public function test_the_application_redirects_guest_to_login(): void
     {
         $response = $this->get('/');
+
+        // Homepage redirects unauthenticated users to login
+        $response->assertRedirect('/login');
+    }
+
+    /**
+     * Test the login page loads.
+     */
+    public function test_login_page_loads(): void
+    {
+        $response = $this->get('/login');
 
         $response->assertStatus(200);
     }

@@ -34,7 +34,8 @@
                         </div>
                         <div class="ms-3">
                             <div class="stat-value">
-                                {{ number_format($dashboard['purchasing']['purchases_this_month'] ?? 0, 2) }}</div>
+                                {{ number_format($dashboard['purchasing']['purchases_this_month'] ?? 0, 2) }}
+                            </div>
                             <div class="stat-label">مشتريات الشهر</div>
                         </div>
                     </div>
@@ -91,12 +92,14 @@
                     <div class="row text-center mb-4">
                         <div class="col-4">
                             <h3 class="text-success mb-1">
-                                {{ number_format($dashboard['financial']['revenue_this_month'] ?? 0, 2) }}</h3>
+                                {{ number_format($dashboard['financial']['revenue_this_month'] ?? 0, 2) }}
+                            </h3>
                             <small class="text-muted">الإيرادات</small>
                         </div>
                         <div class="col-4">
                             <h3 class="text-danger mb-1">
-                                {{ number_format($dashboard['financial']['expenses_this_month'] ?? 0, 2) }}</h3>
+                                {{ number_format($dashboard['financial']['expenses_this_month'] ?? 0, 2) }}
+                            </h3>
                             <small class="text-muted">المصروفات</small>
                         </div>
                         <div class="col-4">
@@ -152,7 +155,8 @@
                     <div class="mt-4 pt-3 border-top">
                         <h6 class="text-muted mb-2">قيمة المخزون</h6>
                         <h3 class="text-primary">{{ number_format($dashboard['inventory']['total_stock_value'] ?? 0, 2) }}
-                            <small class="text-muted fs-6">ج.م</small></h3>
+                            <small class="text-muted fs-6">ج.م</small>
+                        </h3>
                     </div>
                 </div>
             </div>
@@ -188,7 +192,7 @@
                             </a>
                         </div>
                         <div class="col-6">
-                            <a href="{{ route('journals.create') }}" class="quick-action-btn">
+                            <a href="{{ route('journal-entries.create') }}" class="quick-action-btn">
                                 <i class="bi bi-journal-plus text-warning"></i>
                                 <span>قيد يومية</span>
                             </a>
@@ -256,8 +260,8 @@
                     labels: ['الإيرادات', 'المصروفات', 'صافي الربح'],
                     datasets: [{
                         data: [
-                        {{ $dashboard['financial']['revenue_this_month'] ?? 0 }},
-                        {{ $dashboard['financial']['expenses_this_month'] ?? 0 }},
+                            {{ $dashboard['financial']['revenue_this_month'] ?? 0 }},
+                            {{ $dashboard['financial']['expenses_this_month'] ?? 0 }},
                             {{ $dashboard['financial']['net_income_this_month'] ?? 0 }}
                         ],
                         backgroundColor: [

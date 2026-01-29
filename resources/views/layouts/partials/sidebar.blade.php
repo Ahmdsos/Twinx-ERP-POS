@@ -23,14 +23,21 @@
         </li>
         <li class="nav-item">
             <a href="{{ route('accounts.index') }}"
-                class="nav-link text-white {{ request()->routeIs('accounts.*') ? 'active' : '' }}">
+                class="nav-link text-white {{ request()->routeIs('accounts.index') ? 'active' : '' }}">
                 <i class="bi bi-journal-text me-2"></i>
                 دليل الحسابات
             </a>
         </li>
         <li class="nav-item">
-            <a href="{{ route('journals.index') }}"
-                class="nav-link text-white {{ request()->routeIs('journals.*') ? 'active' : '' }}">
+            <a href="{{ route('accounts.tree') }}"
+                class="nav-link text-white {{ request()->routeIs('accounts.tree') ? 'active' : '' }}">
+                <i class="bi bi-diagram-3 me-2"></i>
+                شجرة الحسابات
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('journal-entries.index') }}"
+                class="nav-link text-white {{ request()->routeIs('journal-entries.*') ? 'active' : '' }}">
                 <i class="bi bi-book me-2"></i>
                 القيود اليومية
             </a>

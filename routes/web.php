@@ -21,6 +21,7 @@ use App\Http\Controllers\SupplierPaymentController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\CourierController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\JournalEntryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -69,10 +70,12 @@ Route::middleware(['auth'])->group(function () {
 
     // Chart of Accounts
     Route::resource('accounts', AccountController::class);
+    Route::get('accounts-tree', [AccountController::class, 'tree'])->name('accounts.tree');
 
-    // Journal Entries (placeholder routes - to be implemented in Sprint 11)
-    Route::get('journals', fn() => view('accounting.journals.index'))->name('journals.index');
-    Route::get('journals/create', fn() => view('accounting.journals.create'))->name('journals.create');
+    // Journal Entries - Full CRUD + Actions
+    Route::resource('journal-entries', JournalEntryController::class);
+    Route::post('journal-entries/{journal_entry}/post', [JournalEntryController::class, 'post'])->name('journal-entries.post');
+    Route::post('journal-entries/{journal_entry}/reverse', [JournalEntryController::class, 'reverse'])->name('journal-entries.reverse');
 
     // ==========================================
     // SALES MODULE

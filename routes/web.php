@@ -22,6 +22,7 @@ use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\CourierController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\JournalEntryController;
+use App\Http\Controllers\ActivityLogController;
 
 /*
 |--------------------------------------------------------------------------
@@ -195,4 +196,11 @@ Route::middleware(['auth'])->group(function () {
     // ==========================================
     Route::resource('couriers', CourierController::class);
     Route::patch('couriers/{courier}/toggle-status', [CourierController::class, 'toggleStatus'])->name('couriers.toggle-status');
+
+    // ==========================================
+    // ADMIN / SETTINGS
+    // ==========================================
+    Route::get('activity-log', [ActivityLogController::class, 'index'])->name('activity-log.index');
+    Route::get('activity-log/{activityLog}', [ActivityLogController::class, 'show'])->name('activity-log.show');
 });
+

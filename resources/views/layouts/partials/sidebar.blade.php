@@ -249,5 +249,17 @@
                 شركات الشحن
             </a>
         </li>
+
+        <!-- Admin Section -->
+        <li class="nav-item mt-3">
+            <span class="nav-section-title text-uppercase text-secondary px-3 small">الإدارة</span>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('activity-log.index') }}"
+                class="nav-link text-white {{ request()->routeIs('activity-log.*') ? 'active' : '' }}">
+                <i class="bi bi-clock-history me-2"></i>
+                سجل النشاطات
+            </a>
+        </li>
     </ul>
 </nav>

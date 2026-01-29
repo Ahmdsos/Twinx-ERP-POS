@@ -4,6 +4,7 @@ namespace Modules\Reporting\Services;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Modules\Sales\Models\SalesOrder;
 use Modules\Sales\Models\SalesInvoice;
 use Modules\Sales\Models\Customer;
@@ -16,9 +17,14 @@ use Modules\Accounting\Models\Account;
 
 /**
  * DashboardService - Provides dashboard widgets data
+ * Uses caching for performance optimization
  */
 class DashboardService
 {
+    // Cache TTL in seconds (5 minutes)
+    const CACHE_TTL = 300;
+    const CACHE_KEY = 'dashboard_stats';
+
     public function __construct(
         protected FinancialReportService $financialService,
         protected AgingReportService $agingService,
@@ -27,9 +33,19 @@ class DashboardService
     }
 
     /**
-     * Get complete dashboard data
+     * Get complete dashboard data (cached)
      */
     public function getDashboard(): array
+    {
+        return Cache::remember(self::CACHE_KEY, self::CACHE_TTL, function () {
+            return $this->buildDashboard();
+        });
+    }
+
+    /**
+     * Build dashboard data (uncached)
+     */
+    protected function buildDashboard(): array
     {
         return [
             'generated_at' => now()->toIso8601String(),
@@ -39,6 +55,14 @@ class DashboardService
             'financial' => $this->getFinancialWidgets(),
             'quick_stats' => $this->getQuickStats(),
         ];
+    }
+
+    /**
+     * Clear dashboard cache (call after data changes)
+     */
+    public static function clearCache(): void
+    {
+        Cache::forget(self::CACHE_KEY);
     }
 
     /**

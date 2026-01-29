@@ -149,15 +149,49 @@ class CustomerController extends Controller
         $fromDate = $request->get('from_date', now()->startOfMonth()->format('Y-m-d'));
         $toDate = $request->get('to_date', now()->format('Y-m-d'));
 
-        // Calculate opening balance (sum of all transactions before from_date)
-        $openingBalance = 0; // TODO: Calculate from actual transactions
+        // Get sales invoices
+        $invoices = $customer->salesInvoices()
+            ->whereBetween('invoice_date', [$fromDate, $toDate])
+            ->orderBy('invoice_date')
+            ->get()
+            ->map(fn($inv) => (object) [
+                'date' => $inv->invoice_date,
+                'type' => 'invoice',
+                'reference' => $inv->invoice_number,
+                'description' => 'فاتورة مبيعات',
+                'debit' => $inv->total,
+                'credit' => 0,
+            ]);
 
-        // Get transactions in period
-        $transactions = collect(); // TODO: Fetch from invoices and payments
+        // Get payments
+        $payments = $customer->payments()
+            ->whereBetween('payment_date', [$fromDate, $toDate])
+            ->orderBy('payment_date')
+            ->get()
+            ->map(fn($p) => (object) [
+                'date' => $p->payment_date,
+                'type' => 'payment',
+                'reference' => $p->reference,
+                'description' => 'سداد',
+                'debit' => 0,
+                'credit' => $p->amount,
+            ]);
+
+        // Merge and sort
+        $transactions = $invoices->concat($payments)->sortBy('date')->values();
+
+        // Opening balance (all transactions before from_date)
+        $openingInvoices = $customer->salesInvoices()
+            ->where('invoice_date', '<', $fromDate)
+            ->sum('total');
+        $openingPayments = $customer->payments()
+            ->where('payment_date', '<', $fromDate)
+            ->sum('amount');
+        $openingBalance = $openingInvoices - $openingPayments;
 
         // Calculate totals
-        $totalInvoices = $transactions->where('type', 'invoice')->sum('amount');
-        $totalPayments = $transactions->where('type', 'payment')->sum('amount');
+        $totalInvoices = $invoices->sum('debit');
+        $totalPayments = $payments->sum('credit');
         $balance = $openingBalance + $totalInvoices - $totalPayments;
 
         return view('sales.customers.statement', compact(
@@ -166,7 +200,44 @@ class CustomerController extends Controller
             'openingBalance',
             'totalInvoices',
             'totalPayments',
-            'balance'
+            'balance',
+            'fromDate',
+            'toDate'
         ));
     }
+
+    /**
+     * Display customer credit history
+     */
+    public function creditHistory(Customer $customer)
+    {
+        // Get all invoices ordered by date
+        $invoices = $customer->salesInvoices()
+            ->orderBy('invoice_date', 'desc')
+            ->get()
+            ->map(fn($inv) => (object) [
+                'id' => $inv->id,
+                'date' => $inv->invoice_date,
+                'invoice_number' => $inv->invoice_number,
+                'total' => $inv->total,
+                'paid' => $inv->amount_paid,
+                'balance' => $inv->balance_due,
+                'status' => $inv->status,
+                'due_date' => $inv->due_date,
+                'is_overdue' => $inv->due_date && $inv->due_date < now() && $inv->balance_due > 0,
+            ]);
+
+        // Summary stats
+        $stats = (object) [
+            'total_invoices' => $invoices->count(),
+            'total_amount' => $invoices->sum('total'),
+            'total_paid' => $invoices->sum('paid'),
+            'total_balance' => $invoices->sum('balance'),
+            'overdue_count' => $invoices->where('is_overdue', true)->count(),
+            'overdue_amount' => $invoices->where('is_overdue', true)->sum('balance'),
+        ];
+
+        return view('sales.customers.credit-history', compact('customer', 'invoices', 'stats'));
+    }
 }
+

@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Modules\Inventory\Models\Product;
 use Modules\Inventory\Models\Category;
 use Modules\Inventory\Models\Unit;
+use Modules\Inventory\Models\Warehouse;
+use Modules\Inventory\Models\ProductStock;
 use Modules\Inventory\Enums\ProductType;
 
 /**
@@ -57,9 +59,10 @@ class ProductController extends Controller
     {
         $categories = Category::orderBy('name')->get();
         $units = Unit::orderBy('name')->get();
+        $warehouses = Warehouse::active()->orderBy('name')->get();
         $types = ProductType::cases();
 
-        return view('inventory.products.create', compact('categories', 'units', 'types'));
+        return view('inventory.products.create', compact('categories', 'units', 'warehouses', 'types'));
     }
 
     /**
@@ -84,6 +87,9 @@ class ProductController extends Controller
             'is_active' => 'boolean',
             'is_sellable' => 'boolean',
             'is_purchasable' => 'boolean',
+            // Initial stock fields
+            'initial_warehouse_id' => 'nullable|exists:warehouses,id',
+            'initial_stock' => 'nullable|numeric|min:0',
         ]);
 
         // Map form fields to database columns
@@ -107,7 +113,17 @@ class ProductController extends Controller
             'created_by' => auth()->id(),
         ];
 
-        Product::create($data);
+        $product = Product::create($data);
+
+        // Create initial stock if warehouse and quantity provided
+        if (!empty($validated['initial_warehouse_id']) && !empty($validated['initial_stock']) && $validated['initial_stock'] > 0) {
+            ProductStock::create([
+                'product_id' => $product->id,
+                'warehouse_id' => $validated['initial_warehouse_id'],
+                'quantity' => $validated['initial_stock'],
+                'average_cost' => $validated['cost_price'],
+            ]);
+        }
 
         return redirect()->route('products.index')
             ->with('success', 'تم إنشاء المنتج بنجاح');

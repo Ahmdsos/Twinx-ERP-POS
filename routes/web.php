@@ -23,6 +23,10 @@ use App\Http\Controllers\CourierController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\JournalEntryController;
 use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\POSController;
+use App\Http\Controllers\ProductImageController;
+use App\Http\Controllers\BarcodeController;
+use App\Http\Controllers\SettingsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -66,6 +70,48 @@ Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // ==========================================
+    // POS - Point of Sale
+    // ==========================================
+    Route::prefix('pos')->name('pos.')->group(function () {
+        Route::get('/', [POSController::class, 'index'])->name('index');
+        Route::get('/search', [POSController::class, 'searchProducts'])->name('search');
+        Route::get('/barcode', [POSController::class, 'findByBarcode'])->name('barcode');
+        Route::post('/checkout', [POSController::class, 'checkout'])->name('checkout');
+        Route::get('/receipt/{invoice}', [POSController::class, 'receipt'])->name('receipt');
+        Route::get('/summary', [POSController::class, 'dailySummary'])->name('summary');
+        Route::post('/hold', [POSController::class, 'holdSale'])->name('hold');
+        Route::get('/held', [POSController::class, 'getHeldSales'])->name('held');
+        Route::post('/resume', [POSController::class, 'resumeSale'])->name('resume');
+
+        // Shift Management
+        Route::post('/shift/open', [POSController::class, 'openShift'])->name('shift.open');
+        Route::post('/shift/close', [POSController::class, 'closeShift'])->name('shift.close');
+        Route::get('/shift/status', [POSController::class, 'shiftStatus'])->name('shift.status');
+        Route::get('/shift/{shift}/report', [POSController::class, 'shiftReport'])->name('shift.report');
+    });
+
+    // ==========================================
+    // Product Images
+    // ==========================================
+    Route::prefix('products/{product}/images')->name('products.images.')->group(function () {
+        Route::post('/', [ProductImageController::class, 'store'])->name('store');
+        Route::post('/{image}/primary', [ProductImageController::class, 'setPrimary'])->name('primary');
+        Route::post('/order', [ProductImageController::class, 'updateOrder'])->name('order');
+        Route::delete('/{image}', [ProductImageController::class, 'destroy'])->name('destroy');
+    });
+
+    // ==========================================
+    // Barcode Generation
+    // ==========================================
+    Route::prefix('barcode')->name('barcode.')->group(function () {
+        Route::get('/product/{product}', [BarcodeController::class, 'show'])->name('show');
+        Route::get('/product/{product}/label', [BarcodeController::class, 'label'])->name('label');
+        Route::get('/product/{product}/print', [BarcodeController::class, 'printPreview'])->name('print');
+        Route::post('/product/{product}/generate', [BarcodeController::class, 'generate'])->name('generate');
+        Route::post('/batch', [BarcodeController::class, 'batch'])->name('batch');
+    });
+
+    // ==========================================
     // ACCOUNTING MODULE
     // ==========================================
 
@@ -85,6 +131,7 @@ Route::middleware(['auth'])->group(function () {
     // Customers - Full Resource + Statement
     Route::resource('customers', CustomerController::class);
     Route::get('customers/{customer}/statement', [CustomerController::class, 'statement'])->name('customers.statement');
+    Route::get('customers/{customer}/credit-history', [CustomerController::class, 'creditHistory'])->name('customers.credit-history');
 
     // Quotations (عروض الأسعار)
     Route::resource('quotations', QuotationController::class);
@@ -189,6 +236,13 @@ Route::middleware(['auth'])->group(function () {
         // Aging Reports
         Route::get('ar-aging', [ReportController::class, 'arAging'])->name('ar-aging');
         Route::get('ap-aging', [ReportController::class, 'apAging'])->name('ap-aging');
+        Route::get('sales-by-product', [ReportController::class, 'salesByProduct'])->name('sales-by-product');
+        Route::get('inventory-valuation', [ReportController::class, 'inventoryValuation'])->name('inventory-valuation');
+        Route::get('profit-margin', [ReportController::class, 'profitMarginAnalysis'])->name('profit-margin');
+
+        // Export routes
+        Route::get('sales-by-product/export', [ReportController::class, 'exportSalesByProduct'])->name('sales-by-product.export');
+        Route::get('inventory-valuation/export', [ReportController::class, 'exportInventoryValuation'])->name('inventory-valuation.export');
     });
 
     // ==========================================
@@ -202,5 +256,11 @@ Route::middleware(['auth'])->group(function () {
     // ==========================================
     Route::get('activity-log', [ActivityLogController::class, 'index'])->name('activity-log.index');
     Route::get('activity-log/{activityLog}', [ActivityLogController::class, 'show'])->name('activity-log.show');
+
+    // ==========================================
+    // SYSTEM SETTINGS
+    // ==========================================
+    Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
+    Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');
 });
 

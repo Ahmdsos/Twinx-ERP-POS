@@ -111,6 +111,27 @@ class Product extends Model
         return $this->hasMany(StockMovement::class);
     }
 
+    public function images(): HasMany
+    {
+        return $this->hasMany(ProductImage::class)->ordered();
+    }
+
+    /**
+     * Get primary image
+     */
+    public function getPrimaryImageAttribute(): ?ProductImage
+    {
+        return $this->images->firstWhere('is_primary', true) ?? $this->images->first();
+    }
+
+    /**
+     * Get primary image URL
+     */
+    public function getPrimaryImageUrlAttribute(): ?string
+    {
+        return $this->primaryImage?->url;
+    }
+
     // =====================
     // Scopes
     // =====================
@@ -158,6 +179,14 @@ class Product extends Model
     public function getTotalStockAttribute(): float
     {
         return $this->stock()->sum('quantity');
+    }
+
+    /**
+     * Get total stock as method (for controller compatibility)
+     */
+    public function getTotalStock(): float
+    {
+        return $this->total_stock;
     }
 
     /**

@@ -42,9 +42,41 @@
                 </div>
                 <div class="card-body">
                     <div class="text-center mb-4">
-                        <div class="bg-light rounded p-4 mb-3">
-                            <i class="bi bi-box-seam text-primary" style="font-size: 4rem;"></i>
-                        </div>
+                        <!-- Image Gallery -->
+                        @if($product->images && $product->images->count() > 0)
+                            <div id="productImageCarousel" class="carousel slide mb-3" data-bs-ride="carousel">
+                                <div class="carousel-inner">
+                                    @foreach($product->images as $index => $image)
+                                        <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
+                                            <img src="{{ $image->url }}" class="d-block mx-auto rounded"
+                                                style="max-height: 200px; object-fit: contain;" alt="{{ $product->name }}">
+                                        </div>
+                                    @endforeach
+                                </div>
+                                @if($product->images->count() > 1)
+                                    <button class="carousel-control-prev" type="button" data-bs-target="#productImageCarousel"
+                                        data-bs-slide="prev">
+                                        <span class="carousel-control-prev-icon bg-dark rounded-circle p-2"></span>
+                                    </button>
+                                    <button class="carousel-control-next" type="button" data-bs-target="#productImageCarousel"
+                                        data-bs-slide="next">
+                                        <span class="carousel-control-next-icon bg-dark rounded-circle p-2"></span>
+                                    </button>
+                                @endif
+                            </div>
+                            <div class="d-flex justify-content-center gap-1 mb-3">
+                                @foreach($product->images->take(5) as $image)
+                                    <img src="{{ $image->thumbnail_url }}" class="rounded border"
+                                        style="width: 40px; height: 40px; object-fit: cover; cursor: pointer;"
+                                        onclick="document.querySelector('#productImageCarousel').querySelectorAll('.carousel-item')[{{ $loop->index }}].classList.add('active')">
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="bg-light rounded p-4 mb-3">
+                                <i class="bi bi-box-seam text-primary" style="font-size: 4rem;"></i>
+                            </div>
+                        @endif
+
                         <h4 class="mb-1">{{ $product->name }}</h4>
                         <span class="badge bg-{{ $product->is_active ? 'success' : 'secondary' }} me-1">
                             {{ $product->is_active ? 'نشط' : 'غير نشط' }}
@@ -52,6 +84,17 @@
                         <span class="badge bg-info">
                             {{ $product->type == 'goods' ? 'بضاعة' : 'خدمة' }}
                         </span>
+
+                        <!-- Action Buttons -->
+                        <div class="mt-3 d-flex justify-content-center gap-2">
+                            <a href="{{ route('barcodes.print', $product) }}" class="btn btn-outline-primary btn-sm"
+                                target="_blank">
+                                <i class="bi bi-upc-scan me-1"></i>طباعة الباركود
+                            </a>
+                            <a href="{{ route('products.edit', $product) }}" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-pencil me-1"></i>تعديل
+                            </a>
+                        </div>
                     </div>
 
                     <hr>
@@ -167,7 +210,8 @@
                                         <td>{{ number_format($stockItem->quantity, 2) }}</td>
                                         <td>{{ number_format($stockItem->reserved_quantity, 2) }}</td>
                                         <td class="fw-bold">
-                                            {{ number_format($stockItem->quantity - $stockItem->reserved_quantity, 2) }}</td>
+                                            {{ number_format($stockItem->quantity - $stockItem->reserved_quantity, 2) }}
+                                        </td>
                                         <td>{{ number_format($stockItem->average_cost, 4) }}</td>
                                         <td>{{ number_format($stockItem->quantity * $stockItem->average_cost, 2) }} ج.م</td>
                                     </tr>

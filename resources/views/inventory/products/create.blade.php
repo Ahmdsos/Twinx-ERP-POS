@@ -126,6 +126,41 @@
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
+                        <!-- Initial Stock Section -->
+                        <div class="col-12">
+                            <div class="alert alert-info mb-3">
+                                <i class="bi bi-info-circle me-2"></i>
+                                يمكنك إضافة مخزون ابتدائي للمنتج مباشرة عند الإنشاء
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">المستودع الابتدائي</label>
+                            <select class="form-select @error('initial_warehouse_id') is-invalid @enderror" 
+                                    name="initial_warehouse_id" id="initial_warehouse_id">
+                                <option value="">اختر المستودع...</option>
+                                @foreach($warehouses ?? [] as $warehouse)
+                                    <option value="{{ $warehouse->id }}" {{ old('initial_warehouse_id') == $warehouse->id ? 'selected' : '' }}>
+                                        {{ $warehouse->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('initial_warehouse_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">الكمية الابتدائية</label>
+                            <input type="number" class="form-control @error('initial_stock') is-invalid @enderror" 
+                                   name="initial_stock" value="{{ old('initial_stock', 0) }}" step="0.01" min="0">
+                            @error('initial_stock')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                        <div class="col-12"><hr></div>
+                        
                         <div class="col-md-4">
                             <label class="form-label">الحد الأدنى للمخزون</label>
                             <input type="number" class="form-control @error('min_stock_level') is-invalid @enderror" 

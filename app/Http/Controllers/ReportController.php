@@ -6,11 +6,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\Sales\Models\Customer;
 use Modules\Sales\Models\SalesInvoice;
+use Modules\Sales\Models\SalesInvoiceLine;
 use Modules\Purchasing\Models\Supplier;
 use Modules\Purchasing\Models\PurchaseInvoice;
 use Modules\Accounting\Services\LedgerService;
 use Modules\Accounting\Models\Account;
 use Modules\Accounting\Enums\AccountType;
+use Modules\Inventory\Models\Product;
 use Carbon\Carbon;
 
 /**
@@ -434,4 +436,228 @@ class ReportController extends Controller
 
         return view('reports.ap-aging', compact('agingData', 'totals', 'asOfDate'));
     }
+
+    /**
+     * Sales By Product Report
+     * تقرير المبيعات حسب المنتج
+     */
+    public function salesByProduct(Request $request)
+    {
+        $startDate = $request->filled('start_date')
+            ? Carbon::parse($request->start_date)
+            : now()->startOfMonth();
+        $endDate = $request->filled('end_date')
+            ? Carbon::parse($request->end_date)
+            : now()->endOfMonth();
+
+        // Get sales data grouped by product
+        $data = DB::table('sales_invoice_lines')
+            ->join('sales_invoices', 'sales_invoice_lines.sales_invoice_id', '=', 'sales_invoices.id')
+            ->join('products', 'sales_invoice_lines.product_id', '=', 'products.id')
+            ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
+            ->whereBetween('sales_invoices.invoice_date', [$startDate, $endDate])
+            ->whereNull('sales_invoices.deleted_at')
+            ->where('sales_invoices.status', '!=', 'cancelled')
+            ->select([
+                'products.id as product_id',
+                'products.sku',
+                'products.name as product_name',
+                'categories.name as category_name',
+                DB::raw('SUM(sales_invoice_lines.quantity) as total_qty'),
+                DB::raw('SUM(sales_invoice_lines.subtotal) as total_subtotal'),
+                DB::raw('SUM(sales_invoice_lines.tax_amount) as total_tax'),
+                DB::raw('SUM(sales_invoice_lines.total) as total_sales'),
+                DB::raw('COUNT(DISTINCT sales_invoices.id) as invoice_count'),
+            ])
+            ->groupBy('products.id', 'products.sku', 'products.name', 'categories.name')
+            ->orderByDesc('total_sales')
+            ->get();
+
+        // Calculate totals
+        $totals = [
+            'total_qty' => $data->sum('total_qty'),
+            'total_subtotal' => $data->sum('total_subtotal'),
+            'total_tax' => $data->sum('total_tax'),
+            'total_sales' => $data->sum('total_sales'),
+            'invoice_count' => $data->sum('invoice_count'),
+        ];
+
+        return view('reports.sales-by-product', compact('data', 'totals', 'startDate', 'endDate'));
+    }
+
+    /**
+     * Inventory Valuation Report
+     * تقرير تقييم المخزون
+     */
+    public function inventoryValuation(Request $request)
+    {
+        // Get all products with their stock
+        $data = Product::with(['category', 'unit'])
+            ->where('is_active', true)
+            ->get()
+            ->map(function ($product) {
+                $totalStock = $product->getTotalStock();
+                $costValue = $totalStock * $product->cost_price;
+                $saleValue = $totalStock * $product->selling_price;
+                $potentialProfit = $saleValue - $costValue;
+
+                return (object) [
+                    'id' => $product->id,
+                    'sku' => $product->sku,
+                    'name' => $product->name,
+                    'category' => $product->category?->name ?? '-',
+                    'unit' => $product->unit?->abbreviation ?? 'PCS',
+                    'stock' => $totalStock,
+                    'cost_price' => $product->cost_price,
+                    'selling_price' => $product->selling_price,
+                    'cost_value' => $costValue,
+                    'sale_value' => $saleValue,
+                    'potential_profit' => $potentialProfit,
+                ];
+            })
+            ->filter(fn($p) => $p->stock > 0);
+
+        // Calculate totals
+        $totals = [
+            'total_items' => $data->count(),
+            'total_quantity' => $data->sum('stock'),
+            'total_cost_value' => $data->sum('cost_value'),
+            'total_sale_value' => $data->sum('sale_value'),
+            'total_potential_profit' => $data->sum('potential_profit'),
+        ];
+
+        return view('reports.inventory-valuation', compact('data', 'totals'));
+    }
+
+    /**
+     * Profit Margin Analysis Report
+     * تقرير تحليل هامش الربح
+     */
+    public function profitMarginAnalysis(Request $request)
+    {
+        $startDate = $request->filled('start_date')
+            ? Carbon::parse($request->start_date)
+            : now()->startOfMonth();
+        $endDate = $request->filled('end_date')
+            ? Carbon::parse($request->end_date)
+            : now()->endOfMonth();
+
+        // Get sales data with cost information
+        $data = DB::table('sales_invoice_lines')
+            ->join('sales_invoices', 'sales_invoice_lines.sales_invoice_id', '=', 'sales_invoices.id')
+            ->join('products', 'sales_invoice_lines.product_id', '=', 'products.id')
+            ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
+            ->whereBetween('sales_invoices.invoice_date', [$startDate, $endDate])
+            ->whereNull('sales_invoices.deleted_at')
+            ->where('sales_invoices.status', '!=', 'cancelled')
+            ->select([
+                'products.id as product_id',
+                'products.sku',
+                'products.name as product_name',
+                'products.cost_price',
+                'categories.name as category_name',
+                DB::raw('SUM(sales_invoice_lines.quantity) as total_qty'),
+                DB::raw('SUM(sales_invoice_lines.total) as total_revenue'),
+                DB::raw('SUM(sales_invoice_lines.quantity * products.cost_price) as total_cost'),
+            ])
+            ->groupBy('products.id', 'products.sku', 'products.name', 'products.cost_price', 'categories.name')
+            ->orderByDesc('total_revenue')
+            ->get()
+            ->map(function ($row) {
+                $profit = $row->total_revenue - $row->total_cost;
+                $marginPercent = $row->total_revenue > 0
+                    ? ($profit / $row->total_revenue) * 100
+                    : 0;
+
+                $row->profit = $profit;
+                $row->margin_percent = $marginPercent;
+                return $row;
+            });
+
+        // Calculate totals
+        $totals = [
+            'total_qty' => $data->sum('total_qty'),
+            'total_revenue' => $data->sum('total_revenue'),
+            'total_cost' => $data->sum('total_cost'),
+            'total_profit' => $data->sum('profit'),
+            'avg_margin' => $data->avg('margin_percent'),
+        ];
+
+        return view('reports.profit-margin', compact('data', 'totals', 'startDate', 'endDate'));
+    }
+
+    /**
+     * Export Sales by Product to Excel/CSV
+     */
+    public function exportSalesByProduct(Request $request)
+    {
+        $startDate = $request->filled('start_date')
+            ? \Carbon\Carbon::parse($request->start_date)
+            : now()->startOfMonth();
+        $endDate = $request->filled('end_date')
+            ? \Carbon\Carbon::parse($request->end_date)
+            : now()->endOfMonth();
+
+        $data = DB::table('sales_invoice_lines')
+            ->join('sales_invoices', 'sales_invoice_lines.sales_invoice_id', '=', 'sales_invoices.id')
+            ->join('products', 'sales_invoice_lines.product_id', '=', 'products.id')
+            ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
+            ->whereBetween('sales_invoices.invoice_date', [$startDate, $endDate])
+            ->whereNull('sales_invoices.deleted_at')
+            ->where('sales_invoices.status', '!=', 'cancelled')
+            ->select([
+                'products.sku',
+                'products.name as product_name',
+                'categories.name as category_name',
+                DB::raw('SUM(sales_invoice_lines.quantity) as total_qty'),
+                DB::raw('SUM(sales_invoice_lines.total) as total_sales'),
+            ])
+            ->groupBy('products.id', 'products.sku', 'products.name', 'categories.name')
+            ->orderByDesc('total_sales')
+            ->get();
+
+        $exportService = new \App\Services\ExportService();
+
+        $headers = ['SKU', 'المنتج', 'التصنيف', 'الكمية', 'الإجمالي'];
+        $rows = $data->map(fn($r) => [
+            $r->sku,
+            $r->product_name,
+            $r->category_name ?? '-',
+            $r->total_qty,
+            $r->total_sales,
+        ]);
+
+        return $exportService->toExcelCsv($headers, $rows, 'sales-by-product-' . now()->format('Y-m-d') . '.csv');
+    }
+
+    /**
+     * Export Inventory Valuation to Excel/CSV
+     */
+    public function exportInventoryValuation()
+    {
+        $data = Product::with(['category', 'unit'])
+            ->where('is_active', true)
+            ->get()
+            ->filter(fn($p) => $p->getTotalStock() > 0)
+            ->map(function ($p) {
+                $stock = $p->getTotalStock();
+                return [
+                    $p->sku,
+                    $p->name,
+                    $p->category?->name ?? '-',
+                    $stock,
+                    $p->cost_price,
+                    $p->selling_price,
+                    $stock * $p->cost_price,
+                    $stock * $p->selling_price,
+                ];
+            });
+
+        $exportService = new \App\Services\ExportService();
+
+        $headers = ['SKU', 'المنتج', 'التصنيف', 'الكمية', 'سعر التكلفة', 'سعر البيع', 'قيمة التكلفة', 'قيمة البيع'];
+
+        return $exportService->toExcelCsv($headers, $data, 'inventory-valuation-' . now()->format('Y-m-d') . '.csv');
+    }
 }
+

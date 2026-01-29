@@ -70,6 +70,36 @@
     <!-- Custom Scripts -->
     <script src="{{ asset('js/app.js') }}"></script>
 
+    <!-- Dark Mode Toggle Script -->
+    <script>
+        // Check for saved theme preference or use system preference
+        const getTheme = () => {
+            const saved = localStorage.getItem('theme');
+            if (saved) return saved;
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        };
+
+        const setTheme = (theme) => {
+            document.documentElement.setAttribute('data-bs-theme', theme);
+            localStorage.setItem('theme', theme);
+
+            // Update toggle button icon
+            const icon = document.getElementById('theme-icon');
+            if (icon) {
+                icon.className = theme === 'dark' ? 'bi bi-moon-fill' : 'bi bi-sun-fill';
+            }
+        };
+
+        // Initialize theme
+        setTheme(getTheme());
+
+        // Toggle function
+        window.toggleTheme = () => {
+            const current = document.documentElement.getAttribute('data-bs-theme') || 'light';
+            setTheme(current === 'dark' ? 'light' : 'dark');
+        };
+    </script>
+
     @stack('scripts')
 </body>
 

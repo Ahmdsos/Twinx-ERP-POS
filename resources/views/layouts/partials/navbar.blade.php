@@ -11,6 +11,11 @@
 
         <!-- Right Side -->
         <div class="d-flex align-items-center ms-auto">
+            <!-- Theme Toggle -->
+            <button class="btn btn-link text-dark me-2" onclick="toggleTheme()" title="تبديل الوضع الليلي">
+                <i class="bi bi-sun-fill" id="theme-icon"></i>
+            </button>
+
             <!-- Notifications -->
             <div class="dropdown me-3">
                 <button class="btn btn-link text-dark position-relative" data-bs-toggle="dropdown">

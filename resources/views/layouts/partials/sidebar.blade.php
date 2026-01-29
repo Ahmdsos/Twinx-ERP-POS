@@ -16,6 +16,14 @@
                 لوحة التحكم
             </a>
         </li>
+        <li class="nav-item">
+            <a href="{{ route('pos.index') }}"
+                class="nav-link text-white {{ request()->routeIs('pos.*') ? 'active' : '' }}"
+                style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 8px; margin: 5px;">
+                <i class="bi bi-cart-check me-2"></i>
+                <strong>نقطة البيع (POS)</strong>
+            </a>
+        </li>
 
         <!-- Accounting Section -->
         <li class="nav-item mt-3">
@@ -259,6 +267,13 @@
                 class="nav-link text-white {{ request()->routeIs('activity-log.*') ? 'active' : '' }}">
                 <i class="bi bi-clock-history me-2"></i>
                 سجل النشاطات
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('settings.index') }}"
+                class="nav-link text-white {{ request()->routeIs('settings.*') ? 'active' : '' }}">
+                <i class="bi bi-gear me-2"></i>
+                الإعدادات
             </a>
         </li>
     </ul>

@@ -202,6 +202,41 @@
                 ملخص مشتريات الموردين
             </a>
         </li>
+        <li class="nav-item">
+            <a href="{{ route('reports.trial-balance') }}"
+                class="nav-link text-white {{ request()->routeIs('reports.trial-balance') ? 'active' : '' }}">
+                <i class="bi bi-calculator me-2"></i>
+                ميزان المراجعة
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('reports.profit-loss') }}"
+                class="nav-link text-white {{ request()->routeIs('reports.profit-loss') ? 'active' : '' }}">
+                <i class="bi bi-cash-coin me-2"></i>
+                قائمة الدخل
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('reports.balance-sheet') }}"
+                class="nav-link text-white {{ request()->routeIs('reports.balance-sheet') ? 'active' : '' }}">
+                <i class="bi bi-pie-chart me-2"></i>
+                الميزانية العمومية
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('reports.ar-aging') }}"
+                class="nav-link text-white {{ request()->routeIs('reports.ar-aging') ? 'active' : '' }}">
+                <i class="bi bi-hourglass-split me-2"></i>
+                أعمار ديون العملاء
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('reports.ap-aging') }}"
+                class="nav-link text-white {{ request()->routeIs('reports.ap-aging') ? 'active' : '' }}">
+                <i class="bi bi-hourglass me-2"></i>
+                أعمار ديون الموردين
+            </a>
+        </li>
 
         <!-- Shipping Section -->
         <li class="nav-item mt-3">

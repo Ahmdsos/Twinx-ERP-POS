@@ -179,6 +179,15 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('reports')->name('reports.')->group(function () {
         Route::get('customer-sales', [ReportController::class, 'customerSalesSummary'])->name('customer-sales');
         Route::get('supplier-purchases', [ReportController::class, 'supplierPurchaseSummary'])->name('supplier-purchases');
+
+        // Financial Reports (Sprint 12)
+        Route::get('trial-balance', [ReportController::class, 'trialBalance'])->name('trial-balance');
+        Route::get('profit-loss', [ReportController::class, 'profitAndLoss'])->name('profit-loss');
+        Route::get('balance-sheet', [ReportController::class, 'balanceSheet'])->name('balance-sheet');
+
+        // Aging Reports
+        Route::get('ar-aging', [ReportController::class, 'arAging'])->name('ar-aging');
+        Route::get('ap-aging', [ReportController::class, 'apAging'])->name('ap-aging');
     });
 
     // ==========================================

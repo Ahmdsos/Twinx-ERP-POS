@@ -124,13 +124,17 @@ class PurchaseInvoiceController extends Controller
         $grn = Grn::with(['supplier', 'lines.product', 'purchaseOrder'])->findOrFail($validated['grn_id']);
 
         try {
-            $invoice = $this->purchasingService->createInvoice(
+            $invoice = $this->purchasingService->createInvoiceFromGrn(
                 $grn,
                 $validated['supplier_invoice_number'],
-                $validated['invoice_date'],
-                $validated['due_date'],
-                $validated['notes'] ?? null
+                \Carbon\Carbon::parse($validated['invoice_date']),
+                \Carbon\Carbon::parse($validated['due_date'])
             );
+
+            // Additional notes - store separately if needed
+            if (!empty($validated['notes'])) {
+                $invoice->update(['notes' => $validated['notes']]);
+            }
 
             return redirect()->route('purchase-invoices.show', $invoice)
                 ->with('success', 'تم إنشاء فاتورة الشراء: ' . $invoice->invoice_number);

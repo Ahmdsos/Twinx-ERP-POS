@@ -134,32 +134,33 @@ class SupplierPaymentController extends Controller
         $paymentAccount = Account::findOrFail($validated['payment_account_id']);
 
         try {
-            // Prepare allocations
-            $allocations = [];
+            // Prepare allocations for service (requires invoice_id format)
+            $invoiceAllocations = [];
             if (!empty($validated['allocations'])) {
                 foreach ($validated['allocations'] as $alloc) {
-                    if ($alloc['amount'] > 0) {
-                        $invoice = PurchaseInvoice::find($alloc['invoice_id']);
-                        if ($invoice && $invoice->status->canPay()) {
-                            $allocations[] = [
-                                'invoice' => $invoice,
-                                'amount' => min($alloc['amount'], $invoice->balance_due),
-                            ];
-                        }
+                    if (isset($alloc['amount']) && $alloc['amount'] > 0) {
+                        $invoiceAllocations[] = [
+                            'invoice_id' => $alloc['invoice_id'],
+                            'amount' => $alloc['amount'],
+                        ];
                     }
                 }
             }
 
-            $payment = $this->purchasingService->recordPayment(
+            $payment = $this->purchasingService->createPayment(
                 $supplier,
                 $validated['amount'],
-                $validated['payment_date'],
-                $validated['payment_method'],
                 $paymentAccount,
+                $validated['payment_method'],
                 $validated['reference'] ?? null,
-                $validated['notes'] ?? null,
-                $allocations
+                \Carbon\Carbon::parse($validated['payment_date']),
+                $invoiceAllocations
             );
+
+            // Additional notes - store separately if needed
+            if (!empty($validated['notes'])) {
+                $payment->update(['notes' => $validated['notes']]);
+            }
 
             return redirect()->route('supplier-payments.show', $payment)
                 ->with('success', 'تم تسجيل الدفعة: ' . $payment->payment_number);

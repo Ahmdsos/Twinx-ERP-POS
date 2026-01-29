@@ -18,6 +18,9 @@ use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\GrnController;
 use App\Http\Controllers\PurchaseInvoiceController;
 use App\Http\Controllers\SupplierPaymentController;
+use App\Http\Controllers\QuotationController;
+use App\Http\Controllers\CourierController;
+use App\Http\Controllers\ReportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -78,6 +81,14 @@ Route::middleware(['auth'])->group(function () {
     // Customers - Full Resource + Statement
     Route::resource('customers', CustomerController::class);
     Route::get('customers/{customer}/statement', [CustomerController::class, 'statement'])->name('customers.statement');
+
+    // Quotations (عروض الأسعار)
+    Route::resource('quotations', QuotationController::class);
+    Route::post('quotations/{quotation}/send', [QuotationController::class, 'send'])->name('quotations.send');
+    Route::post('quotations/{quotation}/accept', [QuotationController::class, 'accept'])->name('quotations.accept');
+    Route::post('quotations/{quotation}/reject', [QuotationController::class, 'reject'])->name('quotations.reject');
+    Route::post('quotations/{quotation}/convert', [QuotationController::class, 'convert'])->name('quotations.convert');
+    Route::get('quotations/{quotation}/print', [QuotationController::class, 'print'])->name('quotations.print');
 
     // Sales Orders - Full Resource + Actions
     Route::resource('sales-orders', SalesOrderController::class)->parameters(['sales-orders' => 'salesOrder']);
@@ -160,4 +171,16 @@ Route::middleware(['auth'])->group(function () {
     // ==========================================
     Route::get('reports/financial', fn() => view('reports.financial'))->name('reports.financial');
     Route::get('reports/stock', fn() => view('reports.stock'))->name('reports.stock');
+
+    // Summary Reports (Sprint 10)
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('customer-sales', [ReportController::class, 'customerSalesSummary'])->name('customer-sales');
+        Route::get('supplier-purchases', [ReportController::class, 'supplierPurchaseSummary'])->name('supplier-purchases');
+    });
+
+    // ==========================================
+    // COURIERS (شركات الشحن)
+    // ==========================================
+    Route::resource('couriers', CourierController::class);
+    Route::patch('couriers/{courier}/toggle-status', [CourierController::class, 'toggleStatus'])->name('couriers.toggle-status');
 });

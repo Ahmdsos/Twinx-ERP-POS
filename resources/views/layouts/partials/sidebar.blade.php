@@ -102,6 +102,13 @@
             </a>
         </li>
         <li class="nav-item">
+            <a href="{{ route('quotations.index') }}"
+                class="nav-link text-white {{ request()->routeIs('quotations.*') ? 'active' : '' }}">
+                <i class="bi bi-file-earmark-text me-2"></i>
+                عروض الأسعار
+            </a>
+        </li>
+        <li class="nav-item">
             <a href="{{ route('sales-invoices.index') }}"
                 class="nav-link text-white {{ request()->routeIs('sales-invoices.*') ? 'active' : '' }}">
                 <i class="bi bi-receipt me-2"></i>
@@ -172,6 +179,32 @@
                 class="nav-link text-white {{ request()->routeIs('reports.stock') ? 'active' : '' }}">
                 <i class="bi bi-clipboard-data me-2"></i>
                 تقارير المخزون
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('reports.customer-sales') }}"
+                class="nav-link text-white {{ request()->routeIs('reports.customer-sales') ? 'active' : '' }}">
+                <i class="bi bi-graph-up me-2"></i>
+                ملخص مبيعات العملاء
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('reports.supplier-purchases') }}"
+                class="nav-link text-white {{ request()->routeIs('reports.supplier-purchases') ? 'active' : '' }}">
+                <i class="bi bi-graph-down me-2"></i>
+                ملخص مشتريات الموردين
+            </a>
+        </li>
+
+        <!-- Shipping Section -->
+        <li class="nav-item mt-3">
+            <span class="nav-section-title text-uppercase text-secondary px-3 small">الشحن</span>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('couriers.index') }}"
+                class="nav-link text-white {{ request()->routeIs('couriers.*') ? 'active' : '' }}">
+                <i class="bi bi-truck me-2"></i>
+                شركات الشحن
             </a>
         </li>
     </ul>

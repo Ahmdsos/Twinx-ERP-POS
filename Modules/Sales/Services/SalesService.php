@@ -12,9 +12,12 @@ use Modules\Sales\Models\DeliveryOrderLine;
 use Modules\Sales\Models\SalesInvoice;
 use Modules\Sales\Models\SalesInvoiceLine;
 use Modules\Sales\Models\CustomerPayment;
+use Modules\Sales\Models\Quotation;
+use Modules\Sales\Models\QuotationLine;
 use Modules\Sales\Enums\SalesOrderStatus;
 use Modules\Sales\Enums\DeliveryStatus;
 use Modules\Sales\Enums\SalesInvoiceStatus;
+use Modules\Sales\Enums\QuotationStatus;
 use Modules\Inventory\Services\InventoryService;
 use Modules\Inventory\Enums\MovementType;
 use Modules\Inventory\Models\Product;
@@ -44,6 +47,21 @@ class SalesService
     {
         return DB::transaction(function () use ($data, $lines) {
             $customer = Customer::find($data['customer_id']);
+
+            // Calculate order total for credit check
+            $orderTotal = collect($lines)->sum(function ($line) {
+                $quantity = $line['quantity'] ?? 0;
+                $unitPrice = $line['unit_price'] ?? 0;
+                $discount = $line['discount_percent'] ?? 0;
+                $lineTotal = $quantity * $unitPrice * (1 - $discount / 100);
+                return $lineTotal;
+            });
+
+            // Credit limit validation (P2 - Sprint 10)
+            if (!$customer->canPlaceOrder($orderTotal)) {
+                $reason = $customer->getOrderBlockReason($orderTotal);
+                throw new \RuntimeException($reason ?? 'لا يمكن إنشاء الطلب - تجاوز حد الائتمان');
+            }
 
             $so = SalesOrder::create([
                 'customer_id' => $data['customer_id'],
@@ -343,5 +361,88 @@ class SalesService
         ]);
 
         $payment->update(['journal_entry_id' => $entry->id]);
+    }
+
+    // ========================================
+    // Quotation Operations
+    // ========================================
+
+    /**
+     * Create a new quotation
+     */
+    public function createQuotation(array $data, array $lines): Quotation
+    {
+        return DB::transaction(function () use ($data, $lines) {
+            $customer = Customer::find($data['customer_id']);
+
+            $quotation = Quotation::create([
+                'customer_id' => $data['customer_id'],
+                'quotation_date' => $data['quotation_date'] ?? now(),
+                'valid_until' => $data['valid_until'] ?? now()->addDays(30),
+                'status' => QuotationStatus::DRAFT,
+                'notes' => $data['notes'] ?? null,
+                'terms' => $data['terms'] ?? null,
+                'currency' => $data['currency'] ?? 'EGP',
+                'exchange_rate' => $data['exchange_rate'] ?? 1,
+                'discount_amount' => $data['discount_amount'] ?? 0,
+                'created_by' => auth()->id(),
+            ]);
+
+            foreach ($lines as $lineData) {
+                $product = Product::find($lineData['product_id']);
+                $quotation->lines()->create([
+                    'product_id' => $lineData['product_id'],
+                    'quantity' => $lineData['quantity'],
+                    'unit_price' => $lineData['unit_price'] ?? $product->sale_price,
+                    'discount_percent' => $lineData['discount_percent'] ?? 0,
+                    'tax_percent' => $lineData['tax_percent'] ?? $product->tax_rate ?? 0,
+                    'unit_id' => $lineData['unit_id'] ?? $product->unit_id,
+                    'description' => $lineData['description'] ?? $product->name,
+                ]);
+            }
+
+            // Calculate totals
+            $quotation->calculateTotals();
+
+            return $quotation->fresh(['lines', 'customer']);
+        });
+    }
+
+    /**
+     * Convert accepted quotation to sales order
+     */
+    public function convertQuotationToOrder(Quotation $quotation): SalesOrder
+    {
+        if (!$quotation->canConvert()) {
+            throw new \RuntimeException("Cannot convert quotation in status: {$quotation->status->label()}");
+        }
+
+        return DB::transaction(function () use ($quotation) {
+            // Prepare lines data from quotation
+            $lines = $quotation->lines->map(fn($line) => [
+                'product_id' => $line->product_id,
+                'quantity' => $line->quantity,
+                'unit_price' => $line->unit_price,
+                'discount_percent' => $line->discount_percent,
+                'tax_percent' => $line->tax_percent,
+                'unit_id' => $line->unit_id,
+                'description' => $line->description,
+            ])->toArray();
+
+            // Create sales order using existing method
+            $so = $this->createSalesOrder([
+                'customer_id' => $quotation->customer_id,
+                'order_date' => now(),
+                'notes' => $quotation->notes,
+                'quotation_id' => $quotation->id,
+                'currency' => $quotation->currency,
+                'exchange_rate' => $quotation->exchange_rate,
+            ], $lines);
+
+            // Mark quotation as converted
+            $quotation->markAsConverted();
+
+            return $so;
+        });
     }
 }

@@ -27,6 +27,11 @@ use App\Http\Controllers\POSController;
 use App\Http\Controllers\ProductImageController;
 use App\Http\Controllers\BarcodeController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\ExportController;
+use App\Http\Controllers\CurrencyController;
+use App\Http\Controllers\LoyaltyController;
+use App\Http\Controllers\BulkActionsController;
+use App\Http\Controllers\BackupController;
 
 /*
 |--------------------------------------------------------------------------
@@ -88,6 +93,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/shift/close', [POSController::class, 'closeShift'])->name('shift.close');
         Route::get('/shift/status', [POSController::class, 'shiftStatus'])->name('shift.status');
         Route::get('/shift/{shift}/report', [POSController::class, 'shiftReport'])->name('shift.report');
+        Route::get('/shift/report', [POSController::class, 'shiftReportQuick'])->name('shift.report.quick');
+        Route::get('/recent-transactions', [POSController::class, 'recentTransactions'])->name('recent');
+        Route::get('/returns', [POSController::class, 'showReturns'])->name('returns');
+        Route::post('/sales-return', [POSController::class, 'salesReturn'])->name('return');
+        Route::get('/daily-report', [POSController::class, 'showDailyReport'])->name('daily-report');
     });
 
     // ==========================================
@@ -112,6 +122,23 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // ==========================================
+    // EXPORT ROUTES (Excel, PDF)
+    // ==========================================
+    Route::prefix('export')->name('export.')->group(function () {
+        // Products
+        Route::get('/products/excel', [ExportController::class, 'productsExcel'])->name('products.excel');
+        Route::get('/products/pdf', [ExportController::class, 'productsPdf'])->name('products.pdf');
+
+        // Customers
+        Route::get('/customers/excel', [ExportController::class, 'customersExcel'])->name('customers.excel');
+        Route::get('/customers/pdf', [ExportController::class, 'customersPdf'])->name('customers.pdf');
+
+        // Suppliers
+        Route::get('/suppliers/excel', [ExportController::class, 'suppliersExcel'])->name('suppliers.excel');
+        Route::get('/suppliers/pdf', [ExportController::class, 'suppliersPdf'])->name('suppliers.pdf');
+    });
+
+    // ==========================================
     // ACCOUNTING MODULE
     // ==========================================
 
@@ -132,6 +159,11 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('customers', CustomerController::class);
     Route::get('customers/{customer}/statement', [CustomerController::class, 'statement'])->name('customers.statement');
     Route::get('customers/{customer}/credit-history', [CustomerController::class, 'creditHistory'])->name('customers.credit-history');
+    Route::get('customers-import', [CustomerController::class, 'importForm'])->name('customers.import.form');
+    Route::get('customers-import/sample', [CustomerController::class, 'importSample'])->name('customers.import.sample');
+    Route::post('customers-import', [CustomerController::class, 'import'])->name('customers.import');
+    Route::post('customers/{customer}/block', [CustomerController::class, 'block'])->name('customers.block');
+    Route::post('customers/{customer}/unblock', [CustomerController::class, 'unblock'])->name('customers.unblock');
 
     // Quotations (عروض الأسعار)
     Route::resource('quotations', QuotationController::class);
@@ -169,6 +201,10 @@ Route::middleware(['auth'])->group(function () {
 
     // Suppliers - Full Resource
     Route::resource('suppliers', SupplierController::class);
+    Route::get('suppliers-import', [SupplierController::class, 'importForm'])->name('suppliers.import.form');
+    Route::get('suppliers-import/sample', [SupplierController::class, 'importSample'])->name('suppliers.import.sample');
+    Route::post('suppliers-import', [SupplierController::class, 'import'])->name('suppliers.import');
+    Route::get('suppliers/{supplier}/statement', [SupplierController::class, 'statement'])->name('suppliers.statement');
 
     // Purchase Orders
     Route::resource('purchase-orders', PurchaseOrderController::class)->parameters(['purchase-orders' => 'purchaseOrder']);
@@ -195,12 +231,21 @@ Route::middleware(['auth'])->group(function () {
 
     // Products - Full Resource
     Route::resource('products', ProductController::class);
+    Route::get('products-import', [ProductController::class, 'importForm'])->name('products.import.form');
+    Route::get('products-import/sample', [ProductController::class, 'importSample'])->name('products.import.sample');
+    Route::post('products-import', [ProductController::class, 'import'])->name('products.import');
 
     // Categories - Resource (except show - inline editing)
     Route::resource('categories', CategoryController::class)->except(['show', 'create']);
+    Route::get('categories-import', [CategoryController::class, 'importForm'])->name('categories.import.form');
+    Route::get('categories-import/sample', [CategoryController::class, 'importSample'])->name('categories.import.sample');
+    Route::post('categories-import', [CategoryController::class, 'import'])->name('categories.import');
 
     // Warehouses - Full Resource
     Route::resource('warehouses', WarehouseController::class)->except(['create']);
+    Route::get('warehouses-import', [WarehouseController::class, 'importForm'])->name('warehouses.import.form');
+    Route::get('warehouses-import/sample', [WarehouseController::class, 'importSample'])->name('warehouses.import.sample');
+    Route::post('warehouses-import', [WarehouseController::class, 'import'])->name('warehouses.import');
 
     // Units - Resource (except show)
     Route::resource('units', UnitController::class)->except(['show', 'create', 'edit']);
@@ -243,6 +288,15 @@ Route::middleware(['auth'])->group(function () {
         // Export routes
         Route::get('sales-by-product/export', [ReportController::class, 'exportSalesByProduct'])->name('sales-by-product.export');
         Route::get('inventory-valuation/export', [ReportController::class, 'exportInventoryValuation'])->name('inventory-valuation.export');
+
+        // Phase 5 Reports Enhancement
+        Route::get('cash-flow', [ReportController::class, 'cashFlow'])->name('cash-flow');
+        Route::get('daily-sales', [ReportController::class, 'dailySales'])->name('daily-sales');
+        Route::get('sales-by-cashier', [ReportController::class, 'salesByCashier'])->name('sales-by-cashier');
+        Route::get('best-selling', [ReportController::class, 'bestSellingProducts'])->name('best-selling');
+        Route::get('current-stock', [ReportController::class, 'currentStock'])->name('current-stock');
+        Route::get('stock-movements', [ReportController::class, 'stockMovements'])->name('stock-movements');
+        Route::get('low-stock', [ReportController::class, 'lowStock'])->name('low-stock');
     });
 
     // ==========================================
@@ -262,5 +316,79 @@ Route::middleware(['auth'])->group(function () {
     // ==========================================
     Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');
+
+    // Backup Management
+    Route::prefix('settings/backup')->name('settings.backup.')->group(function () {
+        Route::get('/', [BackupController::class, 'index'])->name('index');
+        Route::get('/create', [BackupController::class, 'create'])->name('create');
+        Route::get('/download/{filename}', [BackupController::class, 'download'])->name('download');
+        Route::delete('/{filename}', [BackupController::class, 'destroy'])->name('destroy');
+    });
+
+    // ==========================================
+    // PHASE 6: MULTI-CURRENCY
+    // ==========================================
+    Route::prefix('currencies')->name('currencies.')->group(function () {
+        Route::get('/', [CurrencyController::class, 'index'])->name('index');
+        Route::post('/', [CurrencyController::class, 'store'])->name('store');
+        Route::put('/{currency}', [CurrencyController::class, 'update'])->name('update');
+        Route::post('/{currency}/set-default', [CurrencyController::class, 'setDefault'])->name('set-default');
+        Route::delete('/{currency}', [CurrencyController::class, 'destroy'])->name('destroy');
+        Route::post('/convert', [CurrencyController::class, 'convert'])->name('convert');
+    });
+
+    // ==========================================
+    // PHASE 6: LOYALTY PROGRAM
+    // ==========================================
+    Route::prefix('loyalty')->name('loyalty.')->group(function () {
+        Route::get('/', [LoyaltyController::class, 'index'])->name('index');
+        Route::get('/settings', [LoyaltyController::class, 'settings'])->name('settings');
+        Route::put('/settings', [LoyaltyController::class, 'updateSettings'])->name('settings.update');
+        Route::get('/report', [LoyaltyController::class, 'report'])->name('report');
+        Route::get('/customer/{customer}', [LoyaltyController::class, 'show'])->name('show');
+        Route::post('/add-points', [LoyaltyController::class, 'addPoints'])->name('add-points');
+        Route::post('/redeem', [LoyaltyController::class, 'redeemPoints'])->name('redeem');
+        Route::get('/api/customer/{customer}', [LoyaltyController::class, 'getCustomerLoyalty'])->name('api.customer');
+    });
+
+    // ==========================================
+    // PHASE 6: BULK ACTIONS
+    // ==========================================
+    Route::prefix('bulk')->name('bulk.')->group(function () {
+        Route::delete('/products', [BulkActionsController::class, 'deleteProducts'])->name('products.delete');
+        Route::put('/products', [BulkActionsController::class, 'updateProducts'])->name('products.update');
+        Route::put('/products/category', [BulkActionsController::class, 'moveProductsCategory'])->name('products.category');
+        Route::get('/products/export', [BulkActionsController::class, 'exportProducts'])->name('products.export');
+        Route::delete('/customers', [BulkActionsController::class, 'deleteCustomers'])->name('customers.delete');
+        Route::put('/customers', [BulkActionsController::class, 'updateCustomers'])->name('customers.update');
+    });
+
+    // ==========================================
+    // NOTIFICATIONS
+    // ==========================================
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\NotificationsController::class, 'index'])->name('index');
+        Route::get('/settings', [\App\Http\Controllers\NotificationsController::class, 'settings'])->name('settings');
+        Route::put('/settings', [\App\Http\Controllers\NotificationsController::class, 'updateSettings'])->name('settings.update');
+        Route::post('/{id}/read', [\App\Http\Controllers\NotificationsController::class, 'markAsRead'])->name('read');
+        Route::post('/read-all', [\App\Http\Controllers\NotificationsController::class, 'markAllAsRead'])->name('read-all');
+    });
+
+    // ==========================================
+    // CSV IMPORT
+    // ==========================================
+    Route::prefix('import')->name('import.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\ImportController::class, 'index'])->name('index');
+        Route::post('/products', [\App\Http\Controllers\ImportController::class, 'importProducts'])->name('products');
+        Route::post('/customers', [\App\Http\Controllers\ImportController::class, 'importCustomers'])->name('customers');
+        Route::post('/suppliers', [\App\Http\Controllers\ImportController::class, 'importSuppliers'])->name('suppliers');
+        Route::post('/categories', [\App\Http\Controllers\ImportController::class, 'importCategories'])->name('categories');
+        Route::post('/warehouses', [\App\Http\Controllers\ImportController::class, 'importWarehouses'])->name('warehouses');
+        Route::post('/units', [\App\Http\Controllers\ImportController::class, 'importUnits'])->name('units');
+        Route::get('/template/{type}', [\App\Http\Controllers\ImportController::class, 'downloadTemplate'])->name('template');
+    });
 });
+
+
+
 

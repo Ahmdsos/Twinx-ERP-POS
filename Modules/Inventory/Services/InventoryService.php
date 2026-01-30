@@ -309,16 +309,33 @@ class InventoryService
         Product $product,
         string $direction
     ): void {
+        $type = $movement->type;
         $totalCost = abs($movement->total_cost);
+        $description = "{$type->label()} - {$product->name}";
 
-        if ($direction === 'add') {
-            // DR Inventory, CR COGS/Purchases
+        // Handle specific accounting for Adjustments
+        if ($type === MovementType::ADJUSTMENT_IN) {
+            // DR Inventory, CR Inventory Gain
+            $gainAccount = Account::where('code', '4204')->first();
+            $lines = [
+                ['account_id' => $product->inventory_account_id, 'debit' => $totalCost, 'credit' => 0],
+                ['account_id' => $gainAccount?->id ?? $product->purchase_account_id, 'debit' => 0, 'credit' => $totalCost],
+            ];
+        } elseif ($type === MovementType::ADJUSTMENT_OUT) {
+            // DR Inventory Loss, CR Inventory
+            $lossAccount = Account::where('code', '5140')->first();
+            $lines = [
+                ['account_id' => $lossAccount?->id ?? $product->purchase_account_id, 'debit' => $totalCost, 'credit' => 0],
+                ['account_id' => $product->inventory_account_id, 'debit' => 0, 'credit' => $totalCost],
+            ];
+        } elseif ($direction === 'add') {
+            // Standard Add (Purchase/Return): DR Inventory, CR Purchase/COGS
             $lines = [
                 ['account_id' => $product->inventory_account_id, 'debit' => $totalCost, 'credit' => 0],
                 ['account_id' => $product->purchase_account_id, 'debit' => 0, 'credit' => $totalCost],
             ];
         } else {
-            // DR COGS, CR Inventory
+            // Standard Remove (Sale): DR COGS, CR Inventory
             $cogsAccount = Account::where('code', '5101')->first(); // Cost of Goods Sold
             $lines = [
                 ['account_id' => $cogsAccount?->id ?? $product->purchase_account_id, 'debit' => $totalCost, 'credit' => 0],

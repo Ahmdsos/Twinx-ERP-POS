@@ -1,0 +1,16 @@
+name,symbol,abbreviation,is_active
+قطعة,piece,قطعة,1
+كرتونة,carton,كرتون,1
+صندوق,box,صندوق,1
+كيلوجرام,kilogram,كجم,1
+جرام,gram,جم,1
+متر,meter,م,1
+سنتيمتر,centimeter,سم,1
+لتر,liter,لتر,1
+عبوة,pack,عبوة,1
+درزن,dozen,درزن,1
+ربطة,bundle,ربطة,1
+طقم,set,طقم,1
+زوج,pair,زوج,1
+رول,roll,رول,1
+علبة,tin,علبة,1

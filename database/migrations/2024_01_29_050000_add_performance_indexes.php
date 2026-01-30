@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * Performance Indexes Migration
  * Adds indexes for frequently queried columns to improve query performance
- * Safely checks for existing indexes before creating
+ * Safely checks for existing indexes AND tables before creating
  */
 return new class extends Migration {
     /**
@@ -26,10 +26,15 @@ return new class extends Migration {
     }
 
     /**
-     * Safely add an index if it doesn't exist
+     * Safely add an index if table exists and index doesn't exist
      */
     private function addIndexIfNotExists(string $table, $columns, ?string $indexName = null): void
     {
+        // Skip if table doesn't exist yet (modules may not have migrated)
+        if (!Schema::hasTable($table)) {
+            return;
+        }
+
         $cols = is_array($columns) ? $columns : [$columns];
         $name = $indexName ?? $table . '_' . implode('_', $cols) . '_index';
 

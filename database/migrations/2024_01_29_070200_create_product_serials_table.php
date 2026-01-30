@@ -7,15 +7,25 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Product Serials Table
  * For tracking individual serial numbers
+ * Only creates if required tables exist
  */
 return new class extends Migration {
     public function up(): void
     {
+        // Skip if required tables don't exist yet
+        if (!Schema::hasTable('products') || !Schema::hasTable('warehouses')) {
+            return;
+        }
+
+        if (Schema::hasTable('product_serials')) {
+            return;
+        }
+
         Schema::create('product_serials', function (Blueprint $table) {
             $table->id();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
             $table->foreignId('warehouse_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('batch_id')->nullable()->constrained('product_batches')->nullOnDelete();
+            $table->unsignedBigInteger('batch_id')->nullable();
             $table->string('serial_number')->unique();
             $table->enum('status', ['available', 'sold', 'reserved', 'returned', 'damaged'])->default('available');
             $table->decimal('unit_cost', 15, 2)->default(0);

@@ -322,12 +322,23 @@ class SalesService
             ]);
 
             foreach ($invoiceAllocations as $allocation) {
+                // Ensure allocation is an array (could be string or object)
+                if (is_string($allocation)) {
+                    $allocation = json_decode($allocation, true) ?? [];
+                }
+                if (!is_array($allocation) || empty($allocation['invoice_id'])) {
+                    continue;
+                }
+
                 $invoice = SalesInvoice::find($allocation['invoice_id']);
                 if ($invoice && $invoice->customer_id === $customer->id) {
-                    $allocAmount = min($allocation['amount'], $invoice->balance_due);
-                    $payment->allocateToInvoice($invoice, $allocAmount);
+                    $allocAmount = min($allocation['amount'] ?? 0, $invoice->balance_due);
+                    if ($allocAmount > 0) {
+                        $payment->allocateToInvoice($invoice, $allocAmount);
+                    }
                 }
             }
+
 
             // Create journal entry: DR Cash/Bank, CR AR
             $this->createPaymentJournalEntry($payment, $customer);

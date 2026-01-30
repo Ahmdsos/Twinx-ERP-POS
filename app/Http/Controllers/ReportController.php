@@ -60,14 +60,15 @@ class ReportController extends Controller
             ->orderBy('code')
             ->get()
             ->map(function ($account) use ($startDate, $endDate) {
-                $balance = $this->ledgerService->calculateBalance($account->id, $startDate, $endDate);
+                $balanceData = $this->ledgerService->calculateBalance($account->id, $startDate, $endDate);
                 return [
                     'id' => $account->id,
                     'code' => $account->code,
                     'name' => $account->name,
-                    'balance' => abs($balance), // Revenue is normally credit (negative in our system)
+                    'balance' => abs($balanceData['balance'] ?? 0), // Revenue is normally credit (negative in our system)
                 ];
             });
+
 
         // Get expense accounts
         $expenses = Account::where('type', AccountType::EXPENSE)
@@ -75,12 +76,12 @@ class ReportController extends Controller
             ->orderBy('code')
             ->get()
             ->map(function ($account) use ($startDate, $endDate) {
-                $balance = $this->ledgerService->calculateBalance($account->id, $startDate, $endDate);
+                $balanceData = $this->ledgerService->calculateBalance($account->id, $startDate, $endDate);
                 return [
                     'id' => $account->id,
                     'code' => $account->code,
                     'name' => $account->name,
-                    'balance' => abs($balance),
+                    'balance' => abs($balanceData['balance'] ?? 0),
                 ];
             });
 
@@ -115,12 +116,12 @@ class ReportController extends Controller
             ->orderBy('code')
             ->get()
             ->map(function ($account) use ($asOfDate) {
-                $balance = $this->ledgerService->calculateBalance($account->id, null, $asOfDate);
+                $balanceData = $this->ledgerService->calculateBalance($account->id, null, $asOfDate);
                 return [
                     'id' => $account->id,
                     'code' => $account->code,
                     'name' => $account->name,
-                    'balance' => $balance,
+                    'balance' => $balanceData['balance'] ?? 0,
                 ];
             });
 
@@ -130,12 +131,12 @@ class ReportController extends Controller
             ->orderBy('code')
             ->get()
             ->map(function ($account) use ($asOfDate) {
-                $balance = $this->ledgerService->calculateBalance($account->id, null, $asOfDate);
+                $balanceData = $this->ledgerService->calculateBalance($account->id, null, $asOfDate);
                 return [
                     'id' => $account->id,
                     'code' => $account->code,
                     'name' => $account->name,
-                    'balance' => abs($balance),
+                    'balance' => abs($balanceData['balance'] ?? 0),
                 ];
             });
 
@@ -145,12 +146,12 @@ class ReportController extends Controller
             ->orderBy('code')
             ->get()
             ->map(function ($account) use ($asOfDate) {
-                $balance = $this->ledgerService->calculateBalance($account->id, null, $asOfDate);
+                $balanceData = $this->ledgerService->calculateBalance($account->id, null, $asOfDate);
                 return [
                     'id' => $account->id,
                     'code' => $account->code,
                     'name' => $account->name,
-                    'balance' => abs($balance),
+                    'balance' => abs($balanceData['balance'] ?? 0),
                 ];
             });
 
@@ -202,12 +203,12 @@ class ReportController extends Controller
                 'customers.code as customer_code',
                 'customers.name as customer_name',
                 DB::raw('COUNT(sales_invoices.id) as invoice_count'),
-                DB::raw('SUM(sales_invoices.subtotal) as total_subtotal'),
-                DB::raw('SUM(sales_invoices.tax_amount) as total_tax'),
-                DB::raw('SUM(sales_invoices.discount_amount) as total_discount'),
-                DB::raw('SUM(sales_invoices.total) as total_sales'),
-                DB::raw('SUM(sales_invoices.amount_paid) as total_paid'),
-                DB::raw('SUM(sales_invoices.balance_due) as total_due'),
+                DB::raw('COALESCE(SUM(sales_invoices.subtotal), 0) as total_subtotal'),
+                DB::raw('COALESCE(SUM(sales_invoices.tax_amount), 0) as total_tax'),
+                DB::raw('COALESCE(SUM(sales_invoices.discount_amount), 0) as total_discount'),
+                DB::raw('COALESCE(SUM(sales_invoices.total), 0) as total_sales'),
+                DB::raw('COALESCE(SUM(sales_invoices.paid_amount), 0) as total_paid'),
+                DB::raw('COALESCE(SUM(sales_invoices.total), 0) - COALESCE(SUM(sales_invoices.paid_amount), 0) as total_due'),
             ])
             ->groupBy('customers.id', 'customers.code', 'customers.name')
             ->orderByDesc('total_sales')
@@ -270,11 +271,11 @@ class ReportController extends Controller
                 'suppliers.code as supplier_code',
                 'suppliers.name as supplier_name',
                 DB::raw('COUNT(purchase_invoices.id) as invoice_count'),
-                DB::raw('SUM(purchase_invoices.subtotal) as total_subtotal'),
-                DB::raw('SUM(purchase_invoices.tax_amount) as total_tax'),
-                DB::raw('SUM(purchase_invoices.total) as total_purchases'),
-                DB::raw('SUM(purchase_invoices.amount_paid) as total_paid'),
-                DB::raw('SUM(purchase_invoices.balance_due) as total_due'),
+                DB::raw('COALESCE(SUM(purchase_invoices.subtotal), 0) as total_subtotal'),
+                DB::raw('COALESCE(SUM(purchase_invoices.tax_amount), 0) as total_tax'),
+                DB::raw('COALESCE(SUM(purchase_invoices.total), 0) as total_purchases'),
+                DB::raw('COALESCE(SUM(purchase_invoices.paid_amount), 0) as total_paid'),
+                DB::raw('COALESCE(SUM(purchase_invoices.total), 0) - COALESCE(SUM(purchase_invoices.paid_amount), 0) as total_due'),
             ])
             ->groupBy('suppliers.id', 'suppliers.code', 'suppliers.name')
             ->orderByDesc('total_purchases')
@@ -658,6 +659,277 @@ class ReportController extends Controller
         $headers = ['SKU', 'المنتج', 'التصنيف', 'الكمية', 'سعر التكلفة', 'سعر البيع', 'قيمة التكلفة', 'قيمة البيع'];
 
         return $exportService->toExcelCsv($headers, $data, 'inventory-valuation-' . now()->format('Y-m-d') . '.csv');
+    }
+
+    /**
+     * Cash Flow Report
+     * تقرير التدفقات النقدية
+     */
+    public function cashFlow(Request $request)
+    {
+        $startDate = $request->get('start_date', now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->get('end_date', now()->format('Y-m-d'));
+
+        // Operating Activities - Cash In
+        $salesCash = SalesInvoice::whereBetween('invoice_date', [$startDate, $endDate])
+            ->sum('paid_amount');
+
+        $customerPayments = DB::table('customer_payments')
+            ->whereBetween('payment_date', [$startDate, $endDate])
+            ->sum('amount');
+
+        $cashIn = $salesCash + $customerPayments;
+
+        // Operating Activities - Cash Out
+        $purchasePayments = DB::table('supplier_payments')
+            ->whereBetween('payment_date', [$startDate, $endDate])
+            ->sum('amount');
+
+        $expenses = DB::table('journal_entries')
+            ->join('journal_entry_lines', 'journal_entries.id', '=', 'journal_entry_lines.journal_entry_id')
+            ->join('accounts', 'journal_entry_lines.account_id', '=', 'accounts.id')
+            ->where('accounts.type', 'expense')
+            ->whereBetween('journal_entries.entry_date', [$startDate, $endDate])
+            ->sum('journal_entry_lines.debit');
+
+        $cashOut = $purchasePayments + $expenses;
+
+        $netCashFlow = $cashIn - $cashOut;
+
+        // Opening Balance (simplified)
+        $openingBalance = DB::table('accounts')
+            ->where('code', '1001') // Cash account
+            ->value('balance') ?? 0;
+
+        return view('reports.cash-flow', compact(
+            'startDate',
+            'endDate',
+            'salesCash',
+            'customerPayments',
+            'cashIn',
+            'purchasePayments',
+            'expenses',
+            'cashOut',
+            'netCashFlow',
+            'openingBalance'
+        ));
+    }
+
+    /**
+     * Daily Sales Report
+     * تقرير المبيعات اليومية
+     */
+    public function dailySales(Request $request)
+    {
+        $date = $request->get('date', now()->format('Y-m-d'));
+        $startDate = $request->get('start_date', now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->get('end_date', now()->format('Y-m-d'));
+
+        // Daily breakdown
+        $dailyData = SalesInvoice::whereBetween('invoice_date', [$startDate, $endDate])
+            ->selectRaw('DATE(invoice_date) as date, COUNT(*) as invoices, SUM(total) as total, SUM(paid_amount) as paid')
+            ->groupByRaw('DATE(invoice_date)')
+            ->orderBy('date', 'desc')
+            ->get();
+
+        // Summary
+        $summary = [
+            'total_invoices' => $dailyData->sum('invoices'),
+            'total_sales' => $dailyData->sum('total'),
+            'total_paid' => $dailyData->sum('paid'),
+            'average_per_day' => $dailyData->count() > 0 ? $dailyData->sum('total') / $dailyData->count() : 0,
+        ];
+
+        return view('reports.daily-sales', compact('dailyData', 'summary', 'startDate', 'endDate'));
+    }
+
+    /**
+     * Sales By Cashier Report
+     * تقرير المبيعات حسب الكاشير
+     */
+    public function salesByCashier(Request $request)
+    {
+        $startDate = $request->get('start_date', now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->get('end_date', now()->format('Y-m-d'));
+
+        $data = SalesInvoice::where('invoice_number', 'like', 'POS-%')
+            ->whereBetween('invoice_date', [$startDate, $endDate])
+            ->join('pos_shifts', function ($join) {
+                $join->on('sales_invoices.created_at', '>=', 'pos_shifts.opened_at')
+                    ->on(function ($q) {
+                        $q->whereNull('pos_shifts.closed_at')
+                            ->orWhereColumn('sales_invoices.created_at', '<=', 'pos_shifts.closed_at');
+                    });
+            })
+            ->join('users', 'pos_shifts.user_id', '=', 'users.id')
+            ->selectRaw('users.name as cashier, COUNT(sales_invoices.id) as invoices, SUM(sales_invoices.total) as total')
+            ->groupBy('users.id', 'users.name')
+            ->orderByDesc('total')
+            ->get();
+
+        // Fallback if joins fail - simplified query
+        if ($data->isEmpty()) {
+            $data = DB::table('pos_shifts')
+                ->join('users', 'pos_shifts.user_id', '=', 'users.id')
+                ->selectRaw('users.name as cashier, pos_shifts.cash_sales + COALESCE(pos_shifts.card_sales, 0) as total, 0 as invoices')
+                ->whereBetween('pos_shifts.opened_at', [$startDate, $endDate])
+                ->get();
+        }
+
+        return view('reports.sales-by-cashier', compact('data', 'startDate', 'endDate'));
+    }
+
+    /**
+     * Best Selling Products Report
+     * تقرير أفضل المنتجات مبيعاً
+     */
+    public function bestSellingProducts(Request $request)
+    {
+        $startDate = $request->get('start_date', now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->get('end_date', now()->format('Y-m-d'));
+        $limit = $request->get('limit', 20);
+
+        $data = SalesInvoiceLine::join('sales_invoices', 'sales_invoice_lines.sales_invoice_id', '=', 'sales_invoices.id')
+            ->join('products', 'sales_invoice_lines.product_id', '=', 'products.id')
+            ->whereBetween('sales_invoices.invoice_date', [$startDate, $endDate])
+            ->selectRaw('products.id, products.name, products.sku, SUM(sales_invoice_lines.quantity) as qty_sold, SUM(sales_invoice_lines.line_total) as total_sales')
+            ->groupBy('products.id', 'products.name', 'products.sku')
+            ->orderByDesc('total_sales')
+            ->limit($limit)
+            ->get();
+
+        return view('reports.best-selling', compact('data', 'startDate', 'endDate', 'limit'));
+    }
+
+    /**
+     * Current Stock Report
+     * تقرير المخزون الحالي
+     */
+    public function currentStock(Request $request)
+    {
+        $categoryId = $request->get('category_id');
+        $warehouseId = $request->get('warehouse_id');
+
+        $query = Product::with(['category', 'unit', 'stocks.warehouse'])
+            ->where('is_active', true);
+
+        if ($categoryId) {
+            $query->where('category_id', $categoryId);
+        }
+
+        $products = $query->get()->map(function ($p) use ($warehouseId) {
+            $stock = $warehouseId
+                ? $p->stocks->where('warehouse_id', $warehouseId)->sum('quantity')
+                : $p->getTotalStock();
+
+            return [
+                'id' => $p->id,
+                'sku' => $p->sku,
+                'name' => $p->name,
+                'category' => $p->category?->name ?? '-',
+                'unit' => $p->unit?->abbreviation ?? 'PCS',
+                'stock' => $stock,
+                'cost' => $p->cost_price,
+                'value' => $stock * $p->cost_price,
+                'reorder_level' => $p->min_stock ?? 0,
+                'status' => $stock <= ($p->min_stock ?? 0) ? 'low' : 'ok',
+            ];
+        });
+
+        $categories = \Modules\Inventory\Models\Category::active()->get();
+        $warehouses = \Modules\Inventory\Models\Warehouse::active()->get();
+
+        $summary = [
+            'total_products' => $products->count(),
+            'total_value' => $products->sum('value'),
+            'low_stock_count' => $products->where('status', 'low')->count(),
+        ];
+
+        return view('reports.current-stock', compact('products', 'categories', 'warehouses', 'categoryId', 'warehouseId', 'summary'));
+    }
+
+    /**
+     * Stock Movement Report
+     * تقرير حركة المخزون
+     */
+    public function stockMovements(Request $request)
+    {
+        $startDate = $request->get('start_date', now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->get('end_date', now()->format('Y-m-d'));
+        $productId = $request->get('product_id');
+        $warehouseId = $request->get('warehouse_id');
+
+        $query = \Modules\Inventory\Models\StockMovement::with(['product', 'warehouse'])
+            ->whereBetween('movement_date', [$startDate, $endDate])
+            ->orderByDesc('movement_date');
+
+        if ($productId) {
+            $query->where('product_id', $productId);
+        }
+
+        if ($warehouseId) {
+            $query->where('warehouse_id', $warehouseId);
+        }
+
+        $movements = $query->paginate(50);
+
+        // Summary
+        $summaryQuery = \Modules\Inventory\Models\StockMovement::whereBetween('movement_date', [$startDate, $endDate]);
+        if ($productId)
+            $summaryQuery->where('product_id', $productId);
+        if ($warehouseId)
+            $summaryQuery->where('warehouse_id', $warehouseId);
+
+        $summary = [
+            'total_in' => (clone $summaryQuery)->where('movement_type', 'in')->sum('quantity'),
+            'total_out' => (clone $summaryQuery)->where('movement_type', 'out')->sum('quantity'),
+            'total_movements' => $summaryQuery->count(),
+        ];
+
+        $products = Product::where('is_active', true)->get(['id', 'name', 'sku']);
+        $warehouses = \Modules\Inventory\Models\Warehouse::active()->get();
+
+        return view('reports.stock-movements', compact('movements', 'summary', 'startDate', 'endDate', 'productId', 'warehouseId', 'products', 'warehouses'));
+    }
+
+    /**
+     * Low Stock Alert Report
+     * تقرير المنتجات منخفضة المخزون
+     */
+    public function lowStock(Request $request)
+    {
+        $products = Product::with(['category', 'unit'])
+            ->where('is_active', true)
+            ->get()
+            ->filter(function ($p) {
+                $stock = $p->getTotalStock();
+                $minStock = $p->min_stock ?? 5;
+                return $stock <= $minStock;
+            })
+            ->map(function ($p) {
+                $stock = $p->getTotalStock();
+                return [
+                    'id' => $p->id,
+                    'sku' => $p->sku,
+                    'name' => $p->name,
+                    'category' => $p->category?->name ?? '-',
+                    'current_stock' => $stock,
+                    'min_stock' => $p->min_stock ?? 5,
+                    'shortage' => ($p->min_stock ?? 5) - $stock,
+                    'cost' => $p->cost_price,
+                    'reorder_value' => (($p->min_stock ?? 5) - $stock) * $p->cost_price,
+                ];
+            })
+            ->sortByDesc('shortage')
+            ->values();
+
+        $summary = [
+            'total_products' => $products->count(),
+            'total_reorder_value' => $products->sum('reorder_value'),
+            'critical_count' => $products->where('current_stock', 0)->count(),
+        ];
+
+        return view('reports.low-stock', compact('products', 'summary'));
     }
 }
 

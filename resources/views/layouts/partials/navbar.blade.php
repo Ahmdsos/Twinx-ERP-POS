@@ -48,8 +48,10 @@
                     <i class="bi bi-chevron-down ms-1 small"></i>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>الملف الشخصي</a></li>
-                    <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>الإعدادات</a></li>
+                    <li><a class="dropdown-item" href="{{ route('settings.index') }}"><i
+                                class="bi bi-person me-2"></i>الملف الشخصي</a></li>
+                    <li><a class="dropdown-item" href="{{ route('settings.index') }}"><i
+                                class="bi bi-gear me-2"></i>الإعدادات</a></li>
                     <li>
                         <hr class="dropdown-divider">
                     </li>

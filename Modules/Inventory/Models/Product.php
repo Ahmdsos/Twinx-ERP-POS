@@ -41,6 +41,31 @@ class Product extends Model
         'is_active',
         'is_sellable',
         'is_purchasable',
+        // New extended fields
+        'weight',
+        'weight_unit',
+        'length',
+        'width',
+        'height',
+        'dimension_unit',
+        'brand',
+        'manufacturer',
+        'manufacturer_part_number',
+        'warranty_months',
+        'warranty_type',
+        'expiry_date',
+        'shelf_life_days',
+        'track_batches',
+        'track_serials',
+        'country_of_origin',
+        'hs_code',
+        'lead_time_days',
+        'is_returnable',
+        'color',
+        'size',
+        'tags',
+        'seo_title',
+        'seo_description',
     ];
 
     protected $casts = [
@@ -57,6 +82,19 @@ class Product extends Model
         'is_active' => 'boolean',
         'is_sellable' => 'boolean',
         'is_purchasable' => 'boolean',
+        // New field casts
+        'weight' => 'decimal:4',
+        'length' => 'decimal:2',
+        'width' => 'decimal:2',
+        'height' => 'decimal:2',
+        'warranty_months' => 'integer',
+        'expiry_date' => 'date',
+        'shelf_life_days' => 'integer',
+        'track_batches' => 'boolean',
+        'track_serials' => 'boolean',
+        'lead_time_days' => 'integer',
+        'is_returnable' => 'boolean',
+        'tags' => 'array',
     ];
 
     // =====================

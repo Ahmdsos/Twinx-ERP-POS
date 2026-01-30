@@ -10,6 +10,11 @@ return new class extends Migration {
      */
     public function up(): void
     {
+        // Skip if customers table doesn't exist yet
+        if (!Schema::hasTable('customers')) {
+            return;
+        }
+
         Schema::table('customers', function (Blueprint $table) {
             // Credit limit control
             if (!Schema::hasColumn('customers', 'credit_limit')) {
@@ -31,21 +36,15 @@ return new class extends Migration {
                 $table->timestamp('blocked_at')->nullable()->after('block_reason');
             }
 
-            // Blocked by
+            // Blocked by (without FK constraint to avoid issues)
             if (!Schema::hasColumn('customers', 'blocked_by')) {
-                $table->foreignId('blocked_by')->nullable()->after('blocked_at')
-                    ->constrained('users')->onDelete('set null');
+                $table->unsignedBigInteger('blocked_by')->nullable()->after('blocked_at');
             }
 
-            // Grace period days (allow orders even if over limit for X days)
+            // Grace period days
             if (!Schema::hasColumn('customers', 'credit_grace_days')) {
                 $table->integer('credit_grace_days')->default(0)->after('credit_limit');
             }
-        });
-
-        // Add index for faster blocking checks
-        Schema::table('customers', function (Blueprint $table) {
-            $table->index(['is_blocked', 'is_active'], 'customers_blocking_idx');
         });
     }
 
@@ -54,21 +53,17 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::table('customers', function (Blueprint $table) {
-            $table->dropIndex('customers_blocking_idx');
-        });
+        if (!Schema::hasTable('customers')) {
+            return;
+        }
 
         Schema::table('customers', function (Blueprint $table) {
-            if (Schema::hasColumn('customers', 'blocked_by')) {
-                $table->dropConstrainedForeignId('blocked_by');
+            $columns = ['credit_limit', 'credit_grace_days', 'is_blocked', 'block_reason', 'blocked_at', 'blocked_by'];
+            foreach ($columns as $column) {
+                if (Schema::hasColumn('customers', $column)) {
+                    $table->dropColumn($column);
+                }
             }
-            $table->dropColumn([
-                'credit_limit',
-                'credit_grace_days',
-                'is_blocked',
-                'block_reason',
-                'blocked_at'
-            ]);
         });
     }
 };

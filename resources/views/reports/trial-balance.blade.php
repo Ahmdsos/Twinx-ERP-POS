@@ -57,23 +57,27 @@
                             <tr>
                                 <td><code>{{ $account['code'] }}</code></td>
                                 <td>
-                                    <a href="{{ route('accounts.show', $account['id']) }}" class="text-decoration-none">
+                                    @if(!empty($account['account_id']))
+                                        <a href="{{ route('accounts.show', $account['account_id']) }}" class="text-decoration-none">
+                                            {{ $account['name'] }}
+                                        </a>
+                                    @else
                                         {{ $account['name'] }}
-                                    </a>
+                                    @endif
                                 </td>
                                 <td>
-                                    <span class="badge bg-secondary">{{ $account['type_label'] }}</span>
+                                    <span class="badge bg-secondary">{{ $account['type_label'] ?? 'N/A' }}</span>
                                 </td>
                                 <td class="text-end">
-                                    @if($account['debit'] > 0)
-                                        <span class="text-success">{{ number_format($account['debit'], 2) }}</span>
+                                    @if(($account['debit_balance'] ?? 0) > 0)
+                                        <span class="text-success">{{ number_format($account['debit_balance'], 2) }}</span>
                                     @else
                                         -
                                     @endif
                                 </td>
                                 <td class="text-end">
-                                    @if($account['credit'] > 0)
-                                        <span class="text-danger">{{ number_format($account['credit'], 2) }}</span>
+                                    @if(($account['credit_balance'] ?? 0) > 0)
+                                        <span class="text-danger">{{ number_format($account['credit_balance'], 2) }}</span>
                                     @else
                                         -
                                     @endif
@@ -96,7 +100,10 @@
                         <tr>
                             <td colspan="3" class="text-end">الفرق:</td>
                             <td colspan="2" class="text-center">
-                                @if(abs($totals['difference']) < 0.01)
+                                @php
+                                    $difference = ($totals['total_debit'] ?? 0) - ($totals['total_credit'] ?? 0);
+                                @endphp
+                                @if(abs($difference) < 0.01)
                                     <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>متوازن</span>
                                 @else
                                     <span class="badge bg-danger">{{ number_format($totals['difference'], 2) }}</span>

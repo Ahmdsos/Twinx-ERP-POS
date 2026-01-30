@@ -270,6 +270,29 @@
             </a>
         </li>
         <li class="nav-item">
+            <a href="{{ route('currencies.index') }}"
+                class="nav-link text-white {{ request()->routeIs('currencies.*') ? 'active' : '' }}">
+                <i class="bi bi-currency-exchange me-2"></i>
+                العملات
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('loyalty.index') }}"
+                class="nav-link text-white {{ request()->routeIs('loyalty.*') ? 'active' : '' }}">
+                <i class="bi bi-star me-2"></i>
+                برنامج الولاء
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('import.index') }}"
+                class="nav-link text-white {{ request()->routeIs('import.*') ? 'active' : '' }}">
+                <i class="bi bi-cloud-upload me-2"></i>
+                استيراد البيانات
+            </a>
+        </li>
+        <li class="nav-item">
+
+
             <a href="{{ route('settings.index') }}"
                 class="nav-link text-white {{ request()->routeIs('settings.*') ? 'active' : '' }}">
                 <i class="bi bi-gear me-2"></i>

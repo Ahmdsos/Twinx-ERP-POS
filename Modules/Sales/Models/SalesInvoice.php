@@ -37,6 +37,8 @@ class SalesInvoice extends Model
         'notes',
         'terms',
         'journal_entry_id',
+        'pos_shift_id',
+        'payment_method',
     ];
 
     protected $casts = [
@@ -91,6 +93,11 @@ class SalesInvoice extends Model
     public function journalEntry(): BelongsTo
     {
         return $this->belongsTo(JournalEntry::class);
+    }
+
+    public function shift(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\PosShift::class, 'pos_shift_id');
     }
 
     public function paymentAllocations(): HasMany

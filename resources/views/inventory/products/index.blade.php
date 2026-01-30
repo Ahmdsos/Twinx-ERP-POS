@@ -12,9 +12,23 @@
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0"><i class="bi bi-box-seam me-2"></i>المنتجات</h5>
-            <a href="{{ route('products.create') }}" class="btn btn-primary">
-                <i class="bi bi-plus-circle me-1"></i>منتج جديد
-            </a>
+            <div class="d-flex gap-2">
+                <!-- Export Dropdown -->
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-download me-1"></i>تصدير
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{{ route('export.products.excel') }}"><i
+                                    class="bi bi-file-earmark-excel text-success me-2"></i>تصدير Excel</a></li>
+                        <li><a class="dropdown-item" href="{{ route('export.products.pdf') }}" target="_blank"><i
+                                    class="bi bi-file-earmark-pdf text-danger me-2"></i>تصدير PDF</a></li>
+                    </ul>
+                </div>
+                <a href="{{ route('products.create') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i>منتج جديد
+                </a>
+            </div>
         </div>
         <div class="card-body">
             <!-- Filters -->

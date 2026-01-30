@@ -23,6 +23,9 @@ class SettingsController extends Controller
             'invoice' => Setting::getGroup('invoice'),
             'pos' => Setting::getGroup('pos'),
             'printer' => Setting::getGroup('printer'),
+            'currency' => Setting::getGroup('currency'),
+            'email' => Setting::getGroup('email'),
+            'backup' => Setting::getGroup('backup'),
         ];
 
         return view('settings.index', compact('settings'));
@@ -55,6 +58,13 @@ class SettingsController extends Controller
             'pos_default_customer' => 'nullable|integer',
             'pos_allow_negative_stock' => 'nullable|boolean',
             'pos_print_receipt' => 'nullable|boolean',
+
+            // Printer settings
+            'printer_type' => 'nullable|in:thermal,a4,a5',
+            'printer_paper_width' => 'nullable|integer|min:58|max:80',
+            'printer_auto_print' => 'nullable|boolean',
+            'printer_show_logo' => 'nullable|boolean',
+            'printer_copies' => 'nullable|integer|min:1|max:5',
         ]);
 
         // Handle logo upload
@@ -83,6 +93,34 @@ class SettingsController extends Controller
         Setting::setValue('pos_default_customer', $validated['pos_default_customer'] ?? null, 'pos');
         Setting::setValue('pos_allow_negative_stock', $request->has('pos_allow_negative_stock'), 'pos');
         Setting::setValue('pos_print_receipt', $request->has('pos_print_receipt'), 'pos');
+
+        // Save Printer settings
+        Setting::setValue('printer_type', $validated['printer_type'] ?? 'thermal', 'printer');
+        Setting::setValue('printer_paper_width', $validated['printer_paper_width'] ?? 80, 'printer');
+        Setting::setValue('printer_auto_print', $request->has('printer_auto_print'), 'printer');
+        Setting::setValue('printer_show_logo', $request->has('printer_show_logo'), 'printer');
+        Setting::setValue('printer_copies', $validated['printer_copies'] ?? 1, 'printer');
+
+        // Save Currency settings
+        Setting::setValue('currency_code', $request->input('currency_code', 'EGP'), 'currency');
+        Setting::setValue('currency_symbol', $request->input('currency_symbol', 'ج.م'), 'currency');
+        Setting::setValue('currency_decimals', $request->input('currency_decimals', 2), 'currency');
+        Setting::setValue('currency_decimal_separator', $request->input('currency_decimal_separator', '.'), 'currency');
+        Setting::setValue('currency_thousands_separator', $request->input('currency_thousands_separator', ','), 'currency');
+
+        // Save Email settings
+        Setting::setValue('email_smtp_host', $request->input('email_smtp_host', ''), 'email');
+        Setting::setValue('email_smtp_port', $request->input('email_smtp_port', 587), 'email');
+        Setting::setValue('email_username', $request->input('email_username', ''), 'email');
+        Setting::setValue('email_password', $request->input('email_password', ''), 'email');
+        Setting::setValue('email_from_name', $request->input('email_from_name', ''), 'email');
+        Setting::setValue('email_encryption', $request->input('email_encryption', 'tls'), 'email');
+
+        // Save Backup settings
+        Setting::setValue('backup_frequency', $request->input('backup_frequency', 'daily'), 'backup');
+        Setting::setValue('backup_keep_count', $request->input('backup_keep_count', 7), 'backup');
+        Setting::setValue('backup_path', $request->input('backup_path', 'backups'), 'backup');
+        Setting::setValue('backup_notify', $request->has('backup_notify'), 'backup');
 
         return redirect()->route('settings.index')
             ->with('success', 'تم حفظ الإعدادات بنجاح');

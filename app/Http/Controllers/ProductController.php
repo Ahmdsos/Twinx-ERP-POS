@@ -90,6 +90,19 @@ class ProductController extends Controller
             // Initial stock fields
             'initial_warehouse_id' => 'nullable|exists:warehouses,id',
             'initial_stock' => 'nullable|numeric|min:0',
+            // New extended fields
+            'brand' => 'nullable|string|max:100',
+            'warranty_months' => 'nullable|integer|min:0',
+            'weight' => 'nullable|numeric|min:0',
+            'weight_unit' => 'nullable|in:kg,g,lb',
+            'length' => 'nullable|numeric|min:0',
+            'width' => 'nullable|numeric|min:0',
+            'height' => 'nullable|numeric|min:0',
+            'dimension_unit' => 'nullable|in:cm,m,in',
+            'expiry_date' => 'nullable|date',
+            'country_of_origin' => 'nullable|string|max:100',
+            'track_batches' => 'boolean',
+            'track_serials' => 'boolean',
         ]);
 
         // Map form fields to database columns
@@ -110,6 +123,19 @@ class ProductController extends Controller
             'is_active' => $request->has('is_active'),
             'is_sellable' => $request->has('is_sellable'),
             'is_purchasable' => $request->has('is_purchasable'),
+            // Extended fields
+            'brand' => $validated['brand'] ?? null,
+            'warranty_months' => $validated['warranty_months'] ?? 0,
+            'weight' => $validated['weight'] ?? null,
+            'weight_unit' => $validated['weight_unit'] ?? 'kg',
+            'length' => $validated['length'] ?? null,
+            'width' => $validated['width'] ?? null,
+            'height' => $validated['height'] ?? null,
+            'dimension_unit' => $validated['dimension_unit'] ?? 'cm',
+            'expiry_date' => $validated['expiry_date'] ?? null,
+            'country_of_origin' => $validated['country_of_origin'] ?? null,
+            'track_batches' => $request->has('track_batches'),
+            'track_serials' => $request->has('track_serials'),
             'created_by' => auth()->id(),
         ];
 
@@ -217,5 +243,101 @@ class ProductController extends Controller
 
         return redirect()->route('products.index')
             ->with('success', 'تم حذف المنتج بنجاح');
+    }
+
+    /**
+     * Show import form
+     */
+    public function importForm()
+    {
+        return view('inventory.products.import');
+    }
+
+    /**
+     * Download sample CSV
+     */
+    public function importSample()
+    {
+        $headers = ['sku', 'barcode', 'name', 'description', 'category', 'unit', 'cost_price', 'selling_price', 'tax_rate', 'reorder_level'];
+        $sample = ['PROD-001', '6281000000001', 'منتج تجريبي', 'وصف المنتج', '', '', '100', '150', '15', '10'];
+
+        $content = \App\Services\CsvImportService::generateSampleCsv($headers, $sample);
+
+        return response($content)
+            ->header('Content-Type', 'text/csv; charset=UTF-8')
+            ->header('Content-Disposition', 'attachment; filename="products_sample.csv"');
+    }
+
+    /**
+     * Process CSV import
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'csv_file' => 'required|file|mimes:csv,txt|max:5120',
+        ]);
+
+        $importService = new \App\Services\CsvImportService();
+        $rows = $importService->parseFile($request->file('csv_file'));
+
+        $rules = [
+            'sku' => 'required|string|max:50',
+            'name' => 'required|string|max:255',
+            'cost_price' => 'nullable|numeric|min:0',
+            'selling_price' => 'nullable|numeric|min:0',
+            'tax_rate' => 'nullable|numeric|min:0|max:100',
+        ];
+
+        \DB::beginTransaction();
+        try {
+            foreach ($rows as $row) {
+                $validated = $importService->validateRow($row, $rules, $row['_line']);
+
+                if ($validated) {
+                    // Find category by name
+                    $categoryId = null;
+                    if (!empty($row['category'])) {
+                        $category = Category::firstOrCreate(['name' => $row['category']]);
+                        $categoryId = $category->id;
+                    }
+
+                    // Find unit by name
+                    $unitId = null;
+                    if (!empty($row['unit'])) {
+                        $unit = Unit::firstOrCreate(['name' => $row['unit']], ['abbreviation' => $row['unit']]);
+                        $unitId = $unit->id;
+                    }
+
+                    Product::updateOrCreate(
+                        ['sku' => $validated['sku']],
+                        [
+                            'barcode' => $row['barcode'] ?? null,
+                            'name' => $validated['name'],
+                            'description' => $row['description'] ?? null,
+                            'category_id' => $categoryId,
+                            'unit_id' => $unitId,
+                            'cost_price' => $validated['cost_price'] ?? 0,
+                            'selling_price' => $validated['selling_price'] ?? 0,
+                            'tax_rate' => $validated['tax_rate'] ?? 0,
+                            'reorder_level' => $row['reorder_level'] ?? 0,
+                            'is_active' => true,
+                            'is_sellable' => true,
+                            'is_purchasable' => true,
+                        ]
+                    );
+                }
+            }
+
+            \DB::commit();
+            $results = $importService->getResults();
+
+            return redirect()->route('products.index')
+                ->with('success', "تم استيراد {$results['success_count']} منتج بنجاح" .
+                    ($results['error_count'] > 0 ? " ({$results['error_count']} أخطاء)" : ''));
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return back()->with('error', 'خطأ في الاستيراد: ' . $e->getMessage());
+        }
     }
 }

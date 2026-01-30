@@ -10,7 +10,7 @@
 @endsection
 
 @section('content')
-<form action="{{ route('products.update', $product) }}" method="POST">
+<form action="{{ route('products.update', $product) }}" method="POST" enctype="multipart/form-data">
     @csrf
     @method('PUT')
     
@@ -142,6 +142,114 @@
                             @error('max_stock_level')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            
+            <!-- Extended Product Info -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>معلومات إضافية</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <!-- Brand -->
+                        <div class="col-md-6">
+                            <label class="form-label">العلامة التجارية</label>
+                            <input type="text" class="form-control @error('brand') is-invalid @enderror" 
+                                   name="brand" value="{{ old('brand', $product->brand) }}">
+                            @error('brand')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                        <!-- Warranty -->
+                        <div class="col-md-6">
+                            <label class="form-label">مدة الضمان (شهور)</label>
+                            <input type="number" class="form-control @error('warranty_months') is-invalid @enderror" 
+                                   name="warranty_months" value="{{ old('warranty_months', $product->warranty_months ?? 0) }}" min="0">
+                            @error('warranty_months')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                        <!-- Weight -->
+                        <div class="col-md-4">
+                            <label class="form-label">الوزن</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control @error('weight') is-invalid @enderror" 
+                                       name="weight" value="{{ old('weight', $product->weight) }}" step="0.0001" min="0">
+                                <select class="form-select" name="weight_unit" style="max-width: 80px;">
+                                    <option value="kg" {{ old('weight_unit', $product->weight_unit ?? 'kg') == 'kg' ? 'selected' : '' }}>كجم</option>
+                                    <option value="g" {{ old('weight_unit', $product->weight_unit) == 'g' ? 'selected' : '' }}>جم</option>
+                                </select>
+                            </div>
+                            @error('weight')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                        <!-- Dimensions -->
+                        <div class="col-md-8">
+                            <label class="form-label">الأبعاد (الطول × العرض × الارتفاع)</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" name="length" 
+                                       value="{{ old('length', $product->length) }}" placeholder="الطول" step="0.01" min="0">
+                                <span class="input-group-text">×</span>
+                                <input type="number" class="form-control" name="width" 
+                                       value="{{ old('width', $product->width) }}" placeholder="العرض" step="0.01" min="0">
+                                <span class="input-group-text">×</span>
+                                <input type="number" class="form-control" name="height" 
+                                       value="{{ old('height', $product->height) }}" placeholder="الارتفاع" step="0.01" min="0">
+                                <select class="form-select" name="dimension_unit" style="max-width: 80px;">
+                                    <option value="cm" {{ old('dimension_unit', $product->dimension_unit ?? 'cm') == 'cm' ? 'selected' : '' }}>سم</option>
+                                    <option value="m" {{ old('dimension_unit', $product->dimension_unit) == 'm' ? 'selected' : '' }}>م</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Expiry Date -->
+                        <div class="col-md-6">
+                            <label class="form-label">تاريخ الانتهاء</label>
+                            <input type="date" class="form-control @error('expiry_date') is-invalid @enderror" 
+                                   name="expiry_date" value="{{ old('expiry_date', $product->expiry_date?->format('Y-m-d')) }}">
+                            @error('expiry_date')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                        <!-- Country of Origin -->
+                        <div class="col-md-6">
+                            <label class="form-label">بلد المنشأ</label>
+                            <input type="text" class="form-control @error('country_of_origin') is-invalid @enderror" 
+                                   name="country_of_origin" value="{{ old('country_of_origin', $product->country_of_origin) }}">
+                            @error('country_of_origin')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                        <!-- Tracking Options -->
+                        <div class="col-12">
+                            <hr>
+                            <label class="form-label">خيارات التتبع</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" name="track_batches" 
+                                               id="track_batches" value="1" {{ old('track_batches', $product->track_batches) ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="track_batches">تتبع الدفعات (Batch)</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" name="track_serials" 
+                                               id="track_serials" value="1" {{ old('track_serials', $product->track_serials) ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="track_serials">تتبع الأرقام التسلسلية (Serial)</label>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

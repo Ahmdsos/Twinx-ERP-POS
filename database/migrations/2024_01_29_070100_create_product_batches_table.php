@@ -7,10 +7,20 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Product Batches/Lots Table
  * For tracking batch numbers and expiry dates
+ * Only creates if required tables exist
  */
 return new class extends Migration {
     public function up(): void
     {
+        // Skip if required tables don't exist yet
+        if (!Schema::hasTable('products') || !Schema::hasTable('warehouses')) {
+            return;
+        }
+
+        if (Schema::hasTable('product_batches')) {
+            return;
+        }
+
         Schema::create('product_batches', function (Blueprint $table) {
             $table->id();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
@@ -21,7 +31,7 @@ return new class extends Migration {
             $table->date('expiry_date')->nullable();
             $table->decimal('quantity', 15, 3)->default(0);
             $table->decimal('unit_cost', 15, 2)->default(0);
-            $table->string('supplier_batch')->nullable(); // Supplier's batch number
+            $table->string('supplier_batch')->nullable();
             $table->text('notes')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();

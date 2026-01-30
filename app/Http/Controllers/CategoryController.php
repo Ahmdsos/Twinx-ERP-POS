@@ -101,4 +101,80 @@ class CategoryController extends Controller
             ->route('categories.index')
             ->with('success', 'تم حذف التصنيف بنجاح');
     }
+
+    /**
+     * Show import form
+     */
+    public function importForm()
+    {
+        return view('inventory.categories.import');
+    }
+
+    /**
+     * Download sample CSV
+     */
+    public function importSample()
+    {
+        $headers = ['name', 'parent', 'description'];
+        $sample = ['تصنيف جديد', '', 'وصف التصنيف'];
+
+        $content = \App\Services\CsvImportService::generateSampleCsv($headers, $sample);
+
+        return response($content)
+            ->header('Content-Type', 'text/csv; charset=UTF-8')
+            ->header('Content-Disposition', 'attachment; filename="categories_sample.csv"');
+    }
+
+    /**
+     * Process CSV import
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'csv_file' => 'required|file|mimes:csv,txt|max:5120',
+        ]);
+
+        $importService = new \App\Services\CsvImportService();
+        $rows = $importService->parseFile($request->file('csv_file'));
+
+        $rules = [
+            'name' => 'required|string|max:255',
+        ];
+
+        \DB::beginTransaction();
+        try {
+            foreach ($rows as $row) {
+                $validated = $importService->validateRow($row, $rules, $row['_line']);
+
+                if ($validated) {
+                    // Find parent by name
+                    $parentId = null;
+                    if (!empty($row['parent'])) {
+                        $parent = Category::where('name', $row['parent'])->first();
+                        $parentId = $parent?->id;
+                    }
+
+                    Category::firstOrCreate(
+                        ['name' => $validated['name']],
+                        [
+                            'parent_id' => $parentId,
+                            'description' => $row['description'] ?? null,
+                            'is_active' => true,
+                        ]
+                    );
+                }
+            }
+
+            \DB::commit();
+            $results = $importService->getResults();
+
+            return redirect()->route('categories.index')
+                ->with('success', "تم استيراد {$results['success_count']} تصنيف بنجاح" .
+                    ($results['error_count'] > 0 ? " ({$results['error_count']} أخطاء)" : ''));
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return back()->with('error', 'خطأ في الاستيراد: ' . $e->getMessage());
+        }
+    }
 }

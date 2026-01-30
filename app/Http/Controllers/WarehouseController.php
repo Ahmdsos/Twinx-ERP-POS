@@ -147,4 +147,76 @@ class WarehouseController extends Controller
             ->route('warehouses.index')
             ->with('success', 'تم حذف المستودع بنجاح');
     }
+
+    /**
+     * Show import form
+     */
+    public function importForm()
+    {
+        return view('inventory.warehouses.import');
+    }
+
+    /**
+     * Download sample CSV
+     */
+    public function importSample()
+    {
+        $headers = ['code', 'name', 'address', 'phone', 'email'];
+        $sample = ['WH-001', 'مستودع رئيسي', 'العنوان', '01000000000', 'warehouse@example.com'];
+
+        $content = \App\Services\CsvImportService::generateSampleCsv($headers, $sample);
+
+        return response($content)
+            ->header('Content-Type', 'text/csv; charset=UTF-8')
+            ->header('Content-Disposition', 'attachment; filename="warehouses_sample.csv"');
+    }
+
+    /**
+     * Process CSV import
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'csv_file' => 'required|file|mimes:csv,txt|max:5120',
+        ]);
+
+        $importService = new \App\Services\CsvImportService();
+        $rows = $importService->parseFile($request->file('csv_file'));
+
+        $rules = [
+            'code' => 'required|string|max:50',
+            'name' => 'required|string|max:255',
+        ];
+
+        \DB::beginTransaction();
+        try {
+            foreach ($rows as $row) {
+                $validated = $importService->validateRow($row, $rules, $row['_line']);
+
+                if ($validated) {
+                    Warehouse::updateOrCreate(
+                        ['code' => $validated['code']],
+                        [
+                            'name' => $validated['name'],
+                            'address' => $row['address'] ?? null,
+                            'phone' => $row['phone'] ?? null,
+                            'email' => $row['email'] ?? null,
+                            'is_active' => true,
+                        ]
+                    );
+                }
+            }
+
+            \DB::commit();
+            $results = $importService->getResults();
+
+            return redirect()->route('warehouses.index')
+                ->with('success', "تم استيراد {$results['success_count']} مستودع بنجاح" .
+                    ($results['error_count'] > 0 ? " ({$results['error_count']} أخطاء)" : ''));
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return back()->with('error', 'خطأ في الاستيراد: ' . $e->getMessage());
+        }
+    }
 }

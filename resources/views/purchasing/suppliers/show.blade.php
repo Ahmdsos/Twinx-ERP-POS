@@ -24,6 +24,9 @@
                             <li><a class="dropdown-item" href="{{ route('suppliers.edit', $supplier) }}">
                                     <i class="bi bi-pencil me-2"></i>تعديل
                                 </a></li>
+                            <li><a class="dropdown-item" href="{{ route('suppliers.statement', $supplier) }}">
+                                    <i class="bi bi-file-text me-2"></i>كشف الحساب
+                                </a></li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>

@@ -99,6 +99,8 @@ class ChartOfAccountsSeeder extends Seeder
         $this->createAccount('2202', 'VAT Receivable', AccountType::LIABILITY, $taxes->id);
         $this->createAccount('2210', 'Income Tax Payable', AccountType::LIABILITY, $taxes->id);
         $this->createAccount('2220', 'Payroll Taxes Payable', AccountType::LIABILITY, $taxes->id);
+        // GRN Clearing Account - Intermediate liability for received goods without invoice
+        $this->createAccount('2120', 'GRN Clearing', AccountType::LIABILITY, $payables->id);
 
         // Other
         $this->createAccount('2300', 'Customer Deposits', AccountType::LIABILITY, $currentLiabilities->id);
@@ -135,6 +137,7 @@ class ChartOfAccountsSeeder extends Seeder
         $this->createAccount('4201', 'Interest Income', AccountType::REVENUE, $otherIncome->id);
         $this->createAccount('4202', 'Foreign Exchange Gain', AccountType::REVENUE, $otherIncome->id);
         $this->createAccount('4203', 'Miscellaneous Income', AccountType::REVENUE, $otherIncome->id);
+        $this->createAccount('4204', 'Inventory Gain', AccountType::REVENUE, $otherIncome->id);
     }
 
     protected function createExpenses(): void
@@ -147,6 +150,7 @@ class ChartOfAccountsSeeder extends Seeder
         $this->createAccount('5110', 'Purchase Returns', AccountType::EXPENSE, $costOfSales->id);
         $this->createAccount('5120', 'Purchase Discounts', AccountType::EXPENSE, $costOfSales->id);
         $this->createAccount('5130', 'Freight In', AccountType::EXPENSE, $costOfSales->id);
+        $this->createAccount('5140', 'Inventory Loss', AccountType::EXPENSE, $costOfSales->id);
 
         // Operating Expenses
         $operating = $this->createAccount('5200', 'Operating Expenses', AccountType::EXPENSE, $expenses->id, true);

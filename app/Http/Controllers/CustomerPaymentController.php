@@ -143,15 +143,19 @@ class CustomerPaymentController extends Controller
         $customer = Customer::findOrFail($validated['customer_id']);
         $paymentAccount = Account::findOrFail($validated['payment_account_id']);
 
-        // Prepare allocations
+        // Prepare allocations as array of arrays for SalesService
         $invoiceAllocations = [];
         if (!empty($validated['allocations'])) {
             foreach ($validated['allocations'] as $alloc) {
-                if (!empty($alloc['amount']) && $alloc['amount'] > 0) {
-                    $invoiceAllocations[$alloc['invoice_id']] = $alloc['amount'];
+                if (!empty($alloc['amount']) && $alloc['amount'] > 0 && !empty($alloc['invoice_id'])) {
+                    $invoiceAllocations[] = [
+                        'invoice_id' => $alloc['invoice_id'],
+                        'amount' => $alloc['amount'],
+                    ];
                 }
             }
         }
+
 
         $payment = $this->salesService->receivePayment(
             customer: $customer,

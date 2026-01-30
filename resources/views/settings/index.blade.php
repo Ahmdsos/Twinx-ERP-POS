@@ -183,6 +183,155 @@
                     </div>
                 </div>
 
+                <!-- Currency Settings -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-currency-exchange me-2"></i>إعدادات العملة</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">العملة الأساسية</label>
+                                <select class="form-select" name="currency_code">
+                                    <option value="EGP" {{ ($settings['currency']['currency_code'] ?? 'EGP') === 'EGP' ? 'selected' : '' }}>جنيه مصري (EGP)</option>
+                                    <option value="SAR" {{ ($settings['currency']['currency_code'] ?? '') === 'SAR' ? 'selected' : '' }}>ريال سعودي (SAR)</option>
+                                    <option value="AED" {{ ($settings['currency']['currency_code'] ?? '') === 'AED' ? 'selected' : '' }}>درهم إماراتي (AED)</option>
+                                    <option value="USD" {{ ($settings['currency']['currency_code'] ?? '') === 'USD' ? 'selected' : '' }}>دولار أمريكي (USD)</option>
+                                    <option value="EUR" {{ ($settings['currency']['currency_code'] ?? '') === 'EUR' ? 'selected' : '' }}>يورو (EUR)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">رمز العملة</label>
+                                <input type="text" class="form-control" name="currency_symbol"
+                                    value="{{ $settings['currency']['currency_symbol'] ?? 'ج.م' }}" maxlength="10">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">عدد الخانات العشرية</label>
+                                <select class="form-select" name="currency_decimals">
+                                    <option value="0" {{ ($settings['currency']['currency_decimals'] ?? 2) == 0 ? 'selected' : '' }}>0</option>
+                                    <option value="2" {{ ($settings['currency']['currency_decimals'] ?? 2) == 2 ? 'selected' : '' }}>2</option>
+                                    <option value="3" {{ ($settings['currency']['currency_decimals'] ?? 2) == 3 ? 'selected' : '' }}>3</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">الفاصل العشري</label>
+                                <select class="form-select" name="currency_decimal_separator">
+                                    <option value="." {{ ($settings['currency']['currency_decimal_separator'] ?? '.') === '.' ? 'selected' : '' }}>نقطة (.)</option>
+                                    <option value="," {{ ($settings['currency']['currency_decimal_separator'] ?? '.') === ',' ? 'selected' : '' }}>فاصلة (,)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">فاصل الآلاف</label>
+                                <select class="form-select" name="currency_thousands_separator">
+                                    <option value="," {{ ($settings['currency']['currency_thousands_separator'] ?? ',') === ',' ? 'selected' : '' }}>فاصلة (,)</option>
+                                    <option value="." {{ ($settings['currency']['currency_thousands_separator'] ?? ',') === '.' ? 'selected' : '' }}>نقطة (.)</option>
+                                    <option value=" " {{ ($settings['currency']['currency_thousands_separator'] ?? ',') === ' ' ? 'selected' : '' }}>مسافة</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Email Settings -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-envelope me-2"></i>إعدادات البريد الإلكتروني</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            يُستخدم لإرسال الفواتير وكشوف الحساب للعملاء والموردين
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">خادم SMTP</label>
+                                <input type="text" class="form-control" name="email_smtp_host"
+                                    value="{{ $settings['email']['email_smtp_host'] ?? '' }}" placeholder="smtp.gmail.com"
+                                    dir="ltr">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">منفذ SMTP</label>
+                                <input type="number" class="form-control" name="email_smtp_port"
+                                    value="{{ $settings['email']['email_smtp_port'] ?? 587 }}" placeholder="587" dir="ltr">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">اسم المستخدم</label>
+                                <input type="text" class="form-control" name="email_username"
+                                    value="{{ $settings['email']['email_username'] ?? '' }}" placeholder="your@email.com"
+                                    dir="ltr">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">كلمة المرور</label>
+                                <input type="password" class="form-control" name="email_password"
+                                    value="{{ $settings['email']['email_password'] ?? '' }}" placeholder="••••••••">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">اسم المُرسِل</label>
+                                <input type="text" class="form-control" name="email_from_name"
+                                    value="{{ $settings['email']['email_from_name'] ?? '' }}" placeholder="Twinx ERP">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">التشفير</label>
+                                <select class="form-select" name="email_encryption">
+                                    <option value="tls" {{ ($settings['email']['email_encryption'] ?? 'tls') === 'tls' ? 'selected' : '' }}>TLS</option>
+                                    <option value="ssl" {{ ($settings['email']['email_encryption'] ?? '') === 'ssl' ? 'selected' : '' }}>SSL</option>
+                                    <option value="" {{ ($settings['email']['email_encryption'] ?? '') === '' ? 'selected' : '' }}>بدون</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Backup Settings -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-database me-2"></i>النسخ الاحتياطي</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">النسخ الاحتياطي التلقائي</label>
+                                <select class="form-select" name="backup_frequency">
+                                    <option value="disabled" {{ ($settings['backup']['backup_frequency'] ?? 'daily') === 'disabled' ? 'selected' : '' }}>معطل</option>
+                                    <option value="daily" {{ ($settings['backup']['backup_frequency'] ?? 'daily') === 'daily' ? 'selected' : '' }}>يومياً</option>
+                                    <option value="weekly" {{ ($settings['backup']['backup_frequency'] ?? '') === 'weekly' ? 'selected' : '' }}>أسبوعياً</option>
+                                    <option value="monthly" {{ ($settings['backup']['backup_frequency'] ?? '') === 'monthly' ? 'selected' : '' }}>شهرياً</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">عدد النسخ المحتفظ بها</label>
+                                <input type="number" class="form-control" name="backup_keep_count"
+                                    value="{{ $settings['backup']['backup_keep_count'] ?? 7 }}" min="1" max="30">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">مسار حفظ النسخ</label>
+                                <input type="text" class="form-control" name="backup_path"
+                                    value="{{ $settings['backup']['backup_path'] ?? 'backups' }}" placeholder="backups"
+                                    dir="ltr">
+                            </div>
+                            <div class="col-md-6 d-flex align-items-end">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="backup_notify" id="backup_notify"
+                                        value="1" {{ ($settings['backup']['backup_notify'] ?? false) ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="backup_notify">
+                                        إرسال إشعار بريدي عند اكتمال النسخ
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="d-flex gap-2">
+                            <a href="{{ route('settings.backup.create') }}" class="btn btn-success"
+                                onclick="return confirm('هل تريد إنشاء نسخة احتياطية الآن؟')">
+                                <i class="bi bi-download me-1"></i>إنشاء نسخة احتياطية الآن
+                            </a>
+                            <a href="{{ route('settings.backup.index') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-folder me-1"></i>عرض النسخ الاحتياطية
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Save Button -->
                 <div class="card">
                     <div class="card-body">

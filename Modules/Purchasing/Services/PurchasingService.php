@@ -158,7 +158,7 @@ class PurchasingService
             // Complete GRN
             $grn->complete();
 
-            // Create journal entry for inventory DR, AP CR
+            // Create journal entry for inventory DR, GRN Clearing CR
             $this->createGrnJournalEntry($grn, $totalValue);
 
             return $grn->fresh(['lines', 'purchaseOrder', 'warehouse']);
@@ -171,21 +171,22 @@ class PurchasingService
     protected function createGrnJournalEntry(Grn $grn, float $totalValue): void
     {
         $inventoryAccount = Account::where('code', '1301')->first(); // Inventory
-        $apAccount = Account::where('code', '2101')->first(); // Accounts Payable
+        // Use GRN Clearing Account (2120) instead of AP directly
+        $clearingAccount = Account::where('code', '2120')->first();
 
-        if (!$inventoryAccount || !$apAccount) {
+        if (!$inventoryAccount || !$clearingAccount) {
             return; // Skip if accounts not configured
         }
 
         $entry = $this->journalService->create([
             'entry_date' => $grn->received_date,
             'reference' => $grn->grn_number,
-            'description' => "Goods Receipt from {$grn->supplier->name}",
+            'description' => "Goods Receipt from {$grn->supplier->name} (Pending Invoice)",
             'source_type' => Grn::class,
             'source_id' => $grn->id,
         ], [
             ['account_id' => $inventoryAccount->id, 'debit' => $totalValue, 'credit' => 0],
-            ['account_id' => $apAccount->id, 'debit' => 0, 'credit' => $totalValue],
+            ['account_id' => $clearingAccount->id, 'debit' => 0, 'credit' => $totalValue],
         ]);
 
         $grn->update(['journal_entry_id' => $entry->id]);
@@ -217,9 +218,11 @@ class PurchasingService
                 'purchase_order_id' => $grn->purchase_order_id,
                 'invoice_date' => $invoiceDate,
                 'due_date' => $dueDate,
-                'status' => PurchaseInvoiceStatus::PENDING,
+                'status' => PurchaseInvoiceStatus::APPROVED, // Auto-approve for now since it matches GRN
                 'created_by' => auth()->id(),
             ]);
+
+            $totalValue = 0;
 
             // Copy lines from GRN
             foreach ($grn->lines as $grnLine) {
@@ -230,10 +233,41 @@ class PurchasingService
                     'unit_price' => $grnLine->unit_cost,
                     'tax_percent' => $grnLine->product->tax_rate ?? 0,
                 ]);
+
+                $totalValue += $grnLine->quantity * $grnLine->unit_cost;
             }
+
+            // Create Journal Entry: DR GRN Clearing, CR Accounts Payable
+            $this->createInvoiceJournalEntry($invoice, $totalValue);
 
             return $invoice->fresh(['lines', 'supplier']);
         });
+    }
+
+    /**
+     * Create journal entry for Purchase Invoice
+     */
+    protected function createInvoiceJournalEntry(PurchaseInvoice $invoice, float $totalValue): void
+    {
+        $clearingAccount = Account::where('code', '2120')->first(); // GRN Clearing
+        $apAccount = Account::where('code', '2101')->first(); // Accounts Payable
+
+        if (!$clearingAccount || !$apAccount) {
+            return;
+        }
+
+        $entry = $this->journalService->create([
+            'entry_date' => $invoice->invoice_date,
+            'reference' => $invoice->invoice_number,
+            'description' => "Purchase Invoice #{$invoice->supplier_invoice_number} from {$invoice->supplier->name}",
+            'source_type' => PurchaseInvoice::class,
+            'source_id' => $invoice->id,
+        ], [
+            ['account_id' => $clearingAccount->id, 'debit' => $totalValue, 'credit' => 0],
+            ['account_id' => $apAccount->id, 'debit' => 0, 'credit' => $totalValue],
+        ]);
+
+        $invoice->update(['journal_entry_id' => $entry->id]);
     }
 
     // ========================================
@@ -265,12 +299,23 @@ class PurchasingService
 
             // Allocate to invoices
             foreach ($invoiceAllocations as $allocation) {
+                // Ensure allocation is an array (could be string or object)
+                if (is_string($allocation)) {
+                    $allocation = json_decode($allocation, true) ?? [];
+                }
+                if (!is_array($allocation) || empty($allocation['invoice_id'])) {
+                    continue;
+                }
+
                 $invoice = PurchaseInvoice::find($allocation['invoice_id']);
                 if ($invoice && $invoice->supplier_id === $supplier->id) {
-                    $allocAmount = min($allocation['amount'], $invoice->balance_due);
-                    $payment->allocateToInvoice($invoice, $allocAmount);
+                    $allocAmount = min($allocation['amount'] ?? 0, $invoice->balance_due);
+                    if ($allocAmount > 0) {
+                        $payment->allocateToInvoice($invoice, $allocAmount);
+                    }
                 }
             }
+
 
             // Create journal entry: DR AP, CR Cash/Bank
             $this->createPaymentJournalEntry($payment, $supplier);

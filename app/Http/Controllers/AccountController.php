@@ -64,27 +64,34 @@ class AccountController extends Controller
     }
 
     /**
-     * Recursively build account tree structure
+     * Recursively build account tree structure with balance rollup
      */
     private function buildAccountTree(Account $account, $accountsById): array
     {
         $children = $accountsById->where('parent_id', $account->id)->values();
+        $childNodes = [];
+        $rolledUpBalance = 0;
 
-        $node = [
+        foreach ($children as $child) {
+            $childNode = $this->buildAccountTree($child, $accountsById);
+            $childNodes[] = $childNode;
+            $rolledUpBalance += $childNode['balance'];
+        }
+
+        // Use the rolled up balance if it's a header or has children, 
+        // otherwise use its own balance
+        $displayBalance = (count($children) > 0) ? $rolledUpBalance : ($account->balance ?? 0);
+
+        return [
             'id' => $account->id,
             'code' => $account->code,
             'name' => $account->name,
             'type' => $account->type->value,
-            'balance' => $account->balance ?? 0,
+            'balance' => $displayBalance,
             'is_active' => $account->is_active,
-            'children' => [],
+            'is_header' => $account->is_header,
+            'children' => $childNodes,
         ];
-
-        foreach ($children as $child) {
-            $node['children'][] = $this->buildAccountTree($child, $accountsById);
-        }
-
-        return $node;
     }
 
     /**

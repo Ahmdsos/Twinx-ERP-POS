@@ -105,7 +105,18 @@ class PurchaseInvoiceController extends Controller
             ->orderByDesc('received_date')
             ->get();
 
-        return view('purchasing.invoices.create', compact('grn', 'grns'));
+        // Direct Invoice Mode Data
+        $suppliers = Supplier::where('is_active', true)->orderBy('name')->get();
+        $warehouses = \Modules\Inventory\Models\Warehouse::where('is_active', true)->get();
+        $products = \Modules\Inventory\Models\Product::where('is_active', true)->select('id', 'name', 'sku', 'cost_price')->get();
+
+        // Payment Accounts for Initial Payment
+        $paymentAccounts = \Modules\Accounting\Models\Account::whereIn('type', ['asset'])
+            ->where(function ($q) {
+                $q->where('code', 'like', '11%')->orWhere('code', 'like', '12%');
+            })->where('is_active', true)->get();
+
+        return view('purchasing.invoices.create', compact('grn', 'grns', 'suppliers', 'warehouses', 'products', 'paymentAccounts'));
     }
 
     /**
@@ -113,31 +124,80 @@ class PurchaseInvoiceController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'grn_id' => 'required|exists:grns,id',
-            'supplier_invoice_number' => 'required|string|max:50',
+        // 1. Validate Common Data
+        $request->validate([
             'invoice_date' => 'required|date',
             'due_date' => 'required|date|after_or_equal:invoice_date',
+            'supplier_invoice_number' => 'required|string|max:50',
             'notes' => 'nullable|string',
         ]);
 
-        $grn = Grn::with(['supplier', 'lines.product', 'purchaseOrder'])->findOrFail($validated['grn_id']);
-
         try {
-            $invoice = $this->purchasingService->createInvoiceFromGrn(
-                $grn,
-                $validated['supplier_invoice_number'],
-                \Carbon\Carbon::parse($validated['invoice_date']),
-                \Carbon\Carbon::parse($validated['due_date'])
-            );
+            // Case A: From Existing GRN
+            if ($request->filled('grn_id')) {
+                $grn = Grn::findOrFail($request->grn_id);
+                $invoice = $this->purchasingService->createInvoiceFromGrn(
+                    $grn,
+                    $request->supplier_invoice_number,
+                    \Carbon\Carbon::parse($request->invoice_date),
+                    \Carbon\Carbon::parse($request->due_date)
+                );
+            }
+            // Case B: Direct Invoice (New Items)
+            else {
+                $request->validate([
+                    'supplier_id' => 'required|exists:suppliers,id',
+                    'warehouse_id' => 'required|exists:warehouses,id',
+                    'items' => 'required|array|min:1',
+                    'items.*.product_id' => 'required|exists:products,id',
+                    'items.*.quantity' => 'required|numeric|min:1',
+                    'items.*.unit_price' => 'required|numeric|min:0',
+                ]);
 
-            // Additional notes - store separately if needed
-            if (!empty($validated['notes'])) {
-                $invoice->update(['notes' => $validated['notes']]);
+                $supplier = Supplier::findOrFail($request->supplier_id);
+                $warehouse = \Modules\Inventory\Models\Warehouse::findOrFail($request->warehouse_id);
+
+                $invoiceData = [
+                    'invoice_date' => \Carbon\Carbon::parse($request->invoice_date),
+                    'due_date' => \Carbon\Carbon::parse($request->due_date),
+                    'supplier_invoice_number' => $request->supplier_invoice_number,
+                    'notes' => $request->notes
+                ];
+
+                $invoice = $this->purchasingService->createDirectInvoice(
+                    $supplier,
+                    $warehouse,
+                    $request->items,
+                    $invoiceData
+                );
+            }
+
+            // Update Notes
+            if ($request->filled('notes')) {
+                $invoice->update(['notes' => $request->notes]);
+            }
+
+            // 3. Handle Initial Payment (Pay & Defer)
+            if ($request->filled('paid_amount') && $request->paid_amount > 0) {
+                $request->validate([
+                    'payment_method' => 'required|in:cash,bank_transfer,cheque',
+                    'payment_account_id' => 'required|exists:accounts,id',
+                ]);
+
+                $this->purchasingService->createPayment(
+                    $invoice->supplier,
+                    $request->paid_amount,
+                    \Modules\Accounting\Models\Account::find($request->payment_account_id),
+                    $request->payment_method,
+                    'دفعة فورية لفاتورة ' . $invoice->invoice_number,
+                    now(),
+                    [['invoice_id' => $invoice->id, 'amount' => $request->paid_amount]]
+                );
             }
 
             return redirect()->route('purchase-invoices.show', $invoice)
                 ->with('success', 'تم إنشاء فاتورة الشراء: ' . $invoice->invoice_number);
+
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage())->withInput();
         }

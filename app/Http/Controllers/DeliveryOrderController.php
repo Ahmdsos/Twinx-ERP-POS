@@ -130,13 +130,17 @@ class DeliveryOrderController extends Controller
             return back()->with('error', 'يجب تحديد كمية واحدة على الأقل للتسليم');
         }
 
-        $deliveryOrder = $this->salesService->createDelivery(
-            so: $salesOrder,
-            warehouse: $warehouse,
-            itemsToDeliver: $itemsToDeliver,
-            shippingMethod: $validated['shipping_method'] ?? null,
-            notes: $validated['notes'] ?? null
-        );
+        try {
+            $deliveryOrder = $this->salesService->createDelivery(
+                so: $salesOrder,
+                warehouse: $warehouse,
+                itemsToDeliver: $itemsToDeliver,
+                shippingMethod: $validated['shipping_method'] ?? null,
+                notes: $validated['notes'] ?? null
+            );
+        } catch (\Exception $e) {
+            return back()->with('error', 'خطأ في إنشاء أمر التسليم: ' . $e->getMessage())->withInput();
+        }
 
         return redirect()->route('deliveries.show', $deliveryOrder)
             ->with('success', 'تم إنشاء أمر التسليم بنجاح: ' . $deliveryOrder->do_number);

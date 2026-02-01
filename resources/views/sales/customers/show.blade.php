@@ -1,261 +1,200 @@
 @extends('layouts.app')
 
-@section('title', $customer->name . ' - Twinx ERP')
-@section('page-title', 'تفاصيل العميل')
-
-@section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">الرئيسية</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('customers.index') }}">العملاء</a></li>
-    <li class="breadcrumb-item active">{{ $customer->name }}</li>
-@endsection
+@section('title', 'تفاصيل العميل: ' . $customer->name)
 
 @section('content')
-    <div class="row">
-        <!-- Customer Info Card -->
-        <div class="col-lg-4 mb-4">
-            <div class="card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="bi bi-person-circle me-2"></i>معلومات العميل</h5>
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">
-                            <i class="bi bi-three-dots-vertical"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{{ route('customers.edit', $customer) }}">
-                                    <i class="bi bi-pencil me-2"></i>تعديل
-                                </a></li>
-                            <li><a class="dropdown-item" href="{{ route('customers.statement', $customer) }}">
-                                    <i class="bi bi-file-text me-2"></i>كشف الحساب
-                                </a></li>
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                            @if($customer->is_blocked)
-                                <li>
-                                    <form action="{{ route('customers.unblock', $customer) }}" method="POST"
-                                        onsubmit="return confirm('هل أنت متأكد من إلغاء إيقاف هذا العميل؟')">
-                                        @csrf
-                                        <button type="submit" class="dropdown-item text-success">
-                                            <i class="bi bi-check-circle me-2"></i>إلغاء الإيقاف
-                                        </button>
-                                    </form>
-                                </li>
-                            @else
-                                <li>
-                                    <button type="button" class="dropdown-item text-warning" data-bs-toggle="modal"
-                                        data-bs-target="#blockCustomerModal">
-                                        <i class="bi bi-ban me-2"></i>إيقاف العميل
-                                    </button>
-                                </li>
-                            @endif
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                            <li>
-                                <form action="{{ route('customers.destroy', $customer) }}" method="POST"
-                                    onsubmit="return confirm('هل أنت متأكد من حذف هذا العميل؟')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="dropdown-item text-danger">
-                                        <i class="bi bi-trash me-2"></i>حذف
-                                    </button>
-                                </form>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="text-center mb-4">
-                        <div class="avatar-lg bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-                            style="width: 80px; height: 80px; font-size: 2rem;">
-                            {{ mb_substr($customer->name, 0, 1) }}
-                        </div>
-                        <h4 class="mb-1">{{ $customer->name }}</h4>
-                        <span class="badge bg-{{ $customer->is_active ? 'success' : 'secondary' }}">
-                            {{ $customer->is_active ? 'نشط' : 'غير نشط' }}
-                        </span>
-                        @if($customer->is_blocked)
-                            <span class="badge bg-danger ms-1">
-                                <i class="bi bi-ban me-1"></i>موقوف
-                            </span>
-                        @endif
-                    </div>
-
-                    <!-- Block Reason Alert -->
-                    @if($customer->is_blocked && $customer->block_reason)
-                        <div class="alert alert-danger mt-3 mb-0">
-                            <strong><i class="bi bi-exclamation-triangle me-1"></i>سبب الإيقاف:</strong>
-                            <p class="mb-0">{{ $customer->block_reason }}</p>
-                            <small class="text-muted">
-                                تم الإيقاف: {{ $customer->blocked_at?->format('Y-m-d') ?? 'غير محدد' }}
-                            </small>
-                        </div>
-                    @endif
-
-                    <hr>
-
-                    <table class="table table-sm table-borderless">
-                        <tr>
-                            <td class="text-muted" style="width: 40%;">الكود</td>
-                            <td><strong>{{ $customer->code }}</strong></td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">البريد الإلكتروني</td>
-                            <td>{{ $customer->email ?? '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">الهاتف</td>
-                            <td dir="ltr" class="text-end">{{ $customer->phone ?? '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">العنوان</td>
-                            <td>{{ $customer->billing_address ?? '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">الرقم الضريبي</td>
-                            <td>{{ $customer->tax_number ?? '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">شروط الدفع</td>
-                            <td>{{ $customer->payment_terms }} يوم</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">حد الائتمان</td>
-                            <td>{{ number_format($customer->credit_limit, 2) }} ج.م</td>
-                        </tr>
-                    </table>
+<div class="container-fluid p-0">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div class="d-flex align-items-center gap-3">
+             <div class="icon-box-lg bg-gradient-to-br from-purple-600 to-indigo-700 rounded-circle shadow-lg text-white">
+                <i class="bi bi-person-vcard fs-2"></i>
+            </div>
+            <div>
+                <h2 class="fw-bold text-white mb-0">{{ $customer->name }}</h2>
+                <div class="d-flex align-items-center gap-2 text-gray-400 small mt-1">
+                    <span class="font-monospace">{{ $customer->code }}</span>
+                    <span class="text-white/20">|</span>
+                    <span class="badge {{ $customer->is_active ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400' }} border border-white/10">
+                        {{ $customer->is_active ? 'نشط' : 'غير نشط' }}
+                    </span>
+                    <span class="text-white/20">|</span>
+                    <span class="badge bg-{{ $customer->type_color }}/10 text-{{ $customer->type_color }} border border-{{ $customer->type_color }}/20">
+                        {{ $customer->type_label }}
+                    </span>
                 </div>
             </div>
         </div>
-
-        <!-- Financial Summary -->
-        <div class="col-lg-8">
-            <!-- Stats Cards -->
-            <div class="row g-3 mb-4">
-                <div class="col-md-4">
-                    <div class="card bg-primary text-white h-100">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <p class="mb-1 opacity-75">إجمالي المبيعات</p>
-                                    <h4 class="mb-0">{{ number_format($totalSales ?? 0, 2) }}</h4>
-                                </div>
-                                <i class="bi bi-currency-dollar fs-1 opacity-50"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card bg-warning text-dark h-100">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <p class="mb-1 opacity-75">الرصيد المستحق</p>
-                                    <h4 class="mb-0">{{ number_format($balance ?? 0, 2) }}</h4>
-                                </div>
-                                <i class="bi bi-wallet2 fs-1 opacity-50"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card bg-success text-white h-100">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <p class="mb-1 opacity-75">إجمالي المدفوع</p>
-                                    <h4 class="mb-0">{{ number_format($totalPaid ?? 0, 2) }}</h4>
-                                </div>
-                                <i class="bi bi-cash-stack fs-1 opacity-50"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        
+        <div class="d-flex gap-2">
+            <a href="{{ route('customers.index') }}" class="btn btn-glass-outline rounded-pill">
+                <i class="bi bi-arrow-right me-2"></i> القائمة
+            </a>
+            
+            <div class="btn-group shadow-lg rounded-pill overflow-hidden">
+                <a href="{{ route('customers.edit', $customer->id) }}" class="btn btn-dark border-start border-white/10 text-warning hover-bg-warning-dark">
+                    <i class="bi bi-pencil me-2"></i> تعديل
+                </a>
+                <a href="{{ route('customers.statement', $customer->id) }}" target="_blank" class="btn btn-dark border-start border-white/10 text-info hover-bg-info-dark">
+                    <i class="bi bi-file-earmark-spreadsheet me-2"></i> كشف حساب
+                </a>
+                <a href="{{ route('customer-payments.create', ['customer_id' => $customer->id]) }}" class="btn btn-success fw-bold px-4 hover-scale text-white">
+                    <i class="bi bi-cash-stack me-2"></i> تحصيل دفعة
+                </a>
             </div>
+        </div>
+    </div>
 
-            <!-- Recent Invoices -->
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="bi bi-receipt me-2"></i>آخر الفواتير</h5>
-                    <a href="#" class="btn btn-sm btn-outline-primary">عرض الكل</a>
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="glass-panel p-4 position-relative overflow-hidden h-100">
+                <div class="absolute-glow top-0 end-0 bg-red-500/10"></div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="text-gray-400 mb-0">الرصيد الحالي</h6>
+                    <i class="bi bi-wallet2 text-red-400 fs-4"></i>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>رقم الفاتورة</th>
-                                    <th>التاريخ</th>
-                                    <th>الإجمالي</th>
-                                    <th>المستحق</th>
-                                    <th>الحالة</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($recentInvoices ?? [] as $invoice)
-                                    <tr>
-                                        <td><a href="#">{{ $invoice->number }}</a></td>
-                                        <td>{{ $invoice->invoice_date->format('Y-m-d') }}</td>
-                                        <td>{{ number_format($invoice->total, 2) }}</td>
-                                        <td>{{ number_format($invoice->balance_due, 2) }}</td>
-                                        <td>
-                                            @if($invoice->status === 'paid')
-                                                <span class="badge bg-success">مدفوعة</span>
-                                            @elseif($invoice->status === 'partial')
-                                                <span class="badge bg-warning">جزئي</span>
-                                            @else
-                                                <span class="badge bg-danger">معلقة</span>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="5" class="text-center text-muted py-4">
-                                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                                            لا توجد فواتير حتى الآن
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+                <h3 class="fw-bold {{ $customer->balance > 0 ? 'text-danger' : 'text-success' }} mb-0">
+                    {{ number_format($customer->balance, 2) }} <small class="fs-6 text-gray-500">EGP</small>
+                </h3>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="glass-panel p-4 position-relative overflow-hidden h-100">
+                <div class="absolute-glow top-0 end-0 bg-blue-500/10"></div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="text-gray-400 mb-0">المتاحة للطلب (Credit)</h6>
+                    <i class="bi bi-graph-up-arrow text-blue-400 fs-4"></i>
+                </div>
+                <h3 class="fw-bold text-white mb-0">
+                     {{ number_format($customer->getAvailableCredit(), 2) }} <small class="fs-6 text-gray-500">EGP</small>
+                </h3>
+                <div class="progress mt-3 bg-white/5" style="height: 4px;">
+                     @php 
+                        $limit = $customer->credit_limit > 0 ? $customer->credit_limit : 1;
+                        $usage = ($customer->balance / $limit) * 100;
+                     @endphp
+                    <div class="progress-bar bg-blue-500" style="width: {{ min($usage, 100) }}%"></div>
+                </div>
+                <small class="text-gray-500 mt-2 d-block">السقف الائتماني: {{ number_format($customer->credit_limit, 2) }}</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="glass-panel p-4 position-relative overflow-hidden h-100">
+                 <div class="absolute-glow top-0 end-0 bg-purple-500/10"></div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="text-gray-400 mb-0">إجراءات سريعة</h6>
+                    <i class="bi bi-lightning-charge text-purple-400 fs-4"></i>
+                </div>
+                <div class="d-flex gap-2 mt-2">
+                    <a href="{{ route('sales-orders.create', ['customer_id' => $customer->id]) }}" class="btn btn-sm btn-glass-outline w-100">
+                        <i class="bi bi-cart-plus me-1"></i> أمر بيع
+                    </a>
+                    <a href="{{ route('sales-invoices.index', ['customer_id' => $customer->id]) }}" class="btn btn-sm btn-glass-outline w-100">
+                        <i class="bi bi-receipt me-1"></i> فواتير
+                    </a>
+                     <a href="{{ route('sales-orders.index', ['customer_id' => $customer->id]) }}" class="btn btn-sm btn-glass-outline w-100">
+                        <i class="bi bi-box-seam me-1"></i> طلبات
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Block Customer Modal -->
-    <div class="modal fade" id="blockCustomerModal" tabindex="-1" aria-labelledby="blockCustomerModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form action="{{ route('customers.block', $customer) }}" method="POST">
-                    @csrf
-                    <div class="modal-header bg-warning text-dark">
-                        <h5 class="modal-title" id="blockCustomerModalLabel">
-                            <i class="bi bi-ban me-2"></i>إيقاف العميل
-                        </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+    <div class="row g-4">
+        <!-- Basic Info -->
+        <div class="col-md-6">
+            <div class="glass-panel p-4 h-100 border border-white/10">
+                <h5 class="fw-bold text-white mb-4 border-bottom border-white/10 pb-3">
+                    <i class="bi bi-info-circle me-2 text-info"></i> البيانات الأساسية
+                </h5>
+                <div class="vstack gap-3">
+                    <div class="d-flex justify-content-between border-bottom border-white/5 pb-2">
+                        <span class="text-gray-400">البريد الإلكتروني</span>
+                        <span class="text-white">{{ $customer->email ?? '-' }}</span>
                     </div>
-                    <div class="modal-body">
-                        <div class="alert alert-warning">
-                            <i class="bi bi-exclamation-triangle me-2"></i>
-                            سيتم منع هذا العميل من إجراء أي معاملات جديدة.
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">سبب الإيقاف <span class="text-danger">*</span></label>
-                            <textarea class="form-control" name="block_reason" rows="3" required
-                                placeholder="مثال: تأخر في السداد، تجاوز حد الائتمان..."></textarea>
-                        </div>
+                    <div class="d-flex justify-content-between border-bottom border-white/5 pb-2">
+                        <span class="text-gray-400">الهاتف</span>
+                        <span class="text-white font-monospace">{{ $customer->phone ?? '-' }}</span>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
-                        <button type="submit" class="btn btn-warning">
-                            <i class="bi bi-ban me-1"></i>تأكيد الإيقاف
-                        </button>
+                    <div class="d-flex justify-content-between border-bottom border-white/5 pb-2">
+                        <span class="text-gray-400">الموبايل</span>
+                        <span class="text-white font-monospace">{{ $customer->mobile ?? '-' }}</span>
                     </div>
-                </form>
+                    <div class="d-flex justify-content-between border-bottom border-white/5 pb-2">
+                        <span class="text-gray-400">الشخص المسؤول</span>
+                        <span class="text-white">{{ $customer->contact_person ?? '-' }}</span>
+                    </div>
+                     <div class="d-flex justify-content-between pt-2">
+                        <span class="text-gray-400">الرقم الضريبي</span>
+                        <span class="text-white font-monospace">{{ $customer->tax_number ?? '-' }}</span>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <!-- Addresses & Financial -->
+        <div class="col-md-6">
+            <div class="glass-panel p-4 h-100 border border-white/10">
+                <h5 class="fw-bold text-white mb-4 border-bottom border-white/10 pb-3">
+                    <i class="bi bi-geo-alt me-2 text-warning"></i> العناوين والشروط
+                </h5>
+                 <div class="row g-4">
+                    <div class="col-12">
+                        <h6 class="text-gray-500 small text-uppercase fw-bold mb-2">العنوان الرئيسي</h6>
+                        <p class="text-white bg-white/5 p-3 rounded mb-0">
+                            {{ $customer->billing_address ?? 'لا يوجد عنوان مسجل' }}
+                            <br>
+                            <span class="text-gray-400 small">{{ $customer->billing_city }} - {{ $customer->billing_country }}</span>
+                        </p>
+                    </div>
+                    <div class="col-6">
+                         <h6 class="text-gray-500 small text-uppercase fw-bold mb-2">شروط الدفع</h6>
+                         <div class="text-white fs-5 fw-bold">{{ $customer->payment_terms }} <span class="fs-6 text-gray-400 fw-normal">يوم</span></div>
+                    </div>
+                 </div>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        @if($customer->notes)
+        <div class="col-12">
+            <div class="glass-panel p-4 border border-white/10">
+                 <h6 class="text-gray-400 fw-bold mb-2 small text-uppercase"><i class="bi bi-sticky me-2"></i> ملاحظات</h6>
+                 <p class="text-white mb-0 opacity-75">{{ $customer->notes }}</p>
+            </div>
+        </div>
+        @endif
     </div>
+</div>
+
+<style>
+    .glass-panel {
+        background: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(20px);
+        border-radius: 16px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .icon-box-lg {
+        width: 60px; height: 60px;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .btn-glass-outline {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: white;
+    }
+    .btn-glass-outline:hover {
+        background: rgba(255,255,255,0.1);
+        color: white;
+    }
+    .absolute-glow {
+        position: absolute;
+        width: 100px; height: 100px;
+        filter: blur(40px);
+        pointer-events: none;
+    }
+    .hover-bg-warning-dark:hover { background-color: #78350f !important; color: #fbbf24 !important; }
+    .hover-bg-info-dark:hover { background-color: #0c4a6e !important; color: #38bdf8 !important; }
+</style>
 @endsection

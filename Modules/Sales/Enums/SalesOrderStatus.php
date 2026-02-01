@@ -28,6 +28,24 @@ enum SalesOrderStatus: string
         };
     }
 
+    public function color(): string
+    {
+        return match ($this) {
+            self::DRAFT => 'secondary',
+            self::CONFIRMED => 'info',
+            self::PROCESSING => 'primary',
+            self::PARTIAL => 'warning',
+            self::DELIVERED => 'success',
+            self::INVOICED => 'purple',
+            self::CANCELLED => 'danger',
+        };
+    }
+
+    public function badgeClass(): string
+    {
+        return 'bg-' . $this->color() . ' text-white';
+    }
+
     public function canEdit(): bool
     {
         return in_array($this, [self::DRAFT]);

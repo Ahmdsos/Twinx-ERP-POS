@@ -59,4 +59,8 @@ enum QuotationStatus: string
     {
         return $this === self::ACCEPTED;
     }
+    public function badgeClass(): string
+    {
+        return 'bg-' . $this->color() . ' text-white';
+    }
 }

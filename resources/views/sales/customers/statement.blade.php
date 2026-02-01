@@ -1,200 +1,128 @@
 @extends('layouts.app')
 
-@section('title', 'كشف حساب ' . $customer->name . ' - Twinx ERP')
-@section('page-title', 'كشف حساب العميل')
-
-@section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">الرئيسية</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('customers.index') }}">العملاء</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('customers.show', $customer) }}">{{ $customer->name }}</a></li>
-    <li class="breadcrumb-item active">كشف الحساب</li>
-@endsection
+@section('title', 'كشف حساب عميل: ' . $customer->name)
 
 @section('content')
-    <!-- Customer Header -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <h4 class="mb-1">{{ $customer->name }}</h4>
-                    <p class="text-muted mb-0">{{ $customer->code }} | {{ $customer->phone ?? '-' }}</p>
+    <div class="container-fluid p-0">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <a href="{{ route('customers.index') }}" class="btn btn-outline-light rounded-circle p-2" style="width: 40px; height: 40px;">
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+                <div>
+                    <h3 class="fw-bold text-white mb-0">كشف حساب</h3>
+                    <p class="text-gray-400 mb-0 small">{{ $customer->name }} ({{ $customer->code }})</p>
                 </div>
-                <div class="col-md-6 text-md-end">
-                    <div class="d-inline-block text-end">
-                        <small class="text-muted d-block">الرصيد الحالي</small>
-                        <h3 class="mb-0 {{ ($balance ?? 0) > 0 ? 'text-danger' : 'text-success' }}">
-                            {{ number_format($balance ?? 0, 2) }} ج.م
-                        </h3>
-                    </div>
+            </div>
+            <div class="d-flex gap-2">
+                <button onclick="window.print()" class="btn btn-outline-light d-flex align-items-center gap-2">
+                    <i class="bi bi-printer"></i> طباعة
+                </button>
+                <div class="bg-slate-800 rounded px-3 py-1 border border-slate-700">
+                    <small class="text-gray-400 d-block">الرصيد الحالي</small>
+                    <span class="fw-bold fs-5 {{ $balance > 0 ? 'text-danger' : ($balance < 0 ? 'text-success' : 'text-white') }}">
+                        {{ number_format(abs($balance), 2) }} {{ $balance > 0 ? 'مدين' : ($balance < 0 ? 'دائن' : '') }}
+                    </span>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Date Filter -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form action="{{ route('customers.statement', $customer) }}" method="GET" class="row g-3 align-items-end">
-                <div class="col-md-3">
-                    <label class="form-label">من تاريخ</label>
-                    <input type="date" class="form-control" name="from_date"
-                        value="{{ request('from_date', now()->startOfMonth()->format('Y-m-d')) }}">
+        <!-- Filters -->
+        <div class="bg-slate-900 bg-opacity-50 border border-white-5 rounded-4 p-4 mb-4 dont-print">
+            <form action="{{ route('customers.statement', $customer->id) }}" method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label text-gray-400 small">من تاريخ</label>
+                    <input type="date" name="from_date" class="form-control bg-dark border-secondary text-white" value="{{ $fromDate }}">
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label">إلى تاريخ</label>
-                    <input type="date" class="form-control" name="to_date"
-                        value="{{ request('to_date', now()->format('Y-m-d')) }}">
+                <div class="col-md-4">
+                    <label class="form-label text-gray-400 small">إلى تاريخ</label>
+                    <input type="date" name="to_date" class="form-control bg-dark border-secondary text-white" value="{{ $toDate }}">
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-4 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-search me-1"></i>عرض
+                        <i class="bi bi-filter"></i> عرض
                     </button>
-                </div>
-                <div class="col-md-2">
-                    <a href="#" class="btn btn-outline-secondary w-100" onclick="window.print()">
-                        <i class="bi bi-printer me-1"></i>طباعة
-                    </a>
                 </div>
             </form>
         </div>
-    </div>
 
-    <!-- Statement Table -->
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i>حركات الحساب</h5>
-            <span class="badge bg-secondary">{{ count($transactions ?? []) }} حركة</span>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>التاريخ</th>
-                            <th>المستند</th>
-                            <th>البيان</th>
-                            <th class="text-success">مدين (له)</th>
-                            <th class="text-danger">دائن (عليه)</th>
-                            <th>الرصيد</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Opening Balance Row -->
-                        <tr class="table-secondary">
-                            <td>{{ request('from_date', now()->startOfMonth()->format('Y-m-d')) }}</td>
-                            <td>-</td>
-                            <td><strong>رصيد أول المدة</strong></td>
-                            <td>-</td>
-                            <td>-</td>
-                            <td><strong>{{ number_format($openingBalance ?? 0, 2) }}</strong></td>
-                        </tr>
-
-                        @php $runningBalance = $openingBalance ?? 0; @endphp
-
-                        @forelse($transactions ?? [] as $transaction)
-                            @php
-                                if ($transaction->type === 'invoice') {
-                                    $runningBalance += $transaction->amount;
-                                } else {
-                                    $runningBalance -= $transaction->amount;
-                                }
-                            @endphp
+        <!-- Statement Table -->
+        <div class="card bg-slate-900 border-slate-800 shadow-lg">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover mb-0">
+                        <thead class="bg-slate-800">
                             <tr>
-                                <td>{{ $transaction->date->format('Y-m-d') }}</td>
-                                <td>
-                                    <a href="#">{{ $transaction->reference }}</a>
-                                </td>
-                                <td>{{ $transaction->description }}</td>
-                                <td class="text-success">
-                                    @if($transaction->type === 'payment')
-                                        {{ number_format($transaction->amount, 2) }}
-                                    @else
-                                        -
-                                    @endif
-                                </td>
-                                <td class="text-danger">
-                                    @if($transaction->type === 'invoice')
-                                        {{ number_format($transaction->amount, 2) }}
-                                    @else
-                                        -
-                                    @endif
-                                </td>
-                                <td class="{{ $runningBalance > 0 ? 'text-danger' : 'text-success' }}">
-                                    <strong>{{ number_format($runningBalance, 2) }}</strong>
-                                </td>
+                                <th class="p-3">التاريخ</th>
+                                <th class="p-3">نوع الحركة</th>
+                                <th class="p-3">المرجع</th>
+                                <th class="p-3">البيان</th>
+                                <th class="p-3 text-end text-danger">مدين (لنا)</th>
+                                <th class="p-3 text-end text-success">دائن (لكم)</th>
+                                <th class="p-3 text-end">الرصيد</th>
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" class="text-center text-muted py-4">
-                                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                                    لا توجد حركات في هذه الفترة
-                                </td>
+                        </thead>
+                        <tbody>
+                            <!-- Opening Balance -->
+                            <tr class="bg-slate-800 bg-opacity-50">
+                                <td colspan="4" class="p-3 fw-bold">الرصيد الافتتاحي (قبل {{ $fromDate }})</td>
+                                <td class="p-3 text-end fw-bold">{{ $openingBalance > 0 ? number_format($openingBalance, 2) : '-' }}</td>
+                                <td class="p-3 text-end fw-bold">{{ $openingBalance < 0 ? number_format(abs($openingBalance), 2) : '-' }}</td>
+                                <td class="p-3 text-end fw-bold">{{ number_format($openingBalance, 2) }}</td>
                             </tr>
-                        @endforelse
 
-                        <!-- Closing Balance Row -->
-                        <tr class="table-primary">
-                            <td>{{ request('to_date', now()->format('Y-m-d')) }}</td>
-                            <td>-</td>
-                            <td><strong>رصيد آخر المدة</strong></td>
-                            <td>-</td>
-                            <td>-</td>
-                            <td><strong
-                                    class="{{ ($balance ?? 0) > 0 ? 'text-danger' : 'text-success' }}">{{ number_format($balance ?? 0, 2) }}</strong>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                            @php $runningBalance = $openingBalance; @endphp
+                            @forelse($transactions as $trans)
+                                @php 
+                                    $debit = $trans->debit ?? 0;
+                                    $credit = $trans->credit ?? 0;
+                                    $runningBalance += ($debit - $credit);
+                                @endphp
+                                <tr>
+                                    <td class="p-3">{{ \Carbon\Carbon::parse($trans->date)->format('Y-m-d') }}</td>
+                                    <td class="p-3">
+                                        @if($trans->type == 'invoice')
+                                            <span class="badge bg-purple-500 bg-opacity-20 text-purple-300">فاتورة مبيعات</span>
+                                        @elseif($trans->type == 'payment')
+                                            <span class="badge bg-green-500 bg-opacity-20 text-green-300">سداد</span>
+                                        @else
+                                            <span class="badge bg-gray-500 bg-opacity-20 text-gray-300">{{ $trans->type }}</span>
+                                        @endif
+                                    </td>
+                                    <td class="p-3 font-monospace">{{ $trans->reference }}</td>
+                                    <td class="p-3 text-gray-400">{{ $trans->description }}</td>
+                                    <td class="p-3 text-end">{{ $debit > 0 ? number_format($debit, 2) : '-' }}</td>
+                                    <td class="p-3 text-end">{{ $credit > 0 ? number_format($credit, 2) : '-' }}</td>
+                                    <td class="p-3 text-end fw-bold">{{ number_format($runningBalance, 2) }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="text-center py-5 text-gray-500">لا توجد حركات خلال هذه الفترة</td>
+                                </tr>
+                            @endforelse
+
+                            <!-- Totals -->
+                            <tr class="bg-slate-800 fw-bold border-top border-secondary">
+                                <td colspan="4" class="p-3 text-end">المجاميع</td>
+                                <td class="p-3 text-end text-danger">{{ number_format($totalInvoices, 2) }}</td>
+                                <td class="p-3 text-end text-success">{{ number_format($totalPayments, 2) }}</td>
+                                <td class="p-3 text-end">{{ number_format($balance, 2) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Summary Cards -->
-    <div class="row mt-4">
-        <div class="col-md-4">
-            <div class="card bg-light">
-                <div class="card-body text-center">
-                    <h6 class="text-muted">إجمالي الفواتير</h6>
-                    <h4 class="text-danger mb-0">{{ number_format($totalInvoices ?? 0, 2) }} ج.م</h4>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card bg-light">
-                <div class="card-body text-center">
-                    <h6 class="text-muted">إجمالي المدفوعات</h6>
-                    <h4 class="text-success mb-0">{{ number_format($totalPayments ?? 0, 2) }} ج.م</h4>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card bg-light">
-                <div class="card-body text-center">
-                    <h6 class="text-muted">صافي الرصيد</h6>
-                    <h4 class="{{ ($balance ?? 0) > 0 ? 'text-danger' : 'text-success' }} mb-0">
-                        {{ number_format($balance ?? 0, 2) }} ج.م</h4>
-                </div>
-            </div>
-        </div>
-    </div>
-@endsection
-
-@push('styles')
     <style>
         @media print {
-
-            .sidebar,
-            .navbar,
-            .breadcrumb,
-            form,
-            .btn {
-                display: none !important;
-            }
-
-            .card {
-                border: 1px solid #ddd !important;
-                box-shadow: none !important;
-            }
+            .dont-print { display: none !important; }
+            body, .container-fluid { background: #fff !important; color: #000 !important; }
+            .table-dark { color: #000 !important; --bs-table-bg: #fff !important; border-color: #000 !important; }
+            .badge { border: 1px solid #000; color: #000 !important; background: transparent !important; }
+            a { text-decoration: none; color: #000 !important; }
         }
     </style>
-@endpush
+@endsection

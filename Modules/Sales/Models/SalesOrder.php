@@ -52,8 +52,7 @@ class SalesOrder extends Model
     // Implement HasDocumentNumber trait methods
     public function getDocumentPrefix(): string
     {
-        $config = config('erp.numbering.sales_order', ['prefix' => 'SO']);
-        return $config['prefix'];
+        return \App\Models\Setting::getValue('sales_order_prefix', 'SO');
     }
 
     public function getDocumentNumberField(): string

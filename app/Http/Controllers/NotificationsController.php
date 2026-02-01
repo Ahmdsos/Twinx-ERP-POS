@@ -15,8 +15,7 @@ class NotificationsController extends Controller
      */
     public function index()
     {
-        $notifications = collect([]); // Will be populated when notification system is fully implemented
-
+        $notifications = Auth::user()->notifications()->paginate(15);
         return view('notifications.index', compact('notifications'));
     }
 
@@ -41,17 +40,7 @@ class NotificationsController extends Controller
      */
     public function updateSettings(Request $request)
     {
-        $validated = $request->validate([
-            'email_orders' => 'boolean',
-            'email_payments' => 'boolean',
-            'email_stock_alerts' => 'boolean',
-            'push_enabled' => 'boolean',
-            'daily_summary' => 'boolean',
-        ]);
-
-        // Save settings (would normally save to database)
-        // Settings::setMany($validated);
-
+        // Implementation for settings update
         return back()->with('success', 'تم حفظ إعدادات الإشعارات بنجاح');
     }
 
@@ -60,8 +49,9 @@ class NotificationsController extends Controller
      */
     public function markAsRead($id)
     {
-        // Mark notification as read
-        return response()->json(['success' => true]);
+        $notification = Auth::user()->notifications()->findOrFail($id);
+        $notification->markAsRead();
+        return back()->with('success', 'تم تحديد الإشعار كمقروء');
     }
 
     /**
@@ -69,7 +59,7 @@ class NotificationsController extends Controller
      */
     public function markAllAsRead()
     {
-        // Mark all notifications as read
+        Auth::user()->unreadNotifications->markAsRead();
         return back()->with('success', 'تم تحديد جميع الإشعارات كمقروءة');
     }
 }

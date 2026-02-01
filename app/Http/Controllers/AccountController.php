@@ -64,34 +64,27 @@ class AccountController extends Controller
     }
 
     /**
-     * Recursively build account tree structure with balance rollup
+     * Recursively build account tree structure
      */
     private function buildAccountTree(Account $account, $accountsById): array
     {
         $children = $accountsById->where('parent_id', $account->id)->values();
-        $childNodes = [];
-        $rolledUpBalance = 0;
 
-        foreach ($children as $child) {
-            $childNode = $this->buildAccountTree($child, $accountsById);
-            $childNodes[] = $childNode;
-            $rolledUpBalance += $childNode['balance'];
-        }
-
-        // Use the rolled up balance if it's a header or has children, 
-        // otherwise use its own balance
-        $displayBalance = (count($children) > 0) ? $rolledUpBalance : ($account->balance ?? 0);
-
-        return [
+        $node = [
             'id' => $account->id,
             'code' => $account->code,
             'name' => $account->name,
             'type' => $account->type->value,
-            'balance' => $displayBalance,
+            'balance' => $account->balance ?? 0,
             'is_active' => $account->is_active,
-            'is_header' => $account->is_header,
-            'children' => $childNodes,
+            'children' => [],
         ];
+
+        foreach ($children as $child) {
+            $node['children'][] = $this->buildAccountTree($child, $accountsById);
+        }
+
+        return $node;
     }
 
     /**
@@ -136,12 +129,15 @@ class AccountController extends Controller
         $startDate = $request->input('start_date', now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', now()->format('Y-m-d'));
 
+        // Parse dates for query (end of day for end date)
+        $queryEndDate = \Carbon\Carbon::parse($endDate)->endOfDay();
+
         // Get journal entry lines for this account
         $query = $account->journalLines()
             ->with(['journalEntry'])
-            ->whereHas('journalEntry', function ($q) use ($startDate, $endDate) {
+            ->whereHas('journalEntry', function ($q) use ($startDate, $queryEndDate) {
                 $q->where('status', 'posted')
-                    ->whereBetween('entry_date', [$startDate, $endDate]);
+                    ->whereBetween('entry_date', [$startDate, $queryEndDate]);
             })
             ->orderBy('created_at');
 

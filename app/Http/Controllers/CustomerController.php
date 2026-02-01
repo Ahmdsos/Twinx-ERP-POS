@@ -50,7 +50,7 @@ class CustomerController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'type' => 'in:individual,company',
+            'type' => 'in:individual,company,distributor,wholesale,half_wholesale,quarter_wholesale,technician,employee,vip',
             'email' => 'nullable|email|unique:customers,email',
             'phone' => 'nullable|string|max:20',
             'mobile' => 'nullable|string|max:20',
@@ -103,6 +103,7 @@ class CustomerController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'type' => 'in:individual,company,distributor,wholesale,half_wholesale,quarter_wholesale,technician,employee,vip',
             'email' => 'nullable|email|unique:customers,email,' . $customer->id,
             'phone' => 'nullable|string|max:20',
             'mobile' => 'nullable|string|max:20',
@@ -183,9 +184,13 @@ class CustomerController extends Controller
         $fromDate = $request->get('from_date', now()->startOfMonth()->format('Y-m-d'));
         $toDate = $request->get('to_date', now()->format('Y-m-d'));
 
+        // Note: Using Y-m-d H:i:s for precise filtering
+        $fromDateTime = \Carbon\Carbon::parse($fromDate)->startOfDay();
+        $toDateTime = \Carbon\Carbon::parse($toDate)->endOfDay();
+
         // Get sales invoices
         $invoices = $customer->salesInvoices()
-            ->whereBetween('invoice_date', [$fromDate, $toDate])
+            ->whereBetween('invoice_date', [$fromDateTime, $toDateTime])
             ->orderBy('invoice_date')
             ->get()
             ->map(fn($inv) => (object) [
@@ -199,14 +204,14 @@ class CustomerController extends Controller
 
         // Get payments
         $payments = $customer->payments()
-            ->whereBetween('payment_date', [$fromDate, $toDate])
+            ->whereBetween('payment_date', [$fromDateTime, $toDateTime])
             ->orderBy('payment_date')
             ->get()
             ->map(fn($p) => (object) [
                 'date' => $p->payment_date,
                 'type' => 'payment',
-                'reference' => $p->reference,
-                'description' => 'سداد',
+                'reference' => $p->receipt_number ?? $p->reference, // Use receipt number if available
+                'description' => 'سداد - ' . ($p->payment_method ?? 'نقدى'),
                 'debit' => 0,
                 'credit' => $p->amount,
             ]);
@@ -214,18 +219,24 @@ class CustomerController extends Controller
         // Merge and sort
         $transactions = $invoices->concat($payments)->sortBy('date')->values();
 
-        // Opening balance (all transactions before from_date)
+        // Opening balance calculation
+        // 1. Invoices before FROM date
         $openingInvoices = $customer->salesInvoices()
-            ->where('invoice_date', '<', $fromDate)
+            ->where('invoice_date', '<', $fromDateTime)
             ->sum('total');
+
+        // 2. Payments before FROM date (fix date comparison)
         $openingPayments = $customer->payments()
-            ->where('payment_date', '<', $fromDate)
+            ->where('payment_date', '<', $fromDateTime)
             ->sum('amount');
+
         $openingBalance = $openingInvoices - $openingPayments;
 
-        // Calculate totals
+        // Calculate totals for period
         $totalInvoices = $invoices->sum('debit');
         $totalPayments = $payments->sum('credit');
+
+        // Final Balance for this view = Opening + Period Invoices - Period Payments
         $balance = $openingBalance + $totalInvoices - $totalPayments;
 
         return view('sales.customers.statement', compact(

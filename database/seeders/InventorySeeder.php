@@ -127,6 +127,18 @@ class InventorySeeder extends Seeder
         $accessories = Category::where('name', 'Accessories')->first();
         $paper = Category::where('name', 'Paper Products')->first();
 
+        // Default Accounting
+        $inventoryAcc = \Modules\Accounting\Models\Account::where('code', '1301')->first();
+        $salesAcc = \Modules\Accounting\Models\Account::where('code', '4101')->first();
+        // Link Purchase to Accounts Payable (Liability) not COGS (Expense)
+        $apAcc = \Modules\Accounting\Models\Account::where('code', '2101')->first(); // Accounts Payable
+
+        $defaultAccounts = [
+            'inventory_account_id' => $inventoryAcc?->id,
+            'sales_account_id' => $salesAcc?->id,
+            'purchase_account_id' => $apAcc?->id, // CREDIT AP on Purchase (Dr Inventory / Cr AP)
+        ];
+
         $products = [
             [
                 'sku' => 'LAPTOP-001',
@@ -212,7 +224,7 @@ class InventorySeeder extends Seeder
         ];
 
         foreach ($products as $productData) {
-            Product::create($productData);
+            Product::create(array_merge($productData, $defaultAccounts));
         }
     }
 }

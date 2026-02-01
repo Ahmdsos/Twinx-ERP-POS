@@ -66,8 +66,7 @@ class Quotation extends Model
 
     public function getDocumentPrefix(): string
     {
-        $config = config('erp.numbering.quotation', ['prefix' => 'QT']);
-        return $config['prefix'];
+        return \App\Models\Setting::getValue('quotation_prefix', 'QT');
     }
 
     public function getDocumentNumberField(): string

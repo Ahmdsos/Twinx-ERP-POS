@@ -1,181 +1,250 @@
 @extends('layouts.app')
 
-@section('title', $supplier->name . ' - Twinx ERP')
-@section('page-title', 'تفاصيل المورد')
-
-@section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">الرئيسية</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('suppliers.index') }}">الموردين</a></li>
-    <li class="breadcrumb-item active">{{ $supplier->name }}</li>
-@endsection
+@section('title', 'ملف المورد: ' . $supplier->name)
 
 @section('content')
-    <div class="row">
-        <!-- Supplier Info Card -->
-        <div class="col-lg-4 mb-4">
-            <div class="card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="bi bi-truck me-2"></i>معلومات المورد</h5>
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">
-                            <i class="bi bi-three-dots-vertical"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{{ route('suppliers.edit', $supplier) }}">
-                                    <i class="bi bi-pencil me-2"></i>تعديل
-                                </a></li>
-                            <li><a class="dropdown-item" href="{{ route('suppliers.statement', $supplier) }}">
-                                    <i class="bi bi-file-text me-2"></i>كشف الحساب
-                                </a></li>
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                            <li>
-                                <form action="{{ route('suppliers.destroy', $supplier) }}" method="POST"
-                                    onsubmit="return confirm('هل أنت متأكد من حذف هذا المورد؟')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="dropdown-item text-danger">
-                                        <i class="bi bi-trash me-2"></i>حذف
-                                    </button>
-                                </form>
-                            </li>
-                        </ul>
+    <div class="container-fluid p-0">
+        <!-- Header -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <a href="{{ route('suppliers.index') }}" class="btn btn-outline-light btn-sm rounded-circle shadow-sm" style="width: 32px; height: 32px;"><i class="bi bi-arrow-right"></i></a>
+                <div class="avatar-md bg-gradient-cyan text-white rounded-3 d-flex align-items-center justify-content-center fw-bold fs-4 shadow-neon-cyan">
+                    {{ strtoupper(substr($supplier->name, 0, 1)) }}
+                </div>
+                <div>
+                    <h2 class="fw-bold text-white mb-0">{{ $supplier->name }}</h2>
+                    <div class="d-flex align-items-center gap-2 text-gray-400 x-small font-monospace">
+                        <span>{{ $supplier->code }}</span>
+                        @if($supplier->is_active)
+                            <span class="badge bg-green-500 bg-opacity-10 text-green-400 border border-green-500 border-opacity-20">نشط</span>
+                        @else
+                            <span class="badge bg-red-500 bg-opacity-10 text-red-400 border border-red-500 border-opacity-20">غير نشط</span>
+                        @endif
                     </div>
                 </div>
-                <div class="card-body">
-                    <div class="text-center mb-4">
-                        <div class="avatar-lg bg-info text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-                            style="width: 80px; height: 80px; font-size: 2rem;">
-                            {{ mb_substr($supplier->name, 0, 1) }}
+            </div>
+            
+            <div class="d-flex gap-2">
+                <a href="{{ route('suppliers.statement', $supplier->id) }}" class="btn btn-glass-cyan">
+                    <i class="bi bi-file-text me-2"></i>كشف حساب
+                </a>
+                <a href="{{ route('suppliers.edit', $supplier->id) }}" class="btn btn-outline-light">
+                    <i class="bi bi-pencil me-2"></i>تعديل
+                </a>
+                <form action="{{ route('suppliers.destroy', $supplier->id) }}" method="POST" onsubmit="return confirm('هل أنت متأكد؟');">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="btn btn-outline-danger border-0">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="row g-4 mb-4">
+            <!-- Balance (Corrected Logic: Purchases - Paid) -->
+            <div class="col-md-4">
+                <div class="glass-panel p-4 position-relative overflow-hidden h-100 border-top-gradient-cyan">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <span class="text-cyan-400 x-small fw-bold text-uppercase tracking-wide">الرصيد المستحق</span>
+                            <h2 class="text-white fw-bold mb-0 mt-1">{{ number_format($balance ?? 0, 2) }} <span class="fs-6 fw-normal text-gray-500">EGP</span></h2>
                         </div>
-                        <h4 class="mb-1">{{ $supplier->name }}</h4>
-                        <span class="badge bg-{{ $supplier->is_active ? 'success' : 'secondary' }}">
-                            {{ $supplier->is_active ? 'نشط' : 'غير نشط' }}
-                        </span>
+                        <div class="icon-circle bg-cyan-500 bg-opacity-10 text-cyan-400">
+                            <i class="bi bi-wallet2"></i>
+                        </div>
                     </div>
+                    @if(($balance ?? 0) > 0)
+                        <div class="d-flex align-items-center gap-2 text-red-400 x-small bg-red-500 bg-opacity-10 px-2 py-1 rounded w-fit">
+                            <i class="bi bi-arrow-up-right"></i>
+                            <span>مستحق للمورد</span>
+                        </div>
+                    @else
+                        <div class="d-flex align-items-center gap-2 text-green-400 x-small bg-green-500 bg-opacity-10 px-2 py-1 rounded w-fit">
+                            <i class="bi bi-check-circle"></i>
+                            <span>خالص / رصيد دائن</span>
+                        </div>
+                    @endif
+                </div>
+            </div>
+            
+            <!-- Total Purchases -->
+            <div class="col-md-4">
+                <div class="glass-panel p-4 position-relative overflow-hidden h-100">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <span class="text-gray-400 x-small fw-bold text-uppercase tracking-wide">إجمالي المشتريات</span>
+                            <h3 class="text-white fw-bold mb-0 mt-1">{{ number_format($totalPurchases ?? 0, 2) }}</h3>
+                        </div>
+                        <div class="icon-circle bg-white-5 text-gray-300">
+                            <i class="bi bi-bag-check"></i>
+                        </div>
+                    </div>
+                    <div class="progress bg-white-5" style="height: 4px;">
+                        <div class="progress-bar bg-cyan-500" role="progressbar" style="width: 70%"></div>
+                    </div>
+                </div>
+            </div>
 
-                    <hr>
-
-                    <table class="table table-sm table-borderless">
-                        <tr>
-                            <td class="text-muted" style="width: 40%;">الكود</td>
-                            <td><strong>{{ $supplier->code }}</strong></td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">البريد الإلكتروني</td>
-                            <td>{{ $supplier->email ?? '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">الهاتف</td>
-                            <td dir="ltr" class="text-end">{{ $supplier->phone ?? '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">العنوان</td>
-                            <td>{{ $supplier->address ?? '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">الرقم الضريبي</td>
-                            <td>{{ $supplier->tax_number ?? '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">جهة الاتصال</td>
-                            <td>{{ $supplier->contact_person ?? '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">شروط الدفع</td>
-                            <td>{{ $supplier->payment_terms }} يوم</td>
-                        </tr>
-                    </table>
+            <!-- Total Paid -->
+            <div class="col-md-4">
+                <div class="glass-panel p-4 position-relative overflow-hidden h-100">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <span class="text-gray-400 x-small fw-bold text-uppercase tracking-wide">إجمالي المدفوعات</span>
+                            <h3 class="text-white fw-bold mb-0 mt-1">{{ number_format($totalPaid ?? 0, 2) }}</h3>
+                        </div>
+                        <div class="icon-circle bg-white-5 text-gray-300">
+                            <i class="bi bi-cash-stack"></i>
+                        </div>
+                    </div>
+                    <div class="progress bg-white-5" style="height: 4px;">
+                        <div class="progress-bar bg-green-500" role="progressbar" style="width: 60%"></div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Financial Summary -->
-        <div class="col-lg-8">
-            <!-- Stats Cards -->
-            <div class="row g-3 mb-4">
-                <div class="col-md-4">
-                    <div class="card bg-primary text-white h-100">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <p class="mb-1 opacity-75">إجمالي المشتريات</p>
-                                    <h4 class="mb-0">{{ number_format($totalPurchases ?? 0, 2) }}</h4>
-                                </div>
-                                <i class="bi bi-bag fs-1 opacity-50"></i>
-                            </div>
+        <!-- Quick Actions -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <a href="{{ route('purchase-invoices.create', ['supplier_id' => $supplier->id]) }}" class="text-decoration-none group">
+                    <div class="glass-panel p-3 d-flex align-items-center gap-3 hover-scale transition-all border border-white-5 hover-border-cyan">
+                        <div class="icon-box bg-cyan-500 bg-opacity-20 text-cyan-400 group-hover-bg-cyan group-hover-text-white transition-all">
+                            <i class="bi bi-receipt fs-4"></i>
                         </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card bg-danger text-white h-100">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <p class="mb-1 opacity-75">المستحق للمورد</p>
-                                    <h4 class="mb-0">{{ number_format($balance ?? 0, 2) }}</h4>
-                                </div>
-                                <i class="bi bi-credit-card fs-1 opacity-50"></i>
-                            </div>
+                        <div>
+                            <h6 class="text-white fw-bold mb-1">تسجيل فاتورة شراء</h6>
+                            <p class="text-gray-500 x-small mb-0">إدخال فاتورة مستحقة جديدة</p>
                         </div>
+                        <i class="bi bi-arrow-left ms-auto text-gray-600 group-hover-text-white"></i>
                     </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card bg-success text-white h-100">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <p class="mb-1 opacity-75">إجمالي المدفوع</p>
-                                    <h4 class="mb-0">{{ number_format($totalPaid ?? 0, 2) }}</h4>
-                                </div>
-                                <i class="bi bi-cash-stack fs-1 opacity-50"></i>
-                            </div>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{{ route('supplier-payments.create', ['supplier_id' => $supplier->id]) }}" class="text-decoration-none group">
+                    <div class="glass-panel p-3 d-flex align-items-center gap-3 hover-scale transition-all border border-white-5 hover-border-purple">
+                        <div class="icon-box bg-purple-500 bg-opacity-20 text-purple-400 group-hover-bg-purple group-hover-text-white transition-all">
+                            <i class="bi bi-cash-stack fs-4"></i>
                         </div>
+                        <div>
+                            <h6 class="text-white fw-bold mb-1">سداد دفعة</h6>
+                            <p class="text-gray-500 x-small mb-0">تسجيل مبلغ مدفوع للمورد</p>
+                        </div>
+                        <i class="bi bi-arrow-left ms-auto text-gray-600 group-hover-text-white"></i>
                     </div>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{{ route('purchase-orders.create', ['supplier_id' => $supplier->id]) }}" class="text-decoration-none group">
+                    <div class="glass-panel p-3 d-flex align-items-center gap-3 hover-scale transition-all border border-white-5 hover-border-yellow">
+                        <div class="icon-box bg-yellow-500 bg-opacity-20 text-yellow-400 group-hover-bg-yellow group-hover-text-white transition-all">
+                            <i class="bi bi-cart-plus fs-4"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-white fw-bold mb-1">أمر شراء جديد</h6>
+                            <p class="text-gray-500 x-small mb-0">إرسال طلبية بضاعة جديدة</p>
+                        </div>
+                        <i class="bi bi-arrow-left ms-auto text-gray-600 group-hover-text-white"></i>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Info Column -->
+            <div class="col-md-4">
+                <div class="glass-panel p-4 h-100">
+                    <h5 class="text-cyan-400 fw-bold mb-4"><i class="bi bi-info-circle me-2"></i>معلومات الاتصال</h5>
+                    
+                    <ul class="list-unstyled d-flex flex-column gap-3 mb-0">
+                        <li class="d-flex align-items-center gap-3 text-white">
+                            <div class="icon-sm bg-white-5 text-gray-400"><i class="bi bi-person"></i></div>
+                            <div>
+                                <span class="d-block x-small text-gray-500">الشخص المسؤول</span>
+                                <span class="fw-bold">{{ $supplier->contact_person ?? '-' }}</span>
+                            </div>
+                        </li>
+                        <li class="d-flex align-items-center gap-3 text-white">
+                            <div class="icon-sm bg-white-5 text-gray-400"><i class="bi bi-telephone"></i></div>
+                            <div>
+                                <span class="d-block x-small text-gray-500">الهاتف</span>
+                                <span class="fw-bold font-monospace">{{ $supplier->phone ?? '-' }}</span>
+                            </div>
+                        </li>
+                        <li class="d-flex align-items-center gap-3 text-white">
+                            <div class="icon-sm bg-white-5 text-gray-400"><i class="bi bi-envelope"></i></div>
+                            <div>
+                                <span class="d-block x-small text-gray-500">البريد الإلكتروني</span>
+                                <span class="fw-bold">{{ $supplier->email ?? '-' }}</span>
+                            </div>
+                        </li>
+                        <li class="d-flex align-items-center gap-3 text-white">
+                            <div class="icon-sm bg-white-5 text-gray-400"><i class="bi bi-geo-alt"></i></div>
+                            <div>
+                                <span class="d-block x-small text-gray-500">العنوان</span>
+                                <span>{{ $supplier->address ?? '-' }}</span>
+                            </div>
+                        </li>
+                        <li class="d-flex align-items-center gap-3 text-white">
+                            <div class="icon-sm bg-white-5 text-gray-400"><i class="bi bi-receipt"></i></div>
+                            <div>
+                                <span class="d-block x-small text-gray-500">الرقم الضريبي</span>
+                                <span class="font-monospace">{{ $supplier->tax_number ?? '-' }}</span>
+                            </div>
+                        </li>
+                    </ul>
+
+                    @if($supplier->notes)
+                    <div class="mt-4 pt-3 border-top border-white-5">
+                        <h6 class="text-gray-400 x-small fw-bold mb-2">ملاحظات</h6>
+                        <p class="text-gray-300 small mb-0">{{ $supplier->notes }}</p>
+                    </div>
+                    @endif
                 </div>
             </div>
 
-            <!-- Recent Invoices -->
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="bi bi-receipt me-2"></i>آخر الفواتير</h5>
-                    <a href="#" class="btn btn-sm btn-outline-primary">عرض الكل</a>
-                </div>
-                <div class="card-body p-0">
+            <!-- Recent Activity Column -->
+            <div class="col-md-8">
+                <div class="glass-panel p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="text-cyan-400 fw-bold mb-0"><i class="bi bi-clock-history me-2"></i>آخر الفواتير</h5>
+                        <a href="#" class="btn btn-sm btn-outline-cyan disabled">عرض الكل</a>
+                    </div>
+                    
                     <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
+                        <table class="table table-dark-custom align-middle">
+                            <thead>
                                 <tr>
-                                    <th>رقم الفاتورة</th>
                                     <th>التاريخ</th>
+                                    <th>رقم الفاتورة</th>
                                     <th>الإجمالي</th>
-                                    <th>المستحق</th>
+                                    <th>الرصيد المتبقي</th>
                                     <th>الحالة</th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($recentInvoices ?? [] as $invoice)
+                                @forelse($recentInvoices as $invoice)
                                     <tr>
-                                        <td><a href="#">{{ $invoice->number }}</a></td>
-                                        <td>{{ $invoice->invoice_date->format('Y-m-d') }}</td>
-                                        <td>{{ number_format($invoice->total, 2) }}</td>
-                                        <td>{{ number_format($invoice->balance_due, 2) }}</td>
+                                        <td class="text-gray-400 x-small">{{ $invoice->invoice_date->format('Y-m-d') }}</td>
+                                        <td class="font-monospace text-white">{{ $invoice->invoice_number }}</td>
+                                        <td class="fw-bold">{{ number_format($invoice->total, 2) }}</td>
+                                        <td class="text-red-400">{{ number_format($invoice->balance_due, 2) }}</td>
                                         <td>
-                                            @if($invoice->status === 'paid')
-                                                <span class="badge bg-success">مدفوعة</span>
-                                            @elseif($invoice->status === 'partial')
-                                                <span class="badge bg-warning">جزئي</span>
-                                            @else
-                                                <span class="badge bg-danger">معلقة</span>
+                                            @if($invoice->status == 'paid') <span class="badge bg-green-500 bg-opacity-10 text-green-400">خالص</span>
+                                            @elseif($invoice->status == 'partial') <span class="badge bg-yellow-500 bg-opacity-10 text-yellow-400">جزئي</span>
+                                            @else <span class="badge bg-red-500 bg-opacity-10 text-red-400">غير مدفوع</span>
                                             @endif
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="#" class="btn-icon-glass"><i class="bi bi-eye"></i></a>
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="text-center text-muted py-4">
-                                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                                            لا توجد فواتير حتى الآن
+                                        <td colspan="6" class="text-center py-4 text-gray-500">
+                                            لا توجد فواتير حديثة لهذا المورد
                                         </td>
                                     </tr>
                                 @endforelse
@@ -186,4 +255,52 @@
             </div>
         </div>
     </div>
+
+    <style>
+        .bg-gradient-cyan { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); }
+        .shadow-neon-cyan { box-shadow: 0 0 20px rgba(6, 182, 212, 0.4); }
+        
+        .icon-circle {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+        }
+        .group:hover .group-hover-bg-cyan { background: #06b6d4 !important; }
+        .group:hover .group-hover-text-white { color: white !important; }
+        .hover-border-cyan:hover { border-color: #06b6d4 !important; }
+
+        .group:hover .group-hover-bg-purple { background: #a855f7 !important; }
+        .hover-border-purple:hover { border-color: #a855f7 !important; }
+        
+        .group:hover .group-hover-bg-yellow { background: #eab308 !important; }
+        .text-yellow-400 { color: #facc15 !important; }
+        .bg-yellow-500 { background: #eab308 !important; }
+        .hover-border-yellow:hover { border-color: #eab308 !important; }
+
+        .icon-box {
+            width: 48px; height: 48px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        
+        .hover-scale:hover { transform: translateY(-3px); }
+        
+        .btn-glass-cyan {
+            background: rgba(6, 182, 212, 0.1);
+            color: #22d3ee;
+            border: 1px solid rgba(34, 211, 238, 0.2);
+            padding: 8px 16px; border-radius: 8px;
+            font-weight: bold;
+        }
+        .btn-glass-cyan:hover {
+            background: rgba(6, 182, 212, 0.2);
+            color: white; border-color: #22d3ee;
+        }
+        
+        .border-top-gradient-cyan {
+            border-top: 4px solid;
+            border-image: linear-gradient(to right, #06b6d4, #67e8f9) 1;
+        }
+    </style>
 @endsection

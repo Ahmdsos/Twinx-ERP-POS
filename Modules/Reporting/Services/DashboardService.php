@@ -12,6 +12,8 @@ use Modules\Purchasing\Models\PurchaseOrder;
 use Modules\Purchasing\Models\PurchaseInvoice;
 use Modules\Purchasing\Models\Supplier;
 use Modules\Inventory\Models\Product;
+use Modules\Purchasing\Enums\PurchaseInvoiceStatus;
+use Modules\Purchasing\Enums\PurchaseOrderStatus;
 use Modules\Inventory\Models\ProductStock;
 use Modules\Accounting\Models\Account;
 
@@ -21,8 +23,8 @@ use Modules\Accounting\Models\Account;
  */
 class DashboardService
 {
-    // Cache TTL in seconds (5 minutes)
-    const CACHE_TTL = 300;
+    // Cache TTL in seconds (0 for immediate updates)
+    const CACHE_TTL = 0;
     const CACHE_KEY = 'dashboard_stats';
 
     public function __construct(
@@ -76,7 +78,7 @@ class DashboardService
         // Sales this month
         $salesThisMonth = SalesInvoice::query()
             ->whereDate('invoice_date', '>=', $thisMonth)
-            ->where('status', '!=', 'cancelled')
+            ->where('status', '!=', \Modules\Sales\Enums\SalesInvoiceStatus::CANCELLED)
             ->sum('total');
 
         // Orders pending
@@ -93,7 +95,7 @@ class DashboardService
         $topCustomers = SalesInvoice::query()
             ->select('customer_id', DB::raw('SUM(total) as total_sales'))
             ->whereDate('invoice_date', '>=', $thisMonth)
-            ->where('status', '!=', 'cancelled')
+            ->where('status', '!=', \Modules\Sales\Enums\SalesInvoiceStatus::CANCELLED)
             ->groupBy('customer_id')
             ->orderByDesc('total_sales')
             ->limit(5)
@@ -124,17 +126,17 @@ class DashboardService
         // Purchases this month
         $purchasesThisMonth = PurchaseInvoice::query()
             ->whereDate('invoice_date', '>=', $thisMonth)
-            ->where('status', '!=', 'cancelled')
+            ->where('status', '!=', PurchaseInvoiceStatus::CANCELLED)
             ->sum('total');
 
         // POs pending approval
         $pendingPOs = PurchaseOrder::query()
-            ->where('status', 'pending')
+            ->where('status', PurchaseOrderStatus::PENDING)
             ->count();
 
         // AP Outstanding
         $apOutstanding = PurchaseInvoice::query()
-            ->whereIn('status', ['pending', 'partial'])
+            ->whereIn('status', [PurchaseInvoiceStatus::PENDING, PurchaseInvoiceStatus::PARTIAL])
             ->sum('balance_due');
 
         return [

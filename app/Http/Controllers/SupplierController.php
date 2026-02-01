@@ -35,7 +35,15 @@ class SupplierController extends Controller
 
         $suppliers = $query->orderBy('name')->paginate(20);
 
-        return view('purchasing.suppliers.index', compact('suppliers'));
+        // Stats Logic
+        $stats = [
+            'total_suppliers' => Supplier::count(),
+            'active_suppliers' => Supplier::where('is_active', true)->count(),
+            'total_debt' => Supplier::get()->sum(fn($s) => $s->getOutstandingBalance()),
+            'monthly_purchases' => \Modules\Purchasing\Models\PurchaseInvoice::whereMonth('invoice_date', now()->month)->sum('total')
+        ];
+
+        return view('purchasing.suppliers.index', compact('suppliers', 'stats'));
     }
 
     /**

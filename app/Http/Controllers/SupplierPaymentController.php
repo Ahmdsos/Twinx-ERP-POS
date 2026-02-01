@@ -90,6 +90,11 @@ class SupplierPaymentController extends Controller
         $selectedInvoice = null;
         if ($request->filled('invoice_id')) {
             $selectedInvoice = PurchaseInvoice::with('supplier')->find($request->invoice_id);
+
+            // Ensure selected invoice is in the list even if status query missed it (safety net)
+            if ($selectedInvoice && !$pendingInvoices->contains('id', $selectedInvoice->id)) {
+                $pendingInvoices->push($selectedInvoice);
+            }
         }
 
         $suppliers = Supplier::where('is_active', true)->orderBy('name')->get();
@@ -127,7 +132,7 @@ class SupplierPaymentController extends Controller
             'notes' => 'nullable|string',
             'allocations' => 'nullable|array',
             'allocations.*.invoice_id' => 'required_with:allocations|exists:purchase_invoices,id',
-            'allocations.*.amount' => 'required_with:allocations|numeric|min:0',
+            'allocations.*.amount' => 'nullable|numeric|min:0',
         ]);
 
         $supplier = Supplier::findOrFail($validated['supplier_id']);
@@ -138,6 +143,7 @@ class SupplierPaymentController extends Controller
             $invoiceAllocations = [];
             if (!empty($validated['allocations'])) {
                 foreach ($validated['allocations'] as $alloc) {
+                    // Only process allocations with a positive amount
                     if (isset($alloc['amount']) && $alloc['amount'] > 0) {
                         $invoiceAllocations[] = [
                             'invoice_id' => $alloc['invoice_id'],

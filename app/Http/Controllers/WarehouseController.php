@@ -19,23 +19,32 @@ class WarehouseController extends Controller
      */
     public function index()
     {
-        $warehouses = Warehouse::withCount('productStock')
-            ->get()
-            ->map(function ($warehouse) {
-                // Calculate stock value for each warehouse
-                $warehouse->stock_value = ProductStock::where('warehouse_id', $warehouse->id)
-                    ->selectRaw('SUM(quantity * average_cost) as value')
-                    ->value('value') ?? 0;
-                // Add stocks_count alias for the view
-                $warehouse->stocks_count = $warehouse->product_stock_count;
-                return $warehouse;
-            });
+        $warehouses = Warehouse::withCount('productStock')->get();
 
-        // Summary stats
+        // Efficiently fetch stock values grouped by warehouse
+        $stockValues = ProductStock::selectRaw('warehouse_id, SUM(quantity * average_cost) as total_value')
+            ->groupBy('warehouse_id')
+            ->pluck('total_value', 'warehouse_id');
+
+        $warehouses->map(function ($warehouse) use ($stockValues) {
+            $warehouse->stock_value = $stockValues[$warehouse->id] ?? 0;
+            $warehouse->stocks_count = $warehouse->product_stock_count; // Access audit count
+            return $warehouse;
+        });
+
+        // Global Summary
         $totalItems = ProductStock::where('quantity', '>', 0)->count();
-        $totalValue = ProductStock::selectRaw('SUM(quantity * average_cost) as value')->value('value') ?? 0;
+        $totalValue = $stockValues->sum();
 
         return view('inventory.warehouses.index', compact('warehouses', 'totalItems', 'totalValue'));
+    }
+
+    /**
+     * Show the form for creating a new warehouse.
+     */
+    public function create()
+    {
+        return view('inventory.warehouses.create');
     }
 
     /**

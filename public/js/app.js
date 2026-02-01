@@ -47,37 +47,7 @@ document.addEventListener('DOMContentLoaded', function () {
     tooltips.forEach(function (el) {
         new bootstrap.Tooltip(el);
     });
-
-    // Auto-loading spinner on form submit
-    const forms = document.querySelectorAll('form:not(.no-loading)');
-    forms.forEach(function (form) {
-        form.addEventListener('submit', function () {
-            const submitBtn = form.querySelector('button[type="submit"]');
-            if (submitBtn && !submitBtn.disabled) {
-                showButtonLoading(submitBtn);
-            }
-        });
-    });
-
-    // AJAX loading overlay
-    window.showLoadingOverlay = function () {
-        if (!document.getElementById('loadingOverlay')) {
-            const overlay = document.createElement('div');
-            overlay.id = 'loadingOverlay';
-            overlay.className = 'position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center';
-            overlay.style.cssText = 'background: rgba(0,0,0,0.5); z-index: 9999;';
-            overlay.innerHTML = '<div class="spinner-border text-light" style="width: 3rem; height: 3rem;"></div>';
-            document.body.appendChild(overlay);
-        }
-        document.getElementById('loadingOverlay').style.display = 'flex';
-    };
-
-    window.hideLoadingOverlay = function () {
-        const overlay = document.getElementById('loadingOverlay');
-        if (overlay) overlay.style.display = 'none';
-    };
 });
-
 
 /**
  * Format number as currency

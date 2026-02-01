@@ -19,6 +19,23 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Implicitly grant "Super Admin" role all permissions
+        // This works in the app by using gate-related functions like auth()->user->can() and @can()
+        \Illuminate\Support\Facades\Gate::before(function ($user, $ability) {
+            return $user->hasRole('Super Admin') ? true : null;
+        });
+
+        \Illuminate\Support\Facades\Event::listen(\Illuminate\Auth\Events\Login::class, function ($event) {
+            \Modules\Core\Traits\HasAuditTrail::logActivity($event->user, 'logged_in', 'تسجيل دخول للنظام');
+        });
+
+        \Illuminate\Support\Facades\Event::listen(\Illuminate\Auth\Events\Logout::class, function ($event) {
+            if ($event->user) {
+                \Modules\Core\Traits\HasAuditTrail::logActivity($event->user, 'logged_out', 'تسجيل خروج من النظام');
+            }
+        });
+
+        // View Composer for Notifications
+        \Illuminate\Support\Facades\View::composer('layouts.app', \App\View\Composers\NotificationComposer::class);
     }
 }

@@ -57,6 +57,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the employee profile associated with the user.
+     */
+    public function employee()
+    {
+        return $this->hasOne(\Modules\HR\Models\Employee::class);
+    }
+
+    /**
      * Scope to filter only active users
      */
     public function scopeActive($query)

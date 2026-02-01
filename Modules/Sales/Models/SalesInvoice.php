@@ -37,8 +37,6 @@ class SalesInvoice extends Model
         'notes',
         'terms',
         'journal_entry_id',
-        'pos_shift_id',
-        'payment_method',
     ];
 
     protected $casts = [
@@ -57,8 +55,7 @@ class SalesInvoice extends Model
     // Implement HasDocumentNumber trait methods
     public function getDocumentPrefix(): string
     {
-        $config = config('erp.numbering.sales_invoice', ['prefix' => 'INV']);
-        return $config['prefix'];
+        return \App\Models\Setting::getValue('invoice_prefix', 'INV');
     }
 
     public function getDocumentNumberField(): string
@@ -95,11 +92,6 @@ class SalesInvoice extends Model
         return $this->belongsTo(JournalEntry::class);
     }
 
-    public function shift(): BelongsTo
-    {
-        return $this->belongsTo(\App\Models\PosShift::class, 'pos_shift_id');
-    }
-
     public function paymentAllocations(): HasMany
     {
         return $this->hasMany(CustomerPaymentAllocation::class);
@@ -129,15 +121,20 @@ class SalesInvoice extends Model
 
     public function recalculateTotals(): void
     {
-        $subtotal = $this->lines()->sum('line_total');
+        $grossTotal = $this->lines()->sum('line_total');
         $taxAmount = $this->lines()->sum('tax_amount');
-        $discountAmount = $this->lines()->sum('discount_amount');
+        $discountAmount = $this->lines()->sum('discount_amount'); // Line level discounts?
 
-        $total = $subtotal + $taxAmount - $discountAmount;
+        // If discount_amount column on Invoice exists, use that?
+        // Usually invoice->discount_amount is global discount. 
+        // Here we are recalculating from LINES.
+        // Assuming line_total is (Qty * UnitPrice) - LineDiscount + Tax.
+
+        $subtotal = $grossTotal - $taxAmount; // Back-calculate Net Subtotal
+        $total = $grossTotal - ($this->discount_amount ?? 0); // Gross - Global Discount
 
         $this->update([
             'subtotal' => $subtotal,
-            'discount_amount' => $discountAmount,
             'tax_amount' => $taxAmount,
             'total' => $total,
             'balance_due' => $total - $this->paid_amount,

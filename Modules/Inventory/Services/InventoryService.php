@@ -40,9 +40,10 @@ class InventoryService
         ?string $reference = null,
         ?string $notes = null,
         ?string $sourceType = null,
-        ?int $sourceId = null
+        ?int $sourceId = null,
+        bool $createJournal = true
     ): StockMovement {
-        return DB::transaction(function () use ($product, $warehouse, $quantity, $unitCost, $type, $reference, $notes, $sourceType, $sourceId) {
+        return DB::transaction(function () use ($product, $warehouse, $quantity, $unitCost, $type, $reference, $notes, $sourceType, $sourceId, $createJournal) {
             $totalCost = $quantity * $unitCost;
 
             // Create stock movement record
@@ -67,7 +68,7 @@ class InventoryService
             $stock->updateFromMovement($quantity, $totalCost);
 
             // Create journal entry if product has inventory account
-            if ($product->inventory_account_id && $product->purchase_account_id) {
+            if ($createJournal && $product->inventory_account_id && $product->purchase_account_id) {
                 $this->createInventoryJournalEntry($movement, $product, 'add');
             }
 
@@ -87,19 +88,21 @@ class InventoryService
         ?string $reference = null,
         ?string $notes = null,
         ?string $sourceType = null,
-        ?int $sourceId = null
+        ?int $sourceId = null,
+        bool $createJournal = true
     ): StockMovement {
         $costingMethod = config('erp.inventory.costing_method', 'fifo');
 
-        return DB::transaction(function () use ($product, $warehouse, $quantity, $type, $reference, $notes, $sourceType, $sourceId, $costingMethod) {
+        return DB::transaction(function () use ($product, $warehouse, $quantity, $type, $reference, $notes, $sourceType, $sourceId, $costingMethod, $createJournal) {
             // Get stock record
             $stock = ProductStock::getOrCreate($product->id, $warehouse->id);
 
             // Check available quantity
             if (!config('erp.inventory.allow_negative_stock', false)) {
                 if ($stock->available_quantity < $quantity) {
+                    $available = (float) ($stock->available_quantity ?? 0);
                     throw new \RuntimeException(
-                        "Insufficient stock. Available: {$stock->available_quantity}, Requested: {$quantity}"
+                        "Insufficient stock. Available: {$available}, Requested: {$quantity}"
                     );
                 }
             }
@@ -132,7 +135,7 @@ class InventoryService
             $stock->updateFromMovement(-$quantity, -$costData['total_cost']);
 
             // Create journal entry
-            if ($product->inventory_account_id && $product->sales_account_id) {
+            if ($createJournal && $product->inventory_account_id && $product->sales_account_id) {
                 $this->createInventoryJournalEntry($movement, $product, 'remove');
             }
 
@@ -309,34 +312,18 @@ class InventoryService
         Product $product,
         string $direction
     ): void {
-        $type = $movement->type;
         $totalCost = abs($movement->total_cost);
-        $description = "{$type->label()} - {$product->name}";
 
-        // Handle specific accounting for Adjustments
-        if ($type === MovementType::ADJUSTMENT_IN) {
-            // DR Inventory, CR Inventory Gain
-            $gainAccount = Account::where('code', '4204')->first();
-            $lines = [
-                ['account_id' => $product->inventory_account_id, 'debit' => $totalCost, 'credit' => 0],
-                ['account_id' => $gainAccount?->id ?? $product->purchase_account_id, 'debit' => 0, 'credit' => $totalCost],
-            ];
-        } elseif ($type === MovementType::ADJUSTMENT_OUT) {
-            // DR Inventory Loss, CR Inventory
-            $lossAccount = Account::where('code', '5140')->first();
-            $lines = [
-                ['account_id' => $lossAccount?->id ?? $product->purchase_account_id, 'debit' => $totalCost, 'credit' => 0],
-                ['account_id' => $product->inventory_account_id, 'debit' => 0, 'credit' => $totalCost],
-            ];
-        } elseif ($direction === 'add') {
-            // Standard Add (Purchase/Return): DR Inventory, CR Purchase/COGS
+        if ($direction === 'add') {
+            // DR Inventory, CR COGS/Purchases
             $lines = [
                 ['account_id' => $product->inventory_account_id, 'debit' => $totalCost, 'credit' => 0],
                 ['account_id' => $product->purchase_account_id, 'debit' => 0, 'credit' => $totalCost],
             ];
         } else {
-            // Standard Remove (Sale): DR COGS, CR Inventory
-            $cogsAccount = Account::where('code', '5101')->first(); // Cost of Goods Sold
+            // DR COGS, CR Inventory
+            $cogsCode = \App\Models\Setting::getValue('acc_cogs', '5101');
+            $cogsAccount = Account::where('code', $cogsCode)->first(); // Cost of Goods Sold
             $lines = [
                 ['account_id' => $cogsAccount?->id ?? $product->purchase_account_id, 'debit' => $totalCost, 'credit' => 0],
                 ['account_id' => $product->inventory_account_id, 'debit' => 0, 'credit' => $totalCost],
@@ -350,6 +337,14 @@ class InventoryService
             'source_type' => StockMovement::class,
             'source_id' => $movement->id,
         ], $lines);
+
+        // Auto-post inventory journals
+        try {
+            $this->journalService->post($entry);
+        } catch (\Exception $e) {
+            // Log error but don't fail the transaction, as movement is critical
+            \Illuminate\Support\Facades\Log::error("Failed to post inventory journal: " . $e->getMessage());
+        }
 
         $movement->update(['journal_entry_id' => $entry->id]);
     }

@@ -62,7 +62,9 @@ class CustomerPaymentController extends Controller
         $customers = Customer::orderBy('name')->get();
 
         // Summary
-        $totalToday = CustomerPayment::whereDate('payment_date', today())->sum('amount');
+        $todayDate = now()->format('Y-m-d');
+        $totalToday = CustomerPayment::whereDate('payment_date', $todayDate)->sum('amount');
+
         $totalMonth = CustomerPayment::whereMonth('payment_date', now()->month)
             ->whereYear('payment_date', now()->year)
             ->sum('amount');
@@ -143,19 +145,15 @@ class CustomerPaymentController extends Controller
         $customer = Customer::findOrFail($validated['customer_id']);
         $paymentAccount = Account::findOrFail($validated['payment_account_id']);
 
-        // Prepare allocations as array of arrays for SalesService
+        // Prepare allocations
         $invoiceAllocations = [];
         if (!empty($validated['allocations'])) {
             foreach ($validated['allocations'] as $alloc) {
-                if (!empty($alloc['amount']) && $alloc['amount'] > 0 && !empty($alloc['invoice_id'])) {
-                    $invoiceAllocations[] = [
-                        'invoice_id' => $alloc['invoice_id'],
-                        'amount' => $alloc['amount'],
-                    ];
+                if (!empty($alloc['amount']) && $alloc['amount'] > 0) {
+                    $invoiceAllocations[$alloc['invoice_id']] = $alloc['amount'];
                 }
             }
         }
-
 
         $payment = $this->salesService->receivePayment(
             customer: $customer,

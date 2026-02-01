@@ -1,69 +1,109 @@
 @extends('layouts.app')
 
-@section('title', 'تقارير المخزون - Twinx ERP')
-@section('page-title', 'تقارير المخزون')
-
-@section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">الرئيسية</a></li>
-    <li class="breadcrumb-item active">تقارير المخزون</li>
-@endsection
+@section('title', 'تقارير المخزون')
 
 @section('content')
-    <div class="row g-4">
-        <!-- Stock Valuation -->
-        <div class="col-md-6">
-            <div class="card h-100">
-                <div class="card-body text-center py-4">
-                    <i class="bi bi-box-seam fs-1 text-primary mb-3 d-block"></i>
-                    <h5>تقييم المخزون</h5>
-                    <p class="text-muted small">إجمالي قيمة المخزون لكل منتج</p>
-                    <a href="/api/v1/reports/stock/valuation" class="btn btn-outline-primary btn-sm" target="_blank">
-                        <i class="bi bi-download me-1"></i>تحميل JSON
-                    </a>
+    <div class="container-fluid p-0">
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h2 class="fw-bold text-white mb-2">
+                    <i class="bi bi-box-seam text-info me-2"></i> تقارير المخزون
+                </h2>
+                <p class="text-gray-400 mb-0">تحليلات حركة المخزون وتقييم الأرصدة</p>
+            </div>
+             <div class="d-flex gap-2">
+                 <button class="btn btn-glass-outline rounded-pill px-4">
+                    <i class="bi bi-cloud-download me-2"></i> تصدير Excel
+                </button>
+            </div>
+        </div>
+
+        <div class="row g-4">
+             <div class="col-md-3">
+                <div class="glass-panel p-4 text-center h-100 hover-scale cursor-pointer position-relative overflow-hidden">
+                    <div class="absolute-glow top-0 end-0 bg-info/20"></div>
+                    <div class="icon-box bg-info/20 text-info rounded-circle mx-auto mb-3" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-list-check fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold text-white mb-1">جرد المخزون</h5>
+                    <p class="text-gray-500 x-small mb-0">الأرصدة الحالية في كل المخازن</p>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="glass-panel p-4 text-center h-100 hover-scale cursor-pointer position-relative overflow-hidden">
+                    <div class="absolute-glow top-0 end-0 bg-orange-500/20"></div>
+                     <div class="icon-box bg-orange-500/20 text-orange-400 rounded-circle mx-auto mb-3" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-arrow-left-right fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold text-white mb-1">حركة الأصناف</h5>
+                    <p class="text-gray-500 x-small mb-0">سجل حركات الوارد والمنصرف</p>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="glass-panel p-4 text-center h-100 hover-scale cursor-pointer position-relative overflow-hidden">
+                    <div class="absolute-glow top-0 end-0 bg-red-500/20"></div>
+                     <div class="icon-box bg-red-500/20 text-red-400 rounded-circle mx-auto mb-3" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-exclamation-triangle fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold text-white mb-1">نواقص المخزون</h5>
+                    <p class="text-gray-500 x-small mb-0">منتجات وصلت لحد الطلب</p>
+                </div>
+            </div>
+
+             <div class="col-md-3">
+                <div class="glass-panel p-4 text-center h-100 hover-scale cursor-pointer position-relative overflow-hidden">
+                    <div class="absolute-glow top-0 end-0 bg-green-500/20"></div>
+                     <div class="icon-box bg-green-500/20 text-green-400 rounded-circle mx-auto mb-3" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-cash-stack fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold text-white mb-1">تقييم المخزون</h5>
+                    <p class="text-gray-500 x-small mb-0">قيمة المخزون الحالية</p>
                 </div>
             </div>
         </div>
 
-        <!-- Low Stock -->
-        <div class="col-md-6">
-            <div class="card h-100">
-                <div class="card-body text-center py-4">
-                    <i class="bi bi-exclamation-triangle fs-1 text-warning mb-3 d-block"></i>
-                    <h5>المخزون المنخفض</h5>
-                    <p class="text-muted small">المنتجات التي تحتاج إعادة طلب</p>
-                    <a href="/api/v1/reports/stock/low-stock" class="btn btn-outline-warning btn-sm" target="_blank">
-                        <i class="bi bi-download me-1"></i>تحميل JSON
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Stock Movements -->
-        <div class="col-md-6">
-            <div class="card h-100">
-                <div class="card-body text-center py-4">
-                    <i class="bi bi-arrow-left-right fs-1 text-info mb-3 d-block"></i>
-                    <h5>حركات المخزون</h5>
-                    <p class="text-muted small">سجل جميع حركات الدخول والخروج</p>
-                    <a href="/api/v1/reports/stock/movements" class="btn btn-outline-info btn-sm" target="_blank">
-                        <i class="bi bi-download me-1"></i>تحميل JSON
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- By Warehouse -->
-        <div class="col-md-6">
-            <div class="card h-100">
-                <div class="card-body text-center py-4">
-                    <i class="bi bi-building fs-1 text-success mb-3 d-block"></i>
-                    <h5>المخزون حسب المستودع</h5>
-                    <p class="text-muted small">توزيع المخزون على المستودعات</p>
-                    <a href="/api/v1/reports/stock/by-warehouse" class="btn btn-outline-success btn-sm" target="_blank">
-                        <i class="bi bi-download me-1"></i>تحميل JSON
-                    </a>
-                </div>
+        <!-- Placeholder for content -->
+        <div class="glass-panel p-5 mt-5 text-center">
+            <div class="opacity-50">
+                <i class="bi bi-bar-chart-steps display-1 text-info mb-3"></i>
+                <h4 class="text-white mt-3">جاري بناء تقارير المخزون...</h4>
             </div>
         </div>
     </div>
+
+    <style>
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+        .absolute-glow {
+            position: absolute;
+            width: 100px; height: 100px;
+            filter: blur(40px);
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .btn-glass-outline {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            transition: all 0.3s;
+        }
+        .btn-glass-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: white;
+            color: white;
+        }
+        .hover-scale:hover {
+            transform: translateY(-5px);
+            background: rgba(30, 41, 59, 0.9);
+            border-color: rgba(59, 130, 246, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+    </style>
 @endsection

@@ -3,284 +3,194 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إيصال دفع - {{ $supplierPayment->payment_number }}</title>
+    <title>سند صرف رقم {{ $supplierPayment->payment_number }}</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Arial', 'Tahoma', sans-serif;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
 
         body {
-            background: #fff;
-            color: #333;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        .receipt {
-            max-width: 600px;
-            margin: 0 auto;
+            font-family: 'Cairo', sans-serif;
+            margin: 0;
             padding: 20px;
+            background: #fff;
+            color: #000;
+            line-height: 1.5;
         }
 
         .header {
             text-align: center;
-            border-bottom: 3px solid #e74c3c;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         .header h1 {
-            font-size: 28px;
-            color: #e74c3c;
-            margin-bottom: 5px;
-        }
-
-        .header h2 {
-            font-size: 20px;
-            color: #666;
-        }
-
-        .receipt-number {
-            background: #f8f9fa;
-            padding: 15px;
-            text-align: center;
-            margin-bottom: 30px;
-            border-radius: 5px;
-        }
-
-        .receipt-number h3 {
+            margin: 0;
             font-size: 24px;
-            color: #e74c3c;
+            font-weight: 800;
         }
 
-        .info-section {
-            margin-bottom: 30px;
+        .header p {
+            margin: 5px 0 0;
+            font-size: 14px;
         }
 
-        .info-section h4 {
-            font-size: 12px;
-            color: #999;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #ddd;
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            border-bottom: 1px dotted #ccc;
             padding-bottom: 5px;
         }
 
-        .info-table {
-            width: 100%;
+        .label {
+            font-weight: bold;
+            font-size: 14px;
+            color: #555;
         }
 
-        .info-table td {
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-        }
-
-        .info-table td:first-child {
-            color: #999;
-            width: 40%;
+        .value {
+            font-weight: bold;
+            font-size: 16px;
+            margin-right: 10px;
         }
 
         .amount-box {
-            background: #28a745;
-            color: white;
-            padding: 20px;
             text-align: center;
-            border-radius: 5px;
-            margin-bottom: 30px;
+            border: 2px solid #000;
+            padding: 10px;
+            margin: 20px 0;
+            border-radius: 8px;
+            background: #f9f9f9;
         }
 
-        .amount-box h3 {
-            font-size: 32px;
-            margin-bottom: 5px;
+        .amount-box h2 {
+            margin: 0;
+            font-size: 28px;
         }
 
-        .amount-box p {
-            font-size: 14px;
-            opacity: 0.8;
-        }
-
-        .allocations {
-            margin-bottom: 30px;
-        }
-
-        .allocations table {
+        .table {
             width: 100%;
             border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 14px;
         }
 
-        .allocations th {
-            background: #f8f9fa;
-            padding: 10px;
+        .table th,
+        .table td {
+            border: 1px solid #ddd;
+            padding: 8px;
             text-align: right;
-            border-bottom: 2px solid #dee2e6;
         }
 
-        .allocations td {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
+        .table th {
+            background: #eee;
+            font-weight: 700;
         }
 
         .footer {
-            text-align: center;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-            color: #999;
-            font-size: 12px;
-        }
-
-        .signatures {
+            margin-top: 40px;
             display: flex;
             justify-content: space-between;
-            margin-top: 50px;
-            padding-top: 20px;
-        }
-
-        .signature-box {
-            width: 45%;
             text-align: center;
         }
 
-        .signature-box .line {
-            border-top: 1px solid #333;
-            margin-bottom: 5px;
-            margin-top: 40px;
+        .signature {
+            border-top: 1px solid #000;
+            width: 40%;
+            padding-top: 10px;
+            font-weight: bold;
         }
 
         @media print {
             body {
-                print-color-adjust: exact;
-                -webkit-print-color-adjust: exact;
-            }
-
-            .receipt {
                 padding: 0;
+                margin: 0;
             }
 
-            .no-print {
+            .btn {
                 display: none;
             }
         }
     </style>
 </head>
 
-<body>
-    <div class="no-print" style="text-align: center; padding: 10px; background: #f8f9fa;">
-        <button onclick="window.print()" style="padding: 10px 20px; cursor: pointer;">
-            🖨️ طباعة
-        </button>
-        <button onclick="window.close()" style="padding: 10px 20px; cursor: pointer; margin-right: 10px;">
-            ✖️ إغلاق
-        </button>
+<body onload="window.print()">
+
+    <div class="header">
+        <h1>سند صرف نقدية / بنك</h1>
+        <p>رقم السند: {{ $supplierPayment->payment_number }}</p>
+        <p>التاريخ: {{ $supplierPayment->payment_date->format('Y-m-d h:i A') }}</p>
     </div>
 
-    <div class="receipt">
-        <!-- Header -->
-        <div class="header">
-            <h1>Twinx ERP</h1>
-            <h2>إيصال دفع للمورد</h2>
+    <div class="info-grid">
+        <div class="info-item">
+            <span class="label">اصرفوا إلى السيد/السادة:</span>
+            <span class="value">{{ $supplierPayment->supplier->name }}</span>
         </div>
-
-        <!-- Receipt Number -->
-        <div class="receipt-number">
-            <h3>{{ $supplierPayment->payment_number }}</h3>
-            <p>{{ $supplierPayment->payment_date?->format('Y-m-d') }}</p>
+        <div class="info-item">
+            <span class="label">طريقة الدفع:</span>
+            <span class="value">
+                @if($supplierPayment->payment_method == 'cash') نقدي
+                @elseif($supplierPayment->payment_method == 'bank_transfer') تحويل بنكي @else شيك @endif
+            </span>
         </div>
-
-        <!-- Amount Box -->
-        <div class="amount-box">
-            <h3>{{ number_format($supplierPayment->amount, 2) }} ج.م</h3>
-            <p>قيمة الدفعة</p>
+        <div class="info-item">
+            <span class="label">المرجع:</span>
+            <span class="value">{{ $supplierPayment->reference ?? '-' }}</span>
         </div>
+        <div class="info-item">
+            <span class="label">الخزينة/البنك:</span>
+            <span class="value">{{ $supplierPayment->paymentAccount->name ?? '-' }}</span>
+        </div>
+    </div>
 
-        <!-- Supplier Info -->
-        <div class="info-section">
-            <h4>بيانات المورد</h4>
-            <table class="info-table">
+    <div class="amount-box">
+        <span class="label">مبلغ وقدره</span>
+        <h2>{{ number_format($supplierPayment->amount, 2) }} ج.م</h2>
+    </div>
+
+    @if($supplierPayment->notes)
+        <div class="info-item" style="margin-bottom: 20px;">
+            <span class="label">وذلك عن:</span>
+            <span class="value">{{ $supplierPayment->notes }}</span>
+        </div>
+    @endif
+
+    @if($supplierPayment->allocations->count() > 0)
+        <h4>تفاصيل التخصيص (الفواتير):</h4>
+        <table class="table">
+            <thead>
                 <tr>
-                    <td>اسم المورد</td>
-                    <td><strong>{{ $supplierPayment->supplier?->name }}</strong></td>
+                    <th>رقم الفاتورة</th>
+                    <th>القيمة المخصومة</th>
                 </tr>
-                <tr>
-                    <td>كود المورد</td>
-                    <td>{{ $supplierPayment->supplier?->code }}</td>
-                </tr>
-            </table>
-        </div>
-
-        <!-- Payment Details -->
-        <div class="info-section">
-            <h4>تفاصيل الدفع</h4>
-            <table class="info-table">
-                <tr>
-                    <td>طريقة الدفع</td>
-                    <td>
-                        @php
-                            $methodLabels = [
-                                'cash' => 'نقدي',
-                                'bank_transfer' => 'تحويل بنكي',
-                                'cheque' => 'شيك',
-                            ];
-                        @endphp
-                        {{ $methodLabels[$supplierPayment->payment_method] ?? $supplierPayment->payment_method }}
-                    </td>
-                </tr>
-                @if($supplierPayment->reference)
+            </thead>
+            <tbody>
+                @foreach($supplierPayment->allocations as $allocation)
                     <tr>
-                        <td>رقم المرجع</td>
-                        <td>{{ $supplierPayment->reference }}</td>
+                        <td>{{ $allocation->invoice->invoice_number ?? '-' }}</td>
+                        <td>{{ number_format($allocation->amount, 2) }}</td>
                     </tr>
-                @endif
-            </table>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
+
+    <div class="footer">
+        <div class="signature">
+            المستلم
         </div>
-
-        <!-- Allocations -->
-        @if($supplierPayment->allocations->count() > 0)
-            <div class="allocations">
-                <h4
-                    style="font-size: 12px; color: #999; text-transform: uppercase; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">
-                    الفواتير المسددة
-                </h4>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>رقم الفاتورة</th>
-                            <th>المبلغ</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($supplierPayment->allocations as $allocation)
-                            <tr>
-                                <td>{{ $allocation->invoice?->invoice_number }}</td>
-                                <td>{{ number_format($allocation->amount, 2) }} ج.م</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        @endif
-
-        <!-- Signatures -->
-        <div class="signatures">
-            <div class="signature-box">
-                <div class="line"></div>
-                <p>المستلم</p>
-            </div>
-            <div class="signature-box">
-                <div class="line"></div>
-                <p>أمين الخزينة</p>
-            </div>
-        </div>
-
-        <!-- Footer -->
-        <div class="footer">
-            <p>تم إنشاء هذا الإيصال بواسطة Twinx ERP</p>
-            <p>{{ now()->format('Y-m-d H:i') }}</p>
+        <div class="signature">
+            أمين الخزينة / المحاسب
+            <br>
+            <small>{{ $supplierPayment->creator->name ?? '' }}</small>
         </div>
     </div>
+
 </body>
 
 </html>

@@ -1,174 +1,151 @@
 @extends('layouts.app')
 
-@section('title', 'سجل النشاطات - Twinx ERP')
-@section('page-title', 'سجل النشاطات')
-
-@section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">الرئيسية</a></li>
-    <li class="breadcrumb-item active">سجل النشاطات</li>
-@endsection
-
 @section('content')
-    <!-- Filters Card -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="bi bi-funnel me-2"></i>تصفية النتائج</h5>
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="mb-1 fw-bold text-white">سجل النشاطات <span class="text-primary">(Audit Log)</span></h4>
+                <p class="text-white-50 mb-0">مراقبة دقيقة لكل حركة تتم داخل النظام</p>
+            </div>
+            <div>
+                <a href="{{ route('activity-log.index') }}" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-arrow-clockwise me-1"></i> تحديث
+                </a>
+            </div>
         </div>
-        <div class="card-body">
-            <form method="GET" action="{{ route('activity-log.index') }}">
-                <div class="row g-3">
-                    <div class="col-md-2">
-                        <label class="form-label">المستخدم</label>
-                        <select name="user_id" class="form-select">
-                            <option value="">الكل</option>
-                            @foreach($users as $user)
-                                <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>
-                                    {{ $user->name }}
-                                </option>
-                            @endforeach
-                        </select>
+
+        <!-- Stats Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="glass-card p-3 d-flex align-items-center">
+                    <div class="icon-square bg-primary bg-opacity-10 text-primary rounded me-3">
+                        <i class="bi bi-clock-history fs-4"></i>
                     </div>
-                    <div class="col-md-2">
-                        <label class="form-label">الإجراء</label>
-                        <select name="action" class="form-select">
-                            <option value="">الكل</option>
-                            @foreach($actions as $action)
-                                <option value="{{ $action }}" {{ request('action') == $action ? 'selected' : '' }}>
-                                    {{ $action }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">من تاريخ</label>
-                        <input type="date" name="from_date" class="form-control" value="{{ request('from_date') }}">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">إلى تاريخ</label>
-                        <input type="date" name="to_date" class="form-control" value="{{ request('to_date') }}">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">بحث</label>
-                        <input type="text" name="search" class="form-control" placeholder="بحث..."
-                            value="{{ request('search') }}">
-                    </div>
-                    <div class="col-md-2 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary me-2">
-                            <i class="bi bi-search me-1"></i>بحث
-                        </button>
-                        <a href="{{ route('activity-log.index') }}" class="btn btn-outline-secondary">
-                            <i class="bi bi-x-circle"></i>
-                        </a>
+                    <div>
+                        <div class="text-white fw-bold fs-5">{{ $activities->total() }}</div>
+                        <div class="text-white-50 small">إجمالي السجلات</div>
                     </div>
                 </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Activity Log Table -->
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>سجل النشاطات</h5>
-            <span class="badge bg-info">{{ $activities->total() }} سجل</span>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th style="width: 150px;">التاريخ</th>
-                            <th style="width: 120px;">المستخدم</th>
-                            <th style="width: 100px;">الإجراء</th>
-                            <th>الوصف</th>
-                            <th style="width: 120px;">IP</th>
-                            <th style="width: 80px;"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($activities as $activity)
-                            <tr>
-                                <td>
-                                    <small class="text-muted">
-                                        {{ $activity->created_at->format('Y-m-d') }}<br>
-                                        {{ $activity->created_at->format('H:i:s') }}
-                                    </small>
-                                </td>
-                                <td>
-                                    <span class="badge bg-secondary">
-                                        {{ $activity->user_name ?? 'System' }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <span class="badge bg-{{ $activity->action_color }}">
-                                        {{ $activity->action_label }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <div>{{ $activity->description }}</div>
-                                    @if($activity->subject_name)
-                                        <small class="text-muted">{{ $activity->subject_name }}</small>
-                                    @endif
-                                </td>
-                                <td>
-                                    <small class="text-muted">{{ $activity->ip_address }}</small>
-                                </td>
-                                <td>
-                                    @if($activity->old_values || $activity->new_values)
-                                        <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal"
-                                            data-bs-target="#detailsModal{{ $activity->id }}">
-                                            <i class="bi bi-eye"></i>
-                                        </button>
-                                    @endif
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" class="text-center py-5">
-                                    <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
-                                    <p class="text-muted">لا توجد نشاطات مسجلة</p>
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
             </div>
-        </div>
-        @if($activities->hasPages())
-            <div class="card-footer">
-                {{ $activities->withQueryString()->links() }}
-            </div>
-        @endif
-    </div>
-
-    <!-- Details Modals -->
-    @foreach($activities->filter(fn($a) => $a->old_values || $a->new_values) as $activity)
-        <div class="modal fade" id="detailsModal{{ $activity->id }}" tabindex="-1">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">تفاصيل التغييرات</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="row">
-                            @if($activity->old_values)
-                                <div class="col-md-6">
-                                    <h6 class="text-danger"><i class="bi bi-dash-circle me-1"></i>القيم القديمة</h6>
-                                    <pre
-                                        class="bg-light p-3 rounded"><code>{{ json_encode($activity->old_values, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</code></pre>
-                                </div>
-                            @endif
-                            @if($activity->new_values)
-                                <div class="col-md-6">
-                                    <h6 class="text-success"><i class="bi bi-plus-circle me-1"></i>القيم الجديدة</h6>
-                                    <pre
-                                        class="bg-light p-3 rounded"><code>{{ json_encode($activity->new_values, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</code></pre>
-                                </div>
-                            @endif
+            <div class="col-md-9">
+                <!-- Search & Filters -->
+                <div class="glass-card p-3">
+                    <form action="{{ route('activity-log.index') }}" method="GET" class="row g-2 align-items-center">
+                        <div class="col-md-3">
+                            <select name="user_id"
+                                class="form-select bg-transparent text-white border-secondary border-opacity-25 form-select-sm">
+                                <option value="">كل المستخدمين</option>
+                                @foreach($users as $user)
+                                    <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>
+                                        {{ $user->name }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
-                    </div>
+                        <div class="col-md-2">
+                            <select name="action"
+                                class="form-select bg-transparent text-white border-secondary border-opacity-25 form-select-sm">
+                                <option value="">نوع الإجراء (All)</option>
+                                @foreach($actions as $action)
+                                    <option value="{{ $action }}" {{ request('action') == $action ? 'selected' : '' }}>
+                                        {{ $action }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="input-group input-group-sm">
+                                <span
+                                    class="input-group-text bg-transparent border-secondary border-opacity-25 text-white-50"><i
+                                        class="bi bi-search"></i></span>
+                                <input type="text" name="search"
+                                    class="form-control bg-transparent text-white border-secondary border-opacity-25"
+                                    placeholder="بحث في الوصف..." value="{{ request('search') }}">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary btn-sm w-100">تصفية</button>
+                        </div>
+                        <div class="col-md-2">
+                            <a href="{{ route('activity-log.index') }}"
+                                class="btn btn-outline-secondary btn-sm w-100">مسح</a>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
-    @endforeach
+
+        <!-- Logs List -->
+        <div class="glass-card table-responsive">
+            <table class="table table-dark table-hover mb-0 align-middle">
+                <thead class="text-secondary small text-uppercase">
+                    <tr>
+                        <th class="ps-4" style="width: 20%">المستخدم</th>
+                        <th style="width: 15%">الإجراء</th>
+                        <th style="width: 40%">تفاصيل الحدث</th>
+                        <th style="width: 15%">التوقيت</th>
+                        <th class="text-end pe-4" style="width: 10%">عرض</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($activities as $log)
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle bg-secondary bg-opacity-10 text-white rounded-circle me-2"
+                                        style="width:32px; height:32px; display:flex; align-items:center; justify-content:center;">
+                                        {{ mb_substr($log->user_name ?? 'Sys', 0, 1) }}
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-white fs-6">{{ $log->user_name ?? 'System' }}</div>
+                                        <div class="text-white-50 tiny font-monospace">{{ $log->ip_address }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span
+                                    class="badge rounded-pill bg-{{ $log->action_color }} bg-opacity-25 text-white border border-{{ $log->action_color }} border-opacity-50 px-3 py-2">
+                                    <i
+                                        class="bi bi-{{ $log->action == 'deleted' ? 'trash' : ($log->action == 'created' ? 'plus-lg' : ($log->action == 'updated' ? 'pencil' : 'info-circle')) }} me-1"></i>
+                                    {{ $log->action_label }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="text-white mb-1">{{ $log->description }}</div>
+                                <div class="d-flex gap-2">
+                                    <span
+                                        class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-10 font-monospace">
+                                        {{ class_basename($log->subject_type) }} #{{ $log->subject_id }}
+                                    </span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="text-info small fw-bold" dir="ltr">{{ $log->created_at->format('H:i:s') }}</div>
+                                <small class="text-white-50">{{ $log->created_at->format('Y-m-d') }}</small>
+                            </td>
+                            <td class="text-end pe-4">
+                                <a href="{{ route('activity-log.show', $log->id) }}"
+                                    class="btn btn-sm btn-outline-light rounded-pill px-3">
+                                    التفاصيل <i class="bi bi-chevron-left ms-1"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <div class="opacity-50">
+                                    <i class="bi bi-search fs-1 d-block mb-3"></i>
+                                    <h5 class="text-white-50">لا توجد سجلات مطابقة</h5>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-4">
+            {{ $activities->withQueryString()->links() }}
+        </div>
+    </div>
 @endsection

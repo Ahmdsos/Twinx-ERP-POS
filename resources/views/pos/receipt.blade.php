@@ -1,278 +1,302 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>فاتورة #{{ $invoice->invoice_number }}</title>
     <style>
-        * {
+        @page {
             margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+            size: 80mm 297mm;
+            /* Auto height usually handled by printer drivers */
         }
-        
+
         body {
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            width: 80mm;
-            margin: 0 auto;
+            font-family: 'Tahoma', 'Arial', sans-serif;
+            margin: 0;
             padding: 5mm;
-            background: #fff;
+            width: 70mm;
+            /* 80mm paper - margins */
+            font-size: 12px;
             color: #000;
+            line-height: 1.4;
         }
-        
-        .receipt {
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-end {
+            text-align: left;
+        }
+
+        /* RTL flip */
+        .fw-bold {
+            font-weight: bold;
+        }
+
+        .dashed-line {
+            border-top: 1px dashed #000;
+            margin: 5px 0;
             width: 100%;
         }
-        
+
         .header {
-            text-align: center;
-            border-bottom: 1px dashed #000;
-            padding-bottom: 10px;
             margin-bottom: 10px;
         }
-        
+
         .logo {
-            font-size: 18px;
-            font-weight: bold;
+            max-width: 80%;
+            height: auto;
             margin-bottom: 5px;
+            filter: grayscale(100%);
+            /* Thermal printers normally are B&W */
         }
-        
-        .company-info {
+
+        .store-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+
+        .store-info {
             font-size: 10px;
+            margin-bottom: 2px;
         }
-        
-        .invoice-info {
+
+        .invoice-details {
+            margin-bottom: 10px;
+            font-size: 11px;
+        }
+
+        .customer-info {
+            border: 1px solid #000;
+            padding: 5px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
             margin-bottom: 10px;
         }
-        
-        .row {
-            display: flex;
-            justify-content: space-between;
-            margin: 3px 0;
-        }
-        
-        .divider {
-            border-top: 1px dashed #000;
-            margin: 10px 0;
-        }
-        
-        .items-header {
-            font-weight: bold;
+
+        th {
             border-bottom: 1px solid #000;
-            padding-bottom: 5px;
-            margin-bottom: 5px;
-        }
-        
-        .item {
-            margin: 5px 0;
-            padding-bottom: 5px;
-            border-bottom: 1px dotted #ccc;
-        }
-        
-        .item-name {
-            font-weight: bold;
-        }
-        
-        .item-details {
-            display: flex;
-            justify-content: space-between;
+            text-align: right;
+            padding: 2px 0;
             font-size: 11px;
-            color: #333;
         }
-        
+
+        td {
+            padding: 3px 0;
+            vertical-align: top;
+        }
+
+        .col-qty {
+            width: 15%;
+            text-align: center;
+        }
+
+        .col-item {
+            width: 55%;
+        }
+
+        .col-price {
+            width: 30%;
+            text-align: left;
+        }
+
         .totals {
             margin-top: 10px;
-            border-top: 1px solid #000;
-            padding-top: 10px;
         }
-        
-        .total-row {
+
+        .totals-row {
             display: flex;
             justify-content: space-between;
-            margin: 3px 0;
+            margin-bottom: 2px;
         }
-        
-        .grand-total {
+
+        .total-final {
             font-size: 16px;
             font-weight: bold;
             border-top: 2px solid #000;
             padding-top: 5px;
             margin-top: 5px;
         }
-        
-        .payment-info {
-            margin-top: 10px;
-            border-top: 1px dashed #000;
-            padding-top: 10px;
-        }
-        
+
         .footer {
+            margin-top: 20px;
             text-align: center;
-            margin-top: 15px;
-            padding-top: 10px;
-            border-top: 1px dashed #000;
             font-size: 10px;
         }
-        
+
         .barcode {
-            text-align: center;
-            margin: 10px 0;
-        }
-        
-        @media print {
-            body {
-                width: 80mm;
-                margin: 0;
-                padding: 2mm;
-            }
-            
-            .no-print {
-                display: none;
-            }
-        }
-        
-        .print-btn {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            padding: 10px 20px;
-            background: #4f46e5;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
+            margin-top: 10px;
         }
     </style>
 </head>
-<body>
-    <button class="print-btn no-print" onclick="window.print()">🖨️ طباعة</button>
-    
-    <div class="receipt">
-        <!-- Header -->
-        <div class="header">
-            <div class="logo">{{ config('app.name', 'Twinx ERP') }}</div>
-            <div class="company-info">
-                {{ config('erp.company.address', 'العنوان') }}<br>
-                هاتف: {{ config('erp.company.phone', '0000000000') }}
-            </div>
+
+<body onload="window.print()">
+    <!-- Header -->
+    <div class="header text-center">
+        <!-- Optional Logo -->
+        @if(\App\Models\Setting::getValue('printer_show_logo', true) && \App\Models\Setting::getValue('company_logo'))
+            <img src="{{ Storage::url(\App\Models\Setting::getValue('company_logo')) }}" class="logo">
+        @endif
+
+        <div class="store-name">{{ \App\Models\Setting::getValue('company_name', config('app.name')) }}</div>
+        <div class="store-info">{{ \App\Models\Setting::getValue('company_address', 'العنوان غير محدد') }}</div>
+        <div class="store-info">هاتف: {{ \App\Models\Setting::getValue('company_phone', '-') }}</div>
+    </div>
+
+    <div class="dashed-line"></div>
+
+    <!-- Invoice Details -->
+    <div class="invoice-details">
+        <div style="display: flex; justify-content: space-between;">
+            <span>رقم الفاتورة:</span>
+            <span class="fw-bold">{{ $invoice->invoice_number }}</span>
         </div>
-        
-        <!-- Invoice Info -->
-        <div class="invoice-info">
-            <div class="row">
-                <span>رقم الفاتورة:</span>
-                <span>{{ $invoice->invoice_number }}</span>
-            </div>
-            <div class="row">
-                <span>التاريخ:</span>
-                <span>{{ $invoice->invoice_date->format('Y-m-d H:i') }}</span>
-            </div>
-            @if($invoice->customer)
-            <div class="row">
-                <span>العميل:</span>
-                <span>{{ $invoice->customer->name }}</span>
-            </div>
-            @endif
-            <div class="row">
-                <span>الكاشير:</span>
-                <span>{{ auth()->user()?->name ?? 'النظام' }}</span>
-            </div>
+        <div style="display: flex; justify-content: space-between;">
+            <span>التاريخ:</span>
+            <span>{{ $invoice->created_at->format('Y-m-d H:i') }}</span>
         </div>
-        
-        <div class="divider"></div>
-        
-        <!-- Items -->
-        <div class="items-header">
-            <div class="row">
-                <span>المنتج</span>
-                <span>المبلغ</span>
-            </div>
-        </div>
-        
-        @foreach($invoice->lines as $line)
-        <div class="item">
-            <div class="item-name">{{ $line->product?->name ?? 'منتج' }}</div>
-            <div class="item-details">
-                <span>{{ number_format($line->unit_price, 2) }} × {{ $line->quantity }}</span>
-                <span>{{ number_format($line->total, 2) }}</span>
-            </div>
-            @if($line->discount > 0)
-            <div class="item-details" style="color: #c00;">
-                <span>خصم</span>
-                <span>-{{ number_format($line->discount, 2) }}</span>
-            </div>
-            @endif
-        </div>
-        @endforeach
-        
-        <!-- Totals -->
-        <div class="totals">
-            <div class="total-row">
-                <span>المجموع الفرعي:</span>
-                <span>{{ number_format($invoice->subtotal, 2) }}</span>
-            </div>
-            @if($invoice->discount > 0)
-            <div class="total-row">
-                <span>الخصم:</span>
-                <span>-{{ number_format($invoice->discount, 2) }}</span>
-            </div>
-            @endif
-            @if($invoice->tax > 0)
-            <div class="total-row">
-                <span>الضريبة:</span>
-                <span>{{ number_format($invoice->tax, 2) }}</span>
-            </div>
-            @endif
-            <div class="total-row grand-total">
-                <span>الإجمالي:</span>
-                <span>{{ number_format($invoice->total, 2) }}</span>
-            </div>
-        </div>
-        
-        <!-- Payment Info -->
-        <div class="payment-info">
-            <div class="total-row">
-                <span>المبلغ المدفوع:</span>
-                <span>{{ number_format($invoice->amount_paid, 2) }}</span>
-            </div>
-            @if($invoice->amount_paid > $invoice->total)
-            <div class="total-row" style="font-weight: bold;">
-                <span>الباقي:</span>
-                <span>{{ number_format($invoice->amount_paid - $invoice->total, 2) }}</span>
-            </div>
-            @endif
-            @if($invoice->balance_due > 0)
-            <div class="total-row" style="color: #c00; font-weight: bold;">
-                <span>المتبقي على العميل:</span>
-                <span>{{ number_format($invoice->balance_due, 2) }}</span>
-            </div>
-            @endif
-            <div class="row">
-                <span>طريقة الدفع:</span>
-                <span>
-                    @switch($invoice->payment_method)
-                        @case('cash') نقدي @break
-                        @case('card') بطاقة @break
-                        @case('credit') آجل @break
-                        @default {{ $invoice->payment_method }}
-                    @endswitch
-                </span>
-            </div>
-        </div>
-        
-        <!-- Footer -->
-        <div class="footer">
-            <p>شكراً لتسوقكم معنا</p>
-            <p>نتمنى لكم يوماً سعيداً</p>
-            <br>
-            <small>{{ now()->format('Y-m-d H:i:s') }}</small>
+        <div style="display: flex; justify-content: space-between;">
+            <span>الكاشير:</span>
+            <span>{{ auth()->user()->name ?? 'Admin' }}</span>
         </div>
     </div>
-    
-    <script>
-        // Auto print on load (optional)
-        // window.onload = () => window.print();
-    </script>
+
+    <!-- Customer Info -->
+    @if($invoice->customer)
+        <div class="customer-info">
+            <div style="display: flex; justify-content: space-between;">
+                <span>العميل:</span>
+                <span class="fw-bold">{{ $invoice->customer->name }}</span>
+            </div>
+            @if($invoice->customer->code !== 'WALK-IN')
+                <div style="display: flex; justify-content: space-between; font-size: 10px; margin-top: 2px;">
+                    <span>النوع:</span>
+                    <span>
+                        @php
+                            $labels = [
+                                'individual' => 'فرد',
+                                'company' => 'شركة',
+                                'distributor' => 'موزع',
+                                'wholesale' => 'جملة',
+                                'half_wholesale' => 'نص جملة',
+                                'quarter_wholesale' => 'ربع جملة',
+                                'vip' => 'VIP'
+                            ];
+                            echo $labels[$invoice->customer->type] ?? $invoice->customer->type;
+                        @endphp
+                    </span>
+                </div>
+            @endif
+        </div>
+    @endif
+
+    <!-- Items -->
+    <table>
+        <thead>
+            <tr>
+                <th class="col-item">الصنف</th>
+                <th class="col-qty">الكمية</th>
+                <th class="col-price">الإجمالي</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($invoice->lines as $line)
+                <tr>
+                    <td class="col-item">
+                        {{ $line->product->name }}
+                        @if($line->discount_amount > 0)
+                            <div style="font-size: 10px; color: #555;">
+                                سعر: {{ number_format($line->unit_price, 2) }}
+                                <br>
+                                خصم: <span
+                                    style="text-decoration: line-through">{{ number_format($line->discount_amount, 2) }}</span>
+                            </div>
+                        @elseif($line->unit_price != $line->product->selling_price)
+                            <div style="font-size: 10px; color: #555;">@ {{ number_format($line->unit_price, 2) }}</div>
+                        @endif
+                    </td>
+                    <td class="col-qty">{{ $line->quantity + 0 }}</td>
+                    <td class="col-price">
+                        {{ number_format($line->line_total, 2) }}
+                    </td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+
+    <div class="dashed-line"></div>
+
+    <!-- Totals -->
+    <div class="totals">
+        <div class="totals-row">
+            <span>المجموع:</span>
+            <span>{{ number_format($invoice->subtotal, 2) }}</span>
+        </div>
+
+        @if($invoice->discount_amount > 0)
+            <div class="totals-row">
+                <span>الخصم:</span>
+                <span>-{{ number_format($invoice->discount_amount, 2) }}</span>
+            </div>
+        @endif
+
+        <div class="totals-row">
+            <span>ضريبة
+                ({{ $invoice->lines->first()->tax_percent ?? \App\Models\Setting::getValue('default_tax_rate', 0) }}%):</span>
+            <span>{{ number_format($invoice->tax_amount, 2) }}</span>
+        </div>
+
+        <div class="totals-row total-final">
+            <span>الإجمالي:</span>
+            <span>{{ number_format($invoice->total, 2) }}</span>
+        </div>
+
+        <div class="totals-row" style="margin-top: 5px;">
+            <span>المدفوع ({{ $invoice->payment_id ? 'نقد/شبكة' : 'نقد' }}):</span>
+            <span>{{ number_format($invoice->paid_amount, 2) }}</span>
+        </div>
+
+        @php
+            $change = max(0, $invoice->paid_amount - $invoice->total);
+            $balance = max(0, $invoice->total - $invoice->paid_amount);
+        @endphp
+
+        @if($change > 0)
+            <div class="totals-row" style="margin-top:5px; border-top: 1px dotted #000; padding-top:2px;">
+                <span>الباقي للعميل:</span>
+                <span style="font-weight: bold; font-size: 14px;">{{ number_format($change, 2) }}</span>
+            </div>
+        @endif
+
+        @if($balance > 0)
+            <div class="totals-row">
+                <span>المتبقي عليه (آجل):</span>
+                <span style="font-weight: bold;">{{ number_format($balance, 2) }}</span>
+            </div>
+        @endif
+    </div>
+
+    <div class="dashed-line"></div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>{{ \App\Models\Setting::getValue('invoice_footer', 'شكراً لتعاملكم معنا!') }}</p>
+
+        <!-- Simplified Barcode Representation -->
+        <div class="barcode">
+            <img src="https://barcode.tec-it.com/barcode.ashx?data={{ $invoice->invoice_number }}&code=Code128&translate-esc=true&imagetype=Png&hidehrt=false&eclevel=L&dmsize=Default"
+                alt="Barcode" style="max-width: 100%; height: 40px;">
+        </div>
+    </div>
 </body>
+
 </html>

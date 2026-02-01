@@ -32,6 +32,7 @@ class DeliveryOrder extends Model
         'shipping_method',
         'tracking_number',
         'driver_name',
+        'driver_id',
         'vehicle_number',
         'notes',
         'journal_entry_id',
@@ -59,6 +60,11 @@ class DeliveryOrder extends Model
     // ========================================
     // Relationships
     // ========================================
+
+    public function driver(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\HR\Models\DeliveryDriver::class, 'driver_id');
+    }
 
     public function salesOrder(): BelongsTo
     {

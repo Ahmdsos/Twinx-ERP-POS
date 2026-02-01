@@ -1,192 +1,209 @@
 @extends('layouts.app')
 
-@section('title', 'فواتير البيع - Twinx ERP')
-@section('page-title', 'فواتير البيع')
-
-@section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">الرئيسية</a></li>
-    <li class="breadcrumb-item active">فواتير البيع</li>
-@endsection
+@section('title', 'فواتير المبيعات')
 
 @section('content')
-    <!-- Stats Cards -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="card bg-warning text-dark">
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <div>
-                        <h3 class="mb-0">{{ number_format($totalPending, 2) }} ج.م</h3>
-                        <small>إجمالي المعلق</small>
-                    </div>
-                    <i class="bi bi-clock fs-1 opacity-50"></i>
+    <div class="container-fluid p-0">
+        <!-- Header Section -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-5 gap-4">
+            <div class="d-flex align-items-center gap-4">
+                <div class="icon-box bg-gradient-cyan shadow-neon-cyan">
+                    <i class="bi bi-receipt fs-3 text-white"></i>
+                </div>
+                <div>
+                    <h2 class="fw-bold text-white mb-1 tracking-wide">فواتير المبيعات</h2>
+                    <p class="mb-0 text-gray-400 small">إدارة وسجل المبيعات</p>
                 </div>
             </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card bg-danger text-white">
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <div>
-                        <h3 class="mb-0">{{ number_format($totalOverdue, 2) }} ج.م</h3>
-                        <small>فواتير متأخرة</small>
-                    </div>
-                    <i class="bi bi-exclamation-triangle fs-1 opacity-50"></i>
-                </div>
+            <div class="d-flex gap-3">
+                <a href="{{ route('pos.index') }}" class="btn btn-action-success d-flex align-items-center gap-2 shadow-lg">
+                    <i class="bi bi-basket"></i>
+                    <span class="fw-bold">نقطة البيع (POS)</span>
+                </a>
+                <a href="{{ route('sales-invoices.create') }}" class="btn btn-action-cyan d-flex align-items-center gap-2 shadow-lg">
+                    <i class="bi bi-plus-lg"></i>
+                    <span class="fw-bold">فاتورة جديدة</span>
+                </a>
             </div>
         </div>
-    </div>
 
-    <!-- Action Bar -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <a href="{{ route('sales-invoices.create') }}" class="btn btn-primary">
-                <i class="bi bi-plus-lg me-1"></i>فاتورة جديدة
-            </a>
-        </div>
-        <div class="text-muted">
-            إجمالي: <strong>{{ $invoices->total() }}</strong> فاتورة
-        </div>
-    </div>
-
-    <!-- Filters Card -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form action="{{ route('sales-invoices.index') }}" method="GET" class="row g-3">
-                <div class="col-md-2">
-                    <label class="form-label">بحث</label>
-                    <input type="text" class="form-control" name="search" value="{{ request('search') }}"
-                        placeholder="رقم الفاتورة">
+        <!-- Filters Section -->
+        <div class="bg-slate-900 bg-opacity-50 border border-white-5 rounded-4 p-4 mb-5">
+            <form action="{{ route('sales-invoices.index') }}" method="GET" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label text-cyan-400 x-small fw-bold text-uppercase ps-1">بحث</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark-input border-end-0 text-gray-500"><i class="bi bi-search"></i></span>
+                        <input type="text" name="search" class="form-control form-control-dark border-start-0 ps-0 text-white" 
+                               value="{{ request('search') }}" placeholder="#رقم الفاتورة، اسم العميل...">
+                    </div>
                 </div>
+
                 <div class="col-md-2">
-                    <label class="form-label">العميل</label>
-                    <select class="form-select" name="customer_id">
-                        <option value="">الكل</option>
-                        @foreach($customers as $customer)
-                            <option value="{{ $customer->id }}" {{ request('customer_id') == $customer->id ? 'selected' : '' }}>
-                                {{ $customer->name }}
-                            </option>
-                        @endforeach
+                    <label class="form-label text-cyan-400 x-small fw-bold text-uppercase ps-1">التاريخ من</label>
+                    <input type="date" name="from_date" class="form-control form-control-dark text-white" value="{{ request('from_date') }}">
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label text-cyan-400 x-small fw-bold text-uppercase ps-1">إلى</label>
+                    <input type="date" name="to_date" class="form-control form-control-dark text-white" value="{{ request('to_date') }}">
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label text-cyan-400 x-small fw-bold text-uppercase ps-1">الحالة</label>
+                    <select name="status" class="form-select form-select-dark text-white">
+                        <option value="">-- الكل --</option>
+                        <option value="paid" {{ request('status') == 'paid' ? 'selected' : '' }}>خالصة</option>
+                        <option value="partial" {{ request('status') == 'partial' ? 'selected' : '' }}>جزئي</option>
+                        <option value="unpaid" {{ request('status') == 'unpaid' ? 'selected' : '' }}>غير مدفوع</option>
+                        <option value="refunded" {{ request('status') == 'refunded' ? 'selected' : '' }}>مرتجع</option>
                     </select>
                 </div>
+
                 <div class="col-md-2">
-                    <label class="form-label">الحالة</label>
-                    <select class="form-select" name="status">
-                        <option value="">الكل</option>
-                        @foreach($statuses as $status)
-                            <option value="{{ $status->value }}" {{ request('status') == $status->value ? 'selected' : '' }}>
-                                {{ $status->label() }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">من تاريخ</label>
-                    <input type="date" class="form-control" name="from_date" value="{{ request('from_date') }}">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">إلى تاريخ</label>
-                    <input type="date" class="form-control" name="to_date" value="{{ request('to_date') }}">
-                </div>
-                <div class="col-md-2 d-flex align-items-end gap-2">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-search"></i>
+                    <button type="submit" class="btn btn-cyan-glass w-100 fw-bold">
+                        <i class="bi bi-funnel"></i> تصفية
                     </button>
-                    <a href="{{ route('sales-invoices.index') }}" class="btn btn-secondary">
-                        <i class="bi bi-x-lg"></i>
-                    </a>
                 </div>
             </form>
         </div>
-    </div>
 
-    <!-- Invoices Table -->
-    <div class="card">
-        <div class="card-body p-0">
+        <!-- Invoices Table -->
+        <div class="glass-panel overflow-hidden border-top-gradient-cyan">
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
+                <table class="table table-dark-custom align-middle mb-0">
+                    <thead>
                         <tr>
-                            <th>رقم الفاتورة</th>
+                            <th class="ps-4">رقم الفاتورة</th>
                             <th>العميل</th>
-                            <th>تاريخ الفاتورة</th>
-                            <th>تاريخ الاستحقاق</th>
-                            <th>الإجمالي</th>
+                            <th>التاريخ</th>
+                            <th>المبلغ الإجمالي</th>
                             <th>المدفوع</th>
                             <th>المتبقي</th>
                             <th>الحالة</th>
-                            <th class="text-center">الإجراءات</th>
+                            <th class="pe-4 text-end">إجراءات</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($invoices as $invoice)
-                            <tr class="{{ $invoice->isOverdue() ? 'table-danger' : '' }}">
-                                <td>
-                                    <a href="{{ route('sales-invoices.show', $invoice) }}" class="fw-bold text-decoration-none">
-                                        {{ $invoice->invoice_number }}
-                                    </a>
-                                    @if($invoice->isOverdue())
-                                        <br>
-                                        <small class="text-danger">
-                                            <i class="bi bi-exclamation-triangle me-1"></i>
-                                            متأخرة {{ $invoice->getDaysOverdue() }} يوم
-                                        </small>
-                                    @endif
+                            <tr class="table-row-hover position-relative group-hover-actions">
+                                <td class="ps-4 font-monospace fw-bold text-cyan-300">
+                                    {{ $invoice->invoice_number }}
                                 </td>
-                                <td>{{ $invoice->customer?->name ?? '-' }}</td>
-                                <td>{{ $invoice->invoice_date?->format('Y-m-d') ?? '-' }}</td>
-                                <td>{{ $invoice->due_date?->format('Y-m-d') ?? '-' }}</td>
-                                <td>{{ number_format($invoice->total, 2) }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="avatar-xs bg-slate-700 rounded-circle text-white d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
+                                            {{ strtoupper(substr($invoice->customer?->name ?? 'G', 0, 1)) }}
+                                        </div>
+                                        <div>
+                                            <span class="d-block text-white small fw-bold">{{ Str::limit($invoice->customer?->name ?? 'عابر (Walk-in)', 20) }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-gray-400 small">{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('Y-m-d H:i') }}</td>
+                                <td class="fw-bold text-white">{{ number_format($invoice->total, 2) }}</td>
                                 <td class="text-success">{{ number_format($invoice->paid_amount, 2) }}</td>
-                                <td class="text-danger">{{ number_format($invoice->balance_due, 2) }}</td>
+                                <td class="text-danger fw-bold">{{ number_format($invoice->balance_due, 2) }}</td>
                                 <td>
-                                    @php
-                                        $statusClass = match ($invoice->status->value) {
-                                            'draft' => 'secondary',
-                                            'pending' => 'warning',
-                                            'partial' => 'info',
-                                            'paid' => 'success',
-                                            'cancelled' => 'danger',
-                                            default => 'secondary'
-                                        };
-                                    @endphp
-                                    <span class="badge bg-{{ $statusClass }}">
-                                        {{ $invoice->status->label() }}
-                                    </span>
+                                    @switch($invoice->status->value ?? $invoice->status)
+                                        @case('paid')
+                                            <span class="badge bg-green-500 bg-opacity-10 text-green-400">خالصة</span>
+                                            @break
+                                        @case('partially_paid')
+                                        @case('partial')
+                                            <span class="badge bg-orange-500 bg-opacity-10 text-orange-400">جزئي</span>
+                                            @break
+                                        @case('unpaid')
+                                            <span class="badge bg-red-500 bg-opacity-10 text-red-400">غير مدفوع</span>
+                                            @break
+                                        @case('refunded')
+                                            <span class="badge bg-gray-500 bg-opacity-10 text-gray-400">مرتجع</span>
+                                            @break
+                                        @default
+                                            <span class="badge bg-slate-700 text-gray-400">{{ $invoice->status }}</span>
+                                    @endswitch
                                 </td>
-                                <td class="text-center">
-                                    <div class="btn-group btn-group-sm">
-                                        <a href="{{ route('sales-invoices.show', $invoice) }}" class="btn btn-outline-primary"
-                                            title="عرض">
+                                <td class="pe-4 text-end">
+                                    <div class="d-flex justify-content-end gap-2 opacity-50 group-hover-visible transition-all">
+                                        <a href="{{ route('sales-invoices.show', $invoice->id) }}" class="btn-icon-glass" title="عرض التفاصيل">
                                             <i class="bi bi-eye"></i>
                                         </a>
-                                        <a href="{{ route('sales-invoices.print', $invoice) }}"
-                                            class="btn btn-outline-secondary" title="طباعة" target="_blank">
+                                        <a href="{{ route('pos.receipt', $invoice->id) }}" target="_blank" class="btn-icon-glass" title="طباعة">
                                             <i class="bi bi-printer"></i>
                                         </a>
-                                        @if($invoice->status->canReceivePayment())
-                                            <a href="{{ route('customer-payments.create', ['invoice_id' => $invoice->id]) }}"
-                                                class="btn btn-outline-success" title="تسجيل دفعة">
-                                                <i class="bi bi-cash"></i>
-                                            </a>
+                                        @if($invoice->balance_due > 0)
+                                        <a href="{{ route('customer-payments.create', ['invoice_id' => $invoice->id]) }}" class="btn-icon-glass text-warning hover-warning" title="سداد دفعة">
+                                            <i class="bi bi-wallet2"></i>
+                                        </a>
                                         @endif
                                     </div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="text-center text-muted py-5">
-                                    <i class="bi bi-receipt fs-1 d-block mb-2"></i>
-                                    لا توجد فواتير
+                                <td colspan="8" class="text-center py-5">
+                                    <div class="d-flex flex-column align-items-center justify-content-center opacity-50">
+                                        <i class="bi bi-receipt fs-1 text-gray-500 mb-3"></i>
+                                        <h5 class="text-gray-400">لا توجد فواتير</h5>
+                                        <p class="text-gray-600 small">لم يتم تسجيل أي مبيعات حتى الآن</p>
+                                    </div>
                                 </td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
-        </div>
-        @if($invoices->hasPages())
-            <div class="card-footer">
-                {{ $invoices->withQueryString()->links() }}
+            
+            @if($invoices->hasPages())
+            <div class="p-4 border-top border-white-5">
+                {{ $invoices->links('partials.pagination') }}
             </div>
-        @endif
+            @endif
+        </div>
     </div>
+
+    <style>
+        /* Cyan Theme */
+        .text-cyan-300 { color: #67e8f9 !important; }
+        .text-cyan-400 { color: #22d3ee !important; }
+        .bg-gradient-cyan { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); }
+        .shadow-neon-cyan { box-shadow: 0 0 20px rgba(6, 182, 212, 0.4); }
+
+        .btn-action-cyan {
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            border: none;
+            color: white;
+            padding: 10px 24px;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+        .btn-action-cyan:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(6, 182, 212, 0.4);
+        }
+
+        .btn-action-success {
+             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+             border: none; color: white; padding: 10px 24px; border-radius: 10px; transition: all 0.3s;
+        }
+
+        .btn-cyan-glass {
+            background: rgba(6, 182, 212, 0.15);
+            color: #22d3ee;
+            border: 1px solid rgba(34, 211, 238, 0.2);
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .btn-cyan-glass:hover {
+            background: rgba(6, 182, 212, 0.25);
+            color: white;
+            border-color: #22d3ee;
+        }
+
+        .border-top-gradient-cyan {
+            border-top: 4px solid;
+            border-image: linear-gradient(to right, #06b6d4, #22d3ee) 1;
+        }
+    </style>
 @endsection

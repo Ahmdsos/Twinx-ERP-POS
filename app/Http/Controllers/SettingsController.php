@@ -47,7 +47,7 @@ class SettingsController extends Controller
 
             // Tax settings
             'default_tax_rate' => 'nullable|numeric|min:0|max:100',
-            'tax_inclusive' => 'nullable|boolean',
+            // 'tax_inclusive' => 'nullable|boolean', // Removed strict check
 
             // Invoice settings
             'invoice_prefix' => 'nullable|string|max:10',
@@ -56,14 +56,14 @@ class SettingsController extends Controller
 
             // POS settings
             'pos_default_customer' => 'nullable|integer',
-            'pos_allow_negative_stock' => 'nullable|boolean',
-            'pos_print_receipt' => 'nullable|boolean',
+            // 'pos_allow_negative_stock' => 'nullable|boolean', // Removed strict check
+            // 'pos_print_receipt' => 'nullable|boolean', // Removed strict check
 
             // Printer settings
             'printer_type' => 'nullable|in:thermal,a4,a5',
             'printer_paper_width' => 'nullable|integer|min:58|max:80',
-            'printer_auto_print' => 'nullable|boolean',
-            'printer_show_logo' => 'nullable|boolean',
+            // 'printer_auto_print' => 'nullable|boolean', // Removed strict check
+            // 'printer_show_logo' => 'nullable|boolean', // Removed strict check
             'printer_copies' => 'nullable|integer|min:1|max:5',
         ]);
 

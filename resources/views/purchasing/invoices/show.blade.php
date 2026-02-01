@@ -1,273 +1,197 @@
 @extends('layouts.app')
 
-@section('title', $purchaseInvoice->invoice_number . ' - Twinx ERP')
-@section('page-title', 'تفاصيل فاتورة الشراء')
-
-@section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">الرئيسية</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('purchase-invoices.index') }}">فواتير الشراء</a></li>
-    <li class="breadcrumb-item active">{{ $purchaseInvoice->invoice_number }}</li>
-@endsection
+@section('title', 'فاتورة شراء: ' . $purchaseInvoice->invoice_number)
 
 @section('content')
-<div class="row">
-    <!-- Main Content -->
-    <div class="col-lg-8">
-        <!-- Invoice Header -->
-        <div class="card mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="bi bi-file-earmark me-2"></i>
-                    {{ $purchaseInvoice->invoice_number }}
-                </h5>
-                @php
-                    $statusColors = [
-                        'draft' => 'secondary',
-                        'pending' => 'warning',
-                        'partial' => 'info',
-                        'paid' => 'success',
-                        'cancelled' => 'danger',
-                    ];
-                @endphp
-                <span class="badge bg-{{ $statusColors[$purchaseInvoice->status->value] ?? 'secondary' }} fs-6">
-                    {{ $purchaseInvoice->status->label() }}
-                </span>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <table class="table table-sm table-borderless">
-                            <tr>
-                                <td class="text-muted" style="width: 40%;">المورد</td>
-                                <td><strong>{{ $purchaseInvoice->supplier?->name ?? '-' }}</strong></td>
-                            </tr>
-                            <tr>
-                                <td class="text-muted">رقم فاتورة المورد</td>
-                                <td>{{ $purchaseInvoice->supplier_invoice_number ?? '-' }}</td>
-                            </tr>
-                            <tr>
-                                <td class="text-muted">سند الاستلام</td>
-                                <td>
-                                    @if($purchaseInvoice->grn)
-                                        <a href="{{ route('grns.show', $purchaseInvoice->grn) }}">
-                                            {{ $purchaseInvoice->grn->grn_number }}
-                                        </a>
-                                    @else
-                                        -
-                                    @endif
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                    <div class="col-md-6">
-                        <table class="table table-sm table-borderless">
-                            <tr>
-                                <td class="text-muted" style="width: 40%;">تاريخ الفاتورة</td>
-                                <td>{{ $purchaseInvoice->invoice_date?->format('Y-m-d') ?? '-' }}</td>
-                            </tr>
-                            <tr>
-                                <td class="text-muted">تاريخ الاستحقاق</td>
-                                <td>
-                                    {{ $purchaseInvoice->due_date?->format('Y-m-d') ?? '-' }}
-                                    @if($purchaseInvoice->isOverdue())
-                                        <span class="badge bg-danger ms-1">
-                                            متأخر {{ $purchaseInvoice->getDaysOverdue() }} يوم
-                                        </span>
-                                    @endif
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="text-muted">أمر الشراء</td>
-                                <td>
-                                    @if($purchaseInvoice->purchaseOrder)
-                                        <a href="{{ route('purchase-orders.show', $purchaseInvoice->purchaseOrder) }}">
-                                            {{ $purchaseInvoice->purchaseOrder->po_number }}
-                                        </a>
-                                    @else
-                                        -
-                                    @endif
-                                </td>
-                            </tr>
-                        </table>
+    <div class="container-fluid p-0">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <a href="{{ route('purchase-invoices.index') }}" class="btn btn-outline-light btn-sm rounded-circle shadow-sm" style="width: 32px; height: 32px;"><i class="bi bi-arrow-right"></i></a>
+                <div>
+                    <h2 class="fw-bold text-white mb-0">فاتورة شراء</h2>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-gray-400 font-monospace">{{ $purchaseInvoice->invoice_number }}</span>
+                        @php
+                            $color = match($purchaseInvoice->status->value) {
+                                'paid' => 'green',
+                                'partial' => 'orange',
+                                'pending' => 'red',
+                                'cancelled' => 'gray',
+                                default => 'blue'
+                            };
+                        @endphp
+                        <span class="badge bg-{{ $color }}-500 bg-opacity-10 text-{{ $color }}-400 border border-{{ $color }}-500 border-opacity-20 rounded-pill px-2">
+                            {{ $purchaseInvoice->status->label() }}
+                        </span>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Invoice Lines -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i>بنود الفاتورة</h5>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>#</th>
-                                <th>المنتج</th>
-                                <th>الكمية</th>
-                                <th>السعر</th>
-                                <th>الإجمالي</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($purchaseInvoice->lines as $index => $line)
-                                <tr>
-                                    <td>{{ $index + 1 }}</td>
-                                    <td>
-                                        <strong>{{ $line->product?->name ?? '-' }}</strong>
-                                        <br>
-                                        <small class="text-muted">{{ $line->product?->sku }}</small>
-                                    </td>
-                                    <td>{{ number_format($line->quantity, 2) }} {{ $line->product?->unit?->name }}</td>
-                                    <td>{{ number_format($line->unit_price ?? 0, 2) }}</td>
-                                    <td class="fw-bold">{{ number_format($line->line_total ?? 0, 2) }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                        <tfoot class="table-light">
-                            <tr>
-                                <td colspan="4" class="text-start">الإجمالي الفرعي</td>
-                                <td class="fw-bold">{{ number_format($purchaseInvoice->subtotal, 2) }} ج.م</td>
-                            </tr>
-                            @if($purchaseInvoice->tax_amount > 0)
-                                <tr>
-                                    <td colspan="4" class="text-start">الضريبة</td>
-                                    <td>{{ number_format($purchaseInvoice->tax_amount, 2) }} ج.م</td>
-                                </tr>
-                            @endif
-                            <tr class="table-primary">
-                                <td colspan="4" class="text-start"><strong>الإجمالي</strong></td>
-                                <td><strong>{{ number_format($purchaseInvoice->total, 2) }} ج.م</strong></td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Payment History -->
-        @if($purchaseInvoice->paymentAllocations->count() > 0)
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-cash me-2"></i>سجل المدفوعات</h5>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-sm mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>رقم الدفعة</th>
-                                    <th>التاريخ</th>
-                                    <th>المبلغ</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($purchaseInvoice->paymentAllocations as $allocation)
-                                    <tr>
-                                        <td>
-                                            <a href="{{ route('supplier-payments.show', $allocation->payment) }}">
-                                                {{ $allocation->payment?->payment_number }}
-                                            </a>
-                                        </td>
-                                        <td>{{ $allocation->payment?->payment_date?->format('Y-m-d') }}</td>
-                                        <td class="text-success fw-bold">{{ number_format($allocation->amount, 2) }} ج.م</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        @endif
-
-        <!-- Notes -->
-        @if($purchaseInvoice->notes)
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-chat-text me-2"></i>ملاحظات</h5>
-                </div>
-                <div class="card-body">
-                    <p class="mb-0 text-muted">{{ $purchaseInvoice->notes }}</p>
-                </div>
-            </div>
-        @endif
-    </div>
-
-    <!-- Sidebar -->
-    <div class="col-lg-4">
-        <!-- Payment Summary -->
-        <div class="card mb-4 {{ $purchaseInvoice->isOverdue() ? 'border-danger' : '' }}">
-            <div class="card-header {{ $purchaseInvoice->isOverdue() ? 'bg-danger text-white' : '' }}">
-                <h6 class="mb-0"><i class="bi bi-wallet me-2"></i>حالة الدفع</h6>
-            </div>
-            <div class="card-body">
-                <div class="d-flex justify-content-between mb-2">
-                    <span>إجمالي الفاتورة</span>
-                    <strong>{{ number_format($purchaseInvoice->total, 2) }} ج.م</strong>
-                </div>
-                <div class="d-flex justify-content-between mb-2 text-success">
-                    <span>المدفوع</span>
-                    <strong>{{ number_format($purchaseInvoice->paid_amount, 2) }} ج.م</strong>
-                </div>
-                <hr>
-                <div class="d-flex justify-content-between {{ $purchaseInvoice->balance_due > 0 ? 'text-danger' : 'text-success' }}">
-                    <span><strong>المتبقي</strong></span>
-                    <strong>{{ number_format($purchaseInvoice->balance_due, 2) }} ج.م</strong>
-                </div>
-                
-                @if($purchaseInvoice->status->canPay())
-                    <!-- Payment Progress -->
-                    @php 
-                        $paidPercent = $purchaseInvoice->total > 0 
-                            ? round(($purchaseInvoice->paid_amount / $purchaseInvoice->total) * 100) 
-                            : 0; 
-                    @endphp
-                    <div class="progress mt-3" style="height: 8px;">
-                        <div class="progress-bar bg-success" style="width: {{ $paidPercent }}%"></div>
-                    </div>
-                    <small class="text-muted">مدفوع {{ $paidPercent }}%</small>
+            <div class="d-flex gap-2">
+                <a href="{{ route('purchase-invoices.print', $purchaseInvoice->id) }}" target="_blank" class="btn btn-outline-light d-flex align-items-center gap-2">
+                    <i class="bi bi-printer"></i> طباعة
+                </a>
+                @if($purchaseInvoice->balance_due > 0)
+                <a href="{{ route('supplier-payments.create', ['supplier_id' => $purchaseInvoice->supplier_id, 'invoice_id' => $purchaseInvoice->id, 'amount' => $purchaseInvoice->balance_due]) }}" class="btn btn-action-purple">
+                    <i class="bi bi-cash-stack me-2"></i> سداد المستحق
+                </a>
                 @endif
             </div>
         </div>
 
-        <!-- Actions -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h6 class="mb-0"><i class="bi bi-gear me-2"></i>الإجراءات</h6>
-            </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    @if($purchaseInvoice->status->canPay())
-                        <a href="{{ route('supplier-payments.create', ['invoice_id' => $purchaseInvoice->id]) }}" 
-                           class="btn btn-success">
-                            <i class="bi bi-cash me-2"></i>تسجيل دفعة
-                        </a>
-                    @endif
-                    
-                    <a href="{{ route('purchase-invoices.print', $purchaseInvoice) }}" 
-                       class="btn btn-outline-secondary" target="_blank">
-                        <i class="bi bi-printer me-2"></i>طباعة الفاتورة
-                    </a>
-                    
-                    @if($purchaseInvoice->status !== \Modules\Purchasing\Enums\PurchaseInvoiceStatus::PAID && $purchaseInvoice->paid_amount == 0)
-                        <form action="{{ route('purchase-invoices.cancel', $purchaseInvoice) }}" method="POST">
-                            @csrf
-                            <button type="submit" class="btn btn-outline-danger w-100" 
-                                    onclick="return confirm('هل أنت متأكد من إلغاء هذه الفاتورة؟')">
-                                <i class="bi bi-x-lg me-2"></i>إلغاء الفاتورة
-                            </button>
-                        </form>
-                    @endif
-                    
-                    <hr>
-                    <a href="{{ route('purchase-invoices.index') }}" class="btn btn-secondary">
-                        <i class="bi bi-arrow-right me-2"></i>العودة للقائمة
-                    </a>
+        <div class="row g-4">
+            <!-- Invoice Details -->
+            <div class="col-md-9">
+                <div class="glass-panel p-0 overflow-hidden mb-4">
+                    <div class="p-4 border-bottom border-white-5">
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <label class="text-gray-500 x-small fw-bold text-uppercase mb-1">المورد</label>
+                                <a href="{{ route('suppliers.show', $purchaseInvoice->supplier_id) }}" class="d-flex align-items-center gap-2 text-decoration-none group">
+                                    <div class="avatar-xs bg-cyan-500 rounded-circle text-white d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px;">
+                                        {{ strtoupper(substr($purchaseInvoice->supplier->name, 0, 1)) }}
+                                    </div>
+                                    <div>
+                                        <h6 class="text-white fw-bold mb-0 group-hover-text-cyan transition-all">{{ $purchaseInvoice->supplier->name }}</h6>
+                                        <span class="text-gray-500 x-small">{{ $purchaseInvoice->supplier->phone }}</span>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="text-gray-500 x-small fw-bold text-uppercase mb-1">تاريخ الفاتورة</label>
+                                <p class="text-white fw-bold mb-0">{{ $purchaseInvoice->invoice_date->format('Y-m-d') }}</p>
+                                <span class="text-gray-500 x-small">استحقاق: {{ $purchaseInvoice->due_date->format('Y-m-d') }}</span>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="text-gray-500 x-small fw-bold text-uppercase mb-1">مرجع المورد</label>
+                                <p class="text-white font-monospace mb-0">{{ $purchaseInvoice->supplier_invoice_number }}</p>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="text-gray-500 x-small fw-bold text-uppercase mb-1">سند الاستلام</label>
+                                @if($purchaseInvoice->grn)
+                                    <a href="#" class="btn btn-sm btn-outline-light w-100 font-monospace">{{ $purchaseInvoice->grn->grn_number }}</a>
+                                @else
+                                    <span class="text-gray-500">-</span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Items Table -->
+                    <div class="table-responsive">
+                        <table class="table table-dark-custom align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">المتتج</th>
+                                    <th class="text-center">الكمية</th>
+                                    <th class="text-center">الوحدة</th>
+                                    <th class="text-end">سعر الوحدة</th>
+                                    <th class="text-end pe-4">الإجمالي</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($purchaseInvoice->lines as $line)
+                                    <tr>
+                                        <td class="ps-4">
+                                            <h6 class="text-white mb-0">{{ $line->description }}</h6>
+                                            <span class="text-gray-500 x-small code-font">{{ $line->product->sku ?? '' }}</span>
+                                        </td>
+                                        <td class="text-center fw-bold text-cyan-300">{{ $line->quantity }}</td>
+                                        <td class="text-center text-gray-400 x-small">{{ $line->product->unit->name ?? '-' }}</td>
+                                        <td class="text-end text-gray-300">{{ number_format($line->unit_price, 2) }}</td>
+                                        <td class="text-end fw-bold text-white pe-4">{{ number_format($line->line_total, 2) }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                            <tfoot class="bg-white bg-opacity-5 border-top border-white-10">
+                                <tr>
+                                    <td colspan="4" class="text-end text-gray-400 py-3">الإجمالي</td>
+                                    <td class="text-end fw-bold text-white fs-5 py-3 pe-4">{{ number_format($purchaseInvoice->subtotal, 2) }}</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="4" class="text-end text-gray-400 border-0 pb-3"> + الضريبة</td>
+                                    <td class="text-end text-gray-300 border-0 pb-3 pe-4">{{ number_format($purchaseInvoice->tax_amount, 2) }}</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="4" class="text-end text-cyan-400 fw-bold border-0 h5 mb-0">صافي الفاتورة</td>
+                                    <td class="text-end text-cyan-400 fw-bold border-0 h5 mb-0 pe-4">{{ number_format($purchaseInvoice->total, 2) }} <small class="fs-6">EGP</small></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
                 </div>
+
+                <!-- Payments History -->
+                @if($purchaseInvoice->paymentAllocations->count() > 0)
+                <h6 class="text-white fw-bold mb-3 mt-4"><i class="bi bi-clock-history me-2"></i>سجل السداد</h6>
+                <div class="glass-panel p-0 overflow-hidden">
+                    <table class="table table-dark-custom align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th class="ps-4">رقم السند</th>
+                                <th>التاريخ</th>
+                                <th>طريقة الدفع</th>
+                                <th class="text-end pe-4">المبلغ المخصوم</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($purchaseInvoice->paymentAllocations as $allocation)
+                                <tr>
+                                    <td class="ps-4 font-monospace">
+                                        <a href="{{ route('supplier-payments.show', $allocation->supplier_payment_id) }}" class="text-purple-300 text-decoration-none">
+                                            {{ $allocation->payment->payment_number }}
+                                        </a>
+                                    </td>
+                                    <td class="text-gray-400">{{ $allocation->payment->payment_date->format('Y-m-d') }}</td>
+                                    <td>{{ $allocation->payment->payment_method }}</td>
+                                    <td class="text-end text-white fw-bold pe-4">{{ number_format($allocation->amount, 2) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                @endif
+            </div>
+
+            <!-- Sidebar Info -->
+            <div class="col-md-3">
+                <div class="glass-panel p-4 mb-4">
+                    <h6 class="text-gray-400 x-small fw-bold text-uppercase mb-3">ملخص الموقف المالي</h6>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-gray-400">قيمة الفاتورة</span>
+                        <span class="text-white fw-bold">{{ number_format($purchaseInvoice->total, 2) }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-green-400">تم سداد</span>
+                        <span class="text-green-400 fw-bold">-{{ number_format($purchaseInvoice->paid_amount, 2) }}</span>
+                    </div>
+                    <div class="border-top border-white-10 pt-2 mt-2">
+                        <div class="d-flex justify-content-between aligns-items-center">
+                            <span class="text-red-400 fw-bold">المتبقي</span>
+                            <span class="text-red-400 fw-bold fs-5">{{ number_format($purchaseInvoice->balance_due, 2) }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                @if($purchaseInvoice->notes)
+                <div class="glass-panel p-4">
+                    <h6 class="text-gray-400 x-small fw-bold text-uppercase mb-2">ملاحظات</h6>
+                    <p class="text-gray-300 small mb-0">{{ $purchaseInvoice->notes }}</p>
+                </div>
+                @endif
             </div>
         </div>
     </div>
-</div>
+
+    <style>
+        .glass-panel { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; backdrop-filter: blur(12px); }
+        .table-dark-custom { --bs-table-bg: transparent; --bs-table-border-color: rgba(255, 255, 255, 0.05); }
+        .table-dark-custom th { background: rgba(255, 255, 255, 0.05); color: #94a3b8; font-weight: 600; padding: 1rem; }
+        .btn-action-purple {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            border: none; color: white; padding: 8px 16px; border-radius: 8px; transition: all 0.3s;
+        }
+        .btn-action-purple:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4); }
+    </style>
 @endsection

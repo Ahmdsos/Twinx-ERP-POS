@@ -24,6 +24,7 @@ class Product extends Model
         'description',
         'type',
         'category_id',
+        'brand_id',
         'unit_id',
         'purchase_unit_id',
         'cost_price',
@@ -48,7 +49,7 @@ class Product extends Model
         'width',
         'height',
         'dimension_unit',
-        'brand',
+        // 'brand', // Removed to avoid conflict with relationship
         'manufacturer',
         'manufacturer_part_number',
         'warranty_months',
@@ -63,16 +64,28 @@ class Product extends Model
         'is_returnable',
         'color',
         'size',
+        'price_distributor',
+        'price_wholesale',
+        'price_half_wholesale',
+        'price_quarter_wholesale',
+        'price_special',
         'tags',
         'seo_title',
         'seo_description',
     ];
+
+    protected $appends = ['stock_qty'];
 
     protected $casts = [
         'type' => ProductType::class,
         'cost_price' => 'decimal:2',
         'selling_price' => 'decimal:2',
         'min_selling_price' => 'decimal:2',
+        'price_distributor' => 'decimal:2',
+        'price_wholesale' => 'decimal:2',
+        'price_half_wholesale' => 'decimal:2',
+        'price_quarter_wholesale' => 'decimal:2',
+        'price_special' => 'decimal:2',
         'tax_rate' => 'decimal:2',
         'is_tax_inclusive' => 'boolean',
         'reorder_level' => 'integer',
@@ -252,6 +265,21 @@ class Product extends Model
     }
 
     /**
+     * Get price based on customer type
+     */
+    public function getPriceForCustomerType(?string $customerType): float
+    {
+        return match ($customerType) {
+            'distributor' => $this->price_distributor > 0 ? $this->price_distributor : $this->selling_price,
+            'wholesale' => $this->price_wholesale > 0 ? $this->price_wholesale : $this->selling_price,
+            'half_wholesale' => $this->price_half_wholesale > 0 ? $this->price_half_wholesale : $this->selling_price,
+            'quarter_wholesale' => $this->price_quarter_wholesale > 0 ? $this->price_quarter_wholesale : $this->selling_price,
+            'technician', 'employee', 'vip' => $this->price_special > 0 ? $this->price_special : $this->selling_price,
+            default => $this->selling_price,
+        };
+    }
+
+    /**
      * Calculate selling price with tax
      */
     public function getPriceWithTax(): float
@@ -271,5 +299,22 @@ class Product extends Model
             return $this->selling_price;
         }
         return $this->selling_price / (1 + $this->tax_rate / 100);
+    }
+
+
+    /**
+     * Accessor for stock_qty used in POS
+     * 
+     * DERIVED VALUE - Source of Truth: product_stock.quantity
+     * This is NOT a stored column. It sums from the product_stock table.
+     */
+    public function getStockQtyAttribute(): float
+    {
+        return $this->total_stock;
+    }
+
+    public function brand(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Brand::class);
     }
 }

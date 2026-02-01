@@ -1,73 +1,79 @@
 @extends('layouts.app')
 
-@section('title', 'مدفوعات الموردين - Twinx ERP')
-@section('page-title', 'مدفوعات الموردين')
-
-@section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">الرئيسية</a></li>
-    <li class="breadcrumb-item active">مدفوعات الموردين</li>
-@endsection
+@section('title', 'دفعات الموردين')
 
 @section('content')
-    <!-- Stats Cards -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="card border-start border-4 border-success">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="text-muted mb-1">مدفوعات اليوم</h6>
-                            <h3 class="mb-0 text-success">{{ number_format($stats['today'], 2) }} ج.م</h3>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="bi bi-cash-stack text-success fs-1 opacity-50"></i>
-                        </div>
-                    </div>
+    <div class="container-fluid p-0">
+        <!-- Header -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-5 gap-4">
+            <div class="d-flex align-items-center gap-4">
+                <div class="icon-box bg-gradient-purple shadow-neon-purple">
+                    <i class="bi bi-cash-stack fs-3 text-white"></i>
+                </div>
+                <div>
+                    <h2 class="fw-bold text-white mb-1 tracking-wide">دفعات الموردين</h2>
+                    <p class="mb-0 text-gray-400 small">سجل المدفوعات الصادرة</p>
                 </div>
             </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card border-start border-4 border-primary">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="text-muted mb-1">مدفوعات الشهر</h6>
-                            <h3 class="mb-0">{{ number_format($stats['this_month'], 2) }} ج.م</h3>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="bi bi-calendar-range text-primary fs-1 opacity-50"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Action Bar -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <a href="{{ route('supplier-payments.create') }}" class="btn btn-primary">
-                <i class="bi bi-plus-lg me-1"></i>دفعة جديدة
+            <a href="{{ route('supplier-payments.create') }}"
+                class="btn btn-action-purple d-flex align-items-center gap-2 shadow-lg">
+                <i class="bi bi-plus-lg"></i>
+                <span class="fw-bold">تسجيل دفعة جديدة</span>
             </a>
         </div>
-        <div class="text-muted">
-            إجمالي: <strong>{{ $payments->total() }}</strong> دفعة
-        </div>
-    </div>
 
-    <!-- Filters Card -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form action="{{ route('supplier-payments.index') }}" method="GET" class="row g-3">
-                <div class="col-md-2">
-                    <label class="form-label">بحث</label>
-                    <input type="text" class="form-control" name="search" value="{{ request('search') }}"
-                        placeholder="رقم الدفعة">
+        <!-- KPI Cards -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-6">
+                <div class="glass-panel p-4 position-relative overflow-hidden h-100">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <span class="text-purple-400 x-small fw-bold text-uppercase tracking-wide">مدفوعات اليوم</span>
+                            <h2 class="text-white fw-bold mb-0 mt-1">{{ number_format($stats['today'], 2) }} <small
+                                    class="fs-6 text-gray-400">EGP</small></h2>
+                        </div>
+                        <div class="icon-circle bg-purple-500 bg-opacity-10 text-purple-400">
+                            <i class="bi bi-calendar-check"></i>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label">المورد</label>
-                    <select class="form-select" name="supplier_id">
-                        <option value="">الكل</option>
+            </div>
+            <div class="col-md-6">
+                <div class="glass-panel p-4 position-relative overflow-hidden h-100">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <span class="text-cyan-400 x-small fw-bold text-uppercase tracking-wide">مدفوعات الشهر
+                                الحالي</span>
+                            <h2 class="text-white fw-bold mb-0 mt-1">{{ number_format($stats['this_month'], 2) }} <small
+                                    class="fs-6 text-gray-400">EGP</small></h2>
+                        </div>
+                        <div class="icon-circle bg-cyan-500 bg-opacity-10 text-cyan-400">
+                            <i class="bi bi-graph-up"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters (Glass) -->
+        <div class="bg-slate-900 bg-opacity-50 border border-white-5 rounded-4 p-4 mb-5">
+            <form action="{{ route('supplier-payments.index') }}" method="GET" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label text-purple-400 x-small fw-bold text-uppercase ps-1">بحث</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark-input border-end-0 text-gray-500"><i
+                                class="bi bi-search"></i></span>
+                        <input type="text" name="search"
+                            class="form-control form-control-dark border-start-0 ps-0 text-white placeholder-gray-600 focus-ring-purple"
+                            value="{{ request('search') }}" placeholder="رقم السند...">
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label text-purple-400 x-small fw-bold text-uppercase ps-1">المورد</label>
+                    <select name="supplier_id"
+                        class="form-select form-select-dark text-white cursor-pointer hover:bg-white-5">
+                        <option value="">-- الكل --</option>
                         @foreach($suppliers as $supplier)
                             <option value="{{ $supplier->id }}" {{ request('supplier_id') == $supplier->id ? 'selected' : '' }}>
                                 {{ $supplier->name }}
@@ -75,85 +81,60 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label">طريقة الدفع</label>
-                    <select class="form-select" name="payment_method">
-                        <option value="">الكل</option>
-                        <option value="cash" {{ request('payment_method') == 'cash' ? 'selected' : '' }}>نقدي</option>
-                        <option value="bank_transfer" {{ request('payment_method') == 'bank_transfer' ? 'selected' : '' }}>
-                            تحويل بنكي</option>
-                        <option value="cheque" {{ request('payment_method') == 'cheque' ? 'selected' : '' }}>شيك</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">من تاريخ</label>
-                    <input type="date" class="form-control" name="from_date" value="{{ request('from_date') }}">
-                </div>
-                <div class="col-md-3 d-flex align-items-end gap-2">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-search me-1"></i>بحث
+
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-purple-glass w-100 fw-bold">
+                        <i class="bi bi-funnel"></i> تصفية
                     </button>
-                    <a href="{{ route('supplier-payments.index') }}" class="btn btn-secondary">
-                        <i class="bi bi-x-lg"></i>
-                    </a>
                 </div>
             </form>
         </div>
-    </div>
 
-    <!-- Payments Table -->
-    <div class="card">
-        <div class="card-body p-0">
+        <!-- Payments Table -->
+        <div class="glass-panel overflow-hidden border-top-gradient-purple">
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
+                <table class="table table-dark-custom align-middle mb-0">
+                    <thead>
                         <tr>
-                            <th>رقم الدفعة</th>
-                            <th>المورد</th>
+                            <th class="ps-4">رقم السند</th>
                             <th>التاريخ</th>
+                            <th>المورد</th>
+                            <th>الحساب المخصوم منه</th>
                             <th>المبلغ</th>
                             <th>طريقة الدفع</th>
-                            <th>المرجع</th>
-                            <th class="text-center">الإجراءات</th>
+                            <th class="pe-4 text-end">إجراءات</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($payments as $payment)
-                            @php
-                                $methodIcons = [
-                                    'cash' => 'bi-cash',
-                                    'bank_transfer' => 'bi-bank',
-                                    'cheque' => 'bi-credit-card',
-                                ];
-                                $methodLabels = [
-                                    'cash' => 'نقدي',
-                                    'bank_transfer' => 'تحويل بنكي',
-                                    'cheque' => 'شيك',
-                                ];
-                            @endphp
-                            <tr>
-                                <td>
-                                    <a href="{{ route('supplier-payments.show', $payment) }}"
-                                        class="fw-bold text-decoration-none">
+                            <tr class="table-row-hover position-relative group-hover-actions">
+                                <td class="ps-4 font-monospace text-purple-300">
+                                    <a href="{{ route('supplier-payments.show', $payment->id) }}"
+                                        class="text-decoration-none text-purple-300 hover-text-white">
                                         {{ $payment->payment_number }}
                                     </a>
                                 </td>
-                                <td>{{ $payment->supplier?->name ?? '-' }}</td>
-                                <td>{{ $payment->payment_date?->format('Y-m-d') ?? '-' }}</td>
-                                <td class="fw-bold text-success">{{ number_format($payment->amount, 2) }} ج.م</td>
+                                <td class="text-gray-400 x-small">{{ $payment->payment_date->format('Y-m-d') }}</td>
+                                <td class="fw-bold text-white">{{ $payment->supplier->name }}</td>
+                                <td class="text-gray-400 x-small">{{ $payment->paymentAccount->name ?? '-' }}</td>
+                                <td class="fw-bold text-white fs-6">{{ number_format($payment->amount, 2) }}</td>
                                 <td>
-                                    <i class="bi {{ $methodIcons[$payment->payment_method] ?? 'bi-question' }} me-1"></i>
-                                    {{ $methodLabels[$payment->payment_method] ?? $payment->payment_method }}
+                                    @if($payment->payment_method == 'cash')
+                                        <span class="badge bg-green-500 bg-opacity-10 text-green-400">نقدي</span>
+                                    @elseif($payment->payment_method == 'bank_transfer')
+                                        <span class="badge bg-blue-500 bg-opacity-10 text-blue-400">تحويل بنكي</span>
+                                    @else
+                                        <span class="badge bg-orange-500 bg-opacity-10 text-orange-400">شيك</span>
+                                    @endif
                                 </td>
-                                <td>{{ $payment->reference ?? '-' }}</td>
-                                <td class="text-center">
-                                    <div class="btn-group btn-group-sm">
-                                        <a href="{{ route('supplier-payments.show', $payment) }}"
-                                            class="btn btn-outline-primary" title="عرض">
+                                <td class="pe-4 text-end">
+                                    <div class="d-flex justify-content-end gap-2 opacity-0 group-hover-visible transition-all">
+                                        <a href="{{ route('supplier-payments.show', $payment->id) }}" class="btn-icon-glass"
+                                            title="عرض">
                                             <i class="bi bi-eye"></i>
                                         </a>
-                                        <a href="{{ route('supplier-payments.print', $payment) }}"
-                                            class="btn btn-outline-secondary" title="طباعة" target="_blank">
+                                        <a href="{{ route('supplier-payments.print', $payment->id) }}" class="btn-icon-glass"
+                                            title="طباعة" target="_blank">
                                             <i class="bi bi-printer"></i>
                                         </a>
                                     </div>
@@ -161,20 +142,139 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center text-muted py-5">
-                                    <i class="bi bi-cash-stack fs-1 d-block mb-2"></i>
-                                    لا توجد مدفوعات
+                                <td colspan="7" class="text-center py-5">
+                                    <div class="d-flex flex-column align-items-center justify-content-center opacity-50">
+                                        <i class="bi bi-wallet2 fs-1 text-gray-500 mb-3"></i>
+                                        <h5 class="text-gray-400">لا توجد مدفوعات</h5>
+                                    </div>
                                 </td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
+
+            @if($payments->hasPages())
+                <div class="p-4 border-top border-white-5">
+                    {{ $payments->links() }}
+                </div>
+            @endif
         </div>
-        @if($payments->hasPages())
-            <div class="card-footer">
-                {{ $payments->withQueryString()->links() }}
-            </div>
-        @endif
     </div>
+
+    <!-- Styles (Purple Theme) -->
+    <style>
+        .icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .bg-gradient-purple {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+        }
+
+        .shadow-neon-purple {
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+        }
+
+        .text-purple-400 {
+            color: #c084fc !important;
+        }
+
+        .text-purple-300 {
+            color: #d8b4fe !important;
+        }
+
+        .bg-purple-500 {
+            background: #a855f7 !important;
+        }
+
+        .border-top-gradient-purple {
+            border-top: 4px solid;
+            border-image: linear-gradient(to right, #8b5cf6, #c084fc) 1;
+        }
+
+        .btn-action-purple {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            border: none;
+            color: white;
+            padding: 10px 24px;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .btn-action-purple:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn-purple-glass {
+            background: rgba(139, 92, 246, 0.15);
+            color: #c084fc;
+            border: 1px solid rgba(192, 132, 252, 0.2);
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-purple-glass:hover {
+            background: rgba(139, 92, 246, 0.25);
+            color: white;
+            border-color: #c084fc;
+        }
+
+        .form-control-dark,
+        .form-select-dark {
+            background: rgba(15, 23, 42, 0.6) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: white !important;
+        }
+
+        .focus-ring-purple:focus {
+            border-color: #c084fc !important;
+            box-shadow: 0 0 0 4px rgba(192, 132, 252, 0.1) !important;
+        }
+
+        .table-dark-custom {
+            --bs-table-bg: transparent;
+            --bs-table-border-color: rgba(255, 255, 255, 0.05);
+            color: #e2e8f0;
+        }
+
+        .table-dark-custom th {
+            background: rgba(0, 0, 0, 0.2);
+            color: #94a3b8;
+            font-weight: 600;
+            padding: 1rem;
+        }
+
+        .table-dark-custom td {
+            padding: 1rem;
+        }
+
+        .group-hover-actions:hover .group-hover-visible {
+            opacity: 1 !important;
+        }
+
+        .btn-icon-glass {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #cbd5e1;
+            transition: 0.2s;
+        }
+
+        .btn-icon-glass:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+    </style>
 @endsection

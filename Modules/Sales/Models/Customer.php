@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\Core\Traits\HasAuditTrail;
 use Modules\Accounting\Models\Account;
+use Modules\Sales\Enums\SalesInvoiceStatus;
 use App\Models\User;
 
 /**
@@ -111,9 +112,17 @@ class Customer extends Model
 
     public static function generateCode(): string
     {
-        $last = self::withTrashed()->orderByDesc('id')->first();
-        $nextNumber = $last ? ((int) substr($last->code, 4)) + 1 : 1;
-        return 'CUS-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+        // Use raw DB query to ignore scopes and ensure we get the absolute max code
+        $maxCode = \Illuminate\Support\Facades\DB::table('customers')
+            ->where('code', 'LIKE', 'CUS-%')
+            ->max('code');
+
+        if ($maxCode) {
+            $number = intval(substr($maxCode, 4));
+            return 'CUS-' . str_pad($number + 1, 4, '0', STR_PAD_LEFT);
+        }
+
+        return 'CUS-0001';
     }
 
     // ========================================
@@ -127,11 +136,32 @@ class Customer extends Model
             ->sum('total');
     }
 
+    public function getBalanceAttribute(): float
+    {
+        return $this->getOutstandingBalance();
+    }
+
     public function getOutstandingBalance(): float
     {
-        return $this->salesInvoices()
-            ->whereIn('status', ['pending', 'partial'])
+        // 1. Calculate debt from invoices (Total - Allocated Payments)
+        $invoicesDebt = $this->salesInvoices()
+            ->whereIn('status', [SalesInvoiceStatus::PENDING, SalesInvoiceStatus::PARTIAL])
             ->sum('balance_due');
+
+        // 2. Calculate Unallocated Payments (Payments on Account)
+        // This relies on the fact that payment.amount is the total received,
+        // and allocations table tracks what was applied to invoices.
+        $totalPayments = $this->payments()->sum('amount');
+
+        $totalAllocated = \Illuminate\Support\Facades\DB::table('customer_payment_allocations')
+            ->join('customer_payments', 'customer_payments.id', '=', 'customer_payment_allocations.customer_payment_id')
+            ->where('customer_payments.customer_id', $this->id)
+            ->sum('customer_payment_allocations.amount');
+
+        $unallocatedPayments = max(0, $totalPayments - $totalAllocated);
+
+        // 3. Net Balance = Debt - Unallocated Credits
+        return $invoicesDebt - $unallocatedPayments;
     }
 
     public function getAvailableCredit(): float
@@ -291,9 +321,29 @@ class Customer extends Model
         return false;
     }
 
-    /**
-     * Relationship: Blocker user
-     */
+    // ========================================
+    // Dynamic Accessors (for flexible types)
+    // ========================================
+
+    public function getTypeLabelAttribute(): string
+    {
+        if (empty($this->type)) {
+            return 'عام';
+        }
+
+        // Try to match with Enum, otherwise return raw value
+        return \Modules\Sales\Enums\CustomerType::tryFrom($this->type)?->label() ?? ucfirst($this->type);
+    }
+
+    public function getTypeColorAttribute(): string
+    {
+        // Try to match with Enum, otherwise return default color
+        return \Modules\Sales\Enums\CustomerType::tryFrom($this->type)?->color() ?? 'secondary';
+    }
+
+    // ========================================
+    // Relationship: Blocker user
+    // ========================================
     public function blocker(): BelongsTo
     {
         return $this->belongsTo(User::class, 'blocked_by');

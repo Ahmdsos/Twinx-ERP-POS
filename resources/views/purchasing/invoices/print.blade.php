@@ -3,197 +3,56 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>فاتورة شراء - {{ $purchaseInvoice->invoice_number }}</title>
+    <title>فاتورة شراء #{{ $purchaseInvoice->invoice_number }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Arial', 'Tahoma', sans-serif;
-        }
-
         body {
+            font-family: 'Tahoma', sans-serif;
             background: #fff;
-            color: #333;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        .invoice {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            border-bottom: 3px solid #e74c3c;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
-        }
-
-        .company-info h1 {
-            font-size: 28px;
-            color: #e74c3c;
-            margin-bottom: 5px;
-        }
-
-        .company-info p {
-            color: #666;
-        }
-
-        .invoice-title {
-            text-align: left;
-        }
-
-        .invoice-title h2 {
-            font-size: 32px;
-            color: #e74c3c;
-            text-transform: uppercase;
-        }
-
-        .invoice-title .invoice-number {
-            font-size: 18px;
-            color: #666;
-            margin-top: 10px;
-        }
-
-        .parties {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 30px;
-        }
-
-        .party {
-            width: 45%;
-        }
-
-        .party h3 {
-            font-size: 12px;
-            color: #999;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 5px;
-        }
-
-        .party p {
-            margin-bottom: 5px;
-        }
-
-        .party strong {
-            font-size: 16px;
-        }
-
-        .details-table {
-            width: 100%;
-            margin-bottom: 30px;
-        }
-
-        .details-table td {
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-        }
-
-        .details-table td:first-child {
-            color: #999;
-            width: 40%;
-        }
-
-        .items-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 30px;
-        }
-
-        .items-table th {
-            background: #f8f9fa;
-            padding: 12px;
-            text-align: right;
-            border-bottom: 2px solid #dee2e6;
-            font-weight: bold;
-        }
-
-        .items-table td {
-            padding: 12px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .items-table tfoot td {
-            background: #f8f9fa;
-            font-weight: bold;
-        }
-
-        .items-table .total-row td {
-            background: #e74c3c;
-            color: white;
-            font-size: 16px;
-        }
-
-        .text-left {
-            text-align: left;
-        }
-
-        .notes {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 30px;
-        }
-
-        .notes h4 {
-            color: #999;
-            font-size: 12px;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        .status-pending {
-            background: #ffc107;
             color: #000;
         }
 
-        .status-partial {
-            background: #17a2b8;
-            color: #fff;
+        .invoice-box {
+            max-width: 800px;
+            margin: auto;
+            padding: 30px;
+            border: 1px solid #eee;
         }
 
-        .status-paid {
-            background: #28a745;
-            color: #fff;
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 40px;
         }
 
-        .footer {
-            text-align: center;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-            color: #999;
-            font-size: 12px;
+        .invoice-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .table thead th {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .amounts-box {
+            float: left;
+            width: 300px;
         }
 
         @media print {
             body {
-                print-color-adjust: exact;
-                -webkit-print-color-adjust: exact;
-            }
-
-            .invoice {
                 padding: 0;
             }
 
-            .no-print {
+            .invoice-box {
+                border: none;
+                padding: 0;
+                max-width: 100%;
+            }
+
+            .btn-print {
                 display: none;
             }
         }
@@ -201,143 +60,127 @@
 </head>
 
 <body>
-    <div class="no-print" style="text-align: center; padding: 10px; background: #f8f9fa;">
-        <button onclick="window.print()" style="padding: 10px 20px; cursor: pointer;">
-            🖨️ طباعة
-        </button>
-        <button onclick="window.close()" style="padding: 10px 20px; cursor: pointer; margin-right: 10px;">
-            ✖️ إغلاق
-        </button>
-    </div>
+    <div class="invoice-box mt-4">
+        <div class="text-center mb-4 d-print-none">
+            <button onclick="window.print()" class="btn btn-primary btn-print">طباعة الفاتورة</button>
+            <a href="{{ route('purchase-invoices.show', $purchaseInvoice) }}" class="btn btn-secondary btn-print">العودة
+                للفاتورة</a>
+        </div>
 
-    <div class="invoice">
-        <!-- Header -->
-        <div class="header">
-            <div class="company-info">
-                <h1>Twinx ERP</h1>
-                <p>نظام إدارة الموارد المؤسسية</p>
+        <div class="invoice-header">
+            <div>
+                @php
+                    $logo = \App\Models\Setting::getValue('company_logo');
+                @endphp
+                @if($logo)
+                    <img src="{{ Storage::url($logo) }}" alt="Logo" style="max-height: 80px; margin-bottom: 10px;">
+                @endif
+                <h4 class="invoice-title mt-2">فاتورة شراء</h4>
+                <p><strong>رقم الفاتورة:</strong> {{ $purchaseInvoice->invoice_number }}</p>
+                <p><strong>رقم فاتورة المورد:</strong> {{ $purchaseInvoice->supplier_invoice_number }}</p>
+                <p><strong>التاريخ:</strong> {{ $purchaseInvoice->invoice_date->format('Y-m-d') }}</p>
             </div>
-            <div class="invoice-title">
-                <h2>فاتورة شراء</h2>
-                <div class="invoice-number">{{ $purchaseInvoice->invoice_number }}</div>
+            <div class="text-end">
+                <h3>{{ \App\Models\Setting::getValue('company_name', config('app.name')) }}</h3>
+                <p>
+                    {{ \App\Models\Setting::getValue('company_address', 'العنوان غير محدد') }}<br>
+                    <strong>الرقم الضريبي:</strong> {{ \App\Models\Setting::getValue('company_tax_number', '-') }}<br>
+                    <strong>الهاتف:</strong> {{ \App\Models\Setting::getValue('company_phone', '-') }}
+                </p>
             </div>
         </div>
 
-        <!-- Parties -->
-        <div class="parties">
-            <div class="party">
-                <h3>المورد</h3>
-                <p><strong>{{ $purchaseInvoice->supplier?->name }}</strong></p>
-                <p>{{ $purchaseInvoice->supplier?->code }}</p>
-                @if($purchaseInvoice->supplier?->phone)
-                    <p>📞 {{ $purchaseInvoice->supplier->phone }}</p>
-                @endif
-                @if($purchaseInvoice->supplier?->email)
-                    <p>✉️ {{ $purchaseInvoice->supplier->email }}</p>
-                @endif
+        <div class="row mb-5">
+            <div class="col-6">
+                <h5 class="fw-bold border-bottom pb-2">بيانات المورد</h5>
+                <p class="mb-1"><strong>الاسم:</strong> {{ $purchaseInvoice->supplier->name ?? '-' }}</p>
+                <p class="mb-1"><strong>الهاتف:</strong> {{ $purchaseInvoice->supplier->phone ?? '-' }}</p>
+                <p class="mb-1"><strong>العنوان:</strong> {{ $purchaseInvoice->supplier->address ?? '-' }}</p>
+                <p class="mb-1"><strong>الرقم الضريبي للمورد:</strong>
+                    {{ $purchaseInvoice->supplier->tax_number ?? '-' }}</p>
             </div>
-            <div class="party" style="text-align: left;">
-                <h3>بيانات الفاتورة</h3>
-                <table class="details-table">
-                    <tr>
-                        <td>رقم فاتورة المورد</td>
-                        <td>{{ $purchaseInvoice->supplier_invoice_number ?? '-' }}</td>
-                    </tr>
-                    <tr>
-                        <td>التاريخ</td>
-                        <td>{{ $purchaseInvoice->invoice_date?->format('Y-m-d') }}</td>
-                    </tr>
-                    <tr>
-                        <td>تاريخ الاستحقاق</td>
-                        <td>{{ $purchaseInvoice->due_date?->format('Y-m-d') }}</td>
-                    </tr>
-                    <tr>
-                        <td>الحالة</td>
-                        <td>
-                            @php
-                                $statusClass = match ($purchaseInvoice->status->value) {
-                                    'paid' => 'status-paid',
-                                    'partial' => 'status-partial',
-                                    default => 'status-pending'
-                                };
-                            @endphp
-                            <span class="status-badge {{ $statusClass }}">
-                                {{ $purchaseInvoice->status->label() }}
-                            </span>
-                        </td>
-                    </tr>
-                </table>
+            <div class="col-6 text-end">
+                <h5 class="fw-bold border-bottom pb-2">حالة الفاتورة</h5>
+                <p class="mb-1"><strong>الحالة:</strong> {{ $purchaseInvoice->status->label() }}</p>
+                <p class="mb-1"><strong>تاريخ الاستحقاق:</strong> {{ $purchaseInvoice->due_date->format('Y-m-d') }}</p>
             </div>
         </div>
 
-        <!-- Items Table -->
-        <table class="items-table">
+        <table class="table table-bordered mb-4">
             <thead>
                 <tr>
-                    <th>#</th>
+                    <th style="width: 5%">#</th>
                     <th>الصنف</th>
-                    <th>الكمية</th>
-                    <th>سعر الوحدة</th>
-                    <th class="text-left">الإجمالي</th>
+                    <th class="text-center" style="width: 10%">الكمية</th>
+                    <th class="text-end" style="width: 15%">سعر الوحدة</th>
+                    <th class="text-end" style="width: 15%">الإجمالي</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($purchaseInvoice->lines as $index => $line)
                     <tr>
                         <td>{{ $index + 1 }}</td>
-                        <td>
-                            {{ $line->product?->name }}
-                            <br>
-                            <small style="color: #999;">{{ $line->product?->sku }}</small>
+                        <td>{{ $line->product->name }} <br> <small class="text-muted">{{ $line->product->sku }}</small>
                         </td>
-                        <td>{{ number_format($line->quantity, 2) }} {{ $line->product?->unit?->name }}</td>
-                        <td>{{ number_format($line->unit_price ?? 0, 2) }}</td>
-                        <td class="text-left">{{ number_format($line->line_total ?? 0, 2) }}</td>
+                        <td class="text-center">{{ $line->quantity }} {{ $line->product->unit->name ?? '' }}</td>
+                        <td class="text-end">{{ number_format($line->unit_price, 2) }}</td>
+                        <td class="text-end">{{ number_format($line->line_total, 2) }}</td>
                     </tr>
                 @endforeach
             </tbody>
-            <tfoot>
-                <tr>
-                    <td colspan="4">الإجمالي الفرعي</td>
-                    <td class="text-left">{{ number_format($purchaseInvoice->subtotal, 2) }} ج.م</td>
-                </tr>
-                @if($purchaseInvoice->tax_amount > 0)
-                    <tr>
-                        <td colspan="4">الضريبة</td>
-                        <td class="text-left">{{ number_format($purchaseInvoice->tax_amount, 2) }} ج.م</td>
-                    </tr>
-                @endif
-                <tr class="total-row">
-                    <td colspan="4">الإجمالي المستحق</td>
-                    <td class="text-left">{{ number_format($purchaseInvoice->total, 2) }} ج.م</td>
-                </tr>
-                @if($purchaseInvoice->paid_amount > 0)
-                    <tr>
-                        <td colspan="4">المدفوع</td>
-                        <td class="text-left" style="color: green;">{{ number_format($purchaseInvoice->paid_amount, 2) }}
-                            ج.م</td>
-                    </tr>
-                    <tr>
-                        <td colspan="4"><strong>المتبقي</strong></td>
-                        <td class="text-left" style="color: red;">
-                            <strong>{{ number_format($purchaseInvoice->balance_due, 2) }} ج.م</strong></td>
-                    </tr>
-                @endif
-            </tfoot>
         </table>
 
-        <!-- Notes -->
-        @if($purchaseInvoice->notes)
-            <div class="notes">
-                <h4>ملاحظات</h4>
-                <p>{{ $purchaseInvoice->notes }}</p>
+        <div class="row">
+            <div class="col-6">
+                @if($purchaseInvoice->notes)
+                    <div class="border p-3 rounded">
+                        <strong>ملاحظات:</strong><br>
+                        {{ $purchaseInvoice->notes }}
+                    </div>
+                @endif
             </div>
-        @endif
+            <div class="col-6">
+                <table class="table table-sm">
+                    <tr>
+                        <td>المجموع الفرعي:</td>
+                        <td class="text-end">{{ number_format($purchaseInvoice->subtotal, 2) }}</td>
+                    </tr>
+                    <tr>
+                        <td>الضريبة:</td>
+                        <td class="text-end">{{ number_format($purchaseInvoice->tax_amount, 2) }}</td>
+                    </tr>
+                    <tr>
+                        <td>الخصم:</td>
+                        <td class="text-end text-danger">{{ number_format($purchaseInvoice->discount_amount, 2) }}</td>
+                    </tr>
+                    <tr class="table-dark text-white fw-bold">
+                        <td class="fs-5">الإجمالي المستحق:</td>
+                        <td class="text-end fs-5">{{ number_format($purchaseInvoice->total, 2) }}</td>
+                    </tr>
+                    @if($purchaseInvoice->paid_amount > 0)
+                        <tr>
+                            <td>المبلغ المدفوع:</td>
+                            <td class="text-end text-success">{{ number_format($purchaseInvoice->paid_amount, 2) }}</td>
+                        </tr>
+                        <tr class="fw-bold">
+                            <td>الرصيد المتبقي:</td>
+                            <td class="text-end text-danger">{{ number_format($purchaseInvoice->balance_due, 2) }}</td>
+                        </tr>
+                    @endif
+                </table>
+            </div>
+        </div>
 
-        <!-- Footer -->
-        <div class="footer">
-            <p>تم إنشاء هذه الفاتورة بواسطة Twinx ERP</p>
-            <p>{{ now()->format('Y-m-d H:i') }}</p>
+        <div class="mt-5 pt-5 text-center">
+            <div class="row">
+                <div class="col-4">
+                    <p class="border-top pt-2">توقيع المستلم</p>
+                </div>
+                <div class="col-4"></div>
+                <div class="col-4">
+                    <p class="border-top pt-2">ختم الشركة</p>
+                </div>
+            </div>
         </div>
     </div>
 </body>

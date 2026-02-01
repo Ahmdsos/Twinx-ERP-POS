@@ -43,47 +43,24 @@ class ProductImage extends Model
     /**
      * Get full URL for the image
      */
-    public function getUrlAttribute(): ?string
+    public function getUrlAttribute(): string
     {
-        if (!$this->path) {
-            return null;
-        }
-
-        $disk = $this->disk ?? 'public';
-
-        try {
-            if (!Storage::disk($disk)->exists($this->path)) {
-                return asset('images/no-image.svg');
-            }
-            return Storage::disk($disk)->url($this->path);
-        } catch (\Exception $e) {
-            return asset('images/no-image.svg');
-
-        }
+        return Storage::disk($this->disk)->url($this->path);
     }
 
     /**
      * Get thumbnail URL (using same path for now, can be enhanced)
      */
-    public function getThumbnailUrlAttribute(): ?string
+    public function getThumbnailUrlAttribute(): string
     {
-        if (!$this->path) {
-            return null;
-        }
-
-        $disk = $this->disk ?? 'public';
         $thumbnailPath = str_replace('products/', 'products/thumbnails/', $this->path);
 
-        try {
-            if (Storage::disk($disk)->exists($thumbnailPath)) {
-                return Storage::disk($disk)->url($thumbnailPath);
-            }
-            return $this->url;
-        } catch (\Exception $e) {
-            return $this->url;
+        if (Storage::disk($this->disk)->exists($thumbnailPath)) {
+            return Storage::disk($this->disk)->url($thumbnailPath);
         }
-    }
 
+        return $this->url;
+    }
 
     /**
      * Scope to get primary image

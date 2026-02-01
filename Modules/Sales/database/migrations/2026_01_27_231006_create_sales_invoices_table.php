@@ -38,6 +38,7 @@ return new class extends Migration {
 
             // Status
             $table->string('status', 20)->default('draft');
+            $table->string('source', 20)->default('manual'); // pos, manual, ecommerce
 
             // Amounts
             $table->decimal('subtotal', 15, 2)->default(0);

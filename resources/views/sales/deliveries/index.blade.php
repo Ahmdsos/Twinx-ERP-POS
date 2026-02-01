@@ -1,33 +1,65 @@
 @extends('layouts.app')
 
-@section('title', 'أوامر التسليم - Twinx ERP')
-@section('page-title', 'أوامر التسليم')
-
-@section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">الرئيسية</a></li>
-    <li class="breadcrumb-item active">أوامر التسليم</li>
-@endsection
+@section('title', 'أذونات الصرف')
 
 @section('content')
-    <!-- Action Bar -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <a href="{{ route('deliveries.create') }}" class="btn btn-primary">
-                <i class="bi bi-plus-lg me-1"></i>أمر تسليم جديد
-            </a>
+<div class="container-fluid p-0">
+    <!-- Header Stats -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+             <div class="glass-card p-4 h-100 position-relative overflow-hidden">
+                <div class="absolute-glow top-0 end-0 bg-blue-500/20"></div>
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h6 class="text-gray-400 mb-0">إجمالي الأذونات</h6>
+                    <div class="icon-box bg-blue-500/20 text-blue-400 rounded-circle"><i class="bi bi-box-seam fs-4"></i></div>
+                </div>
+                <h3 class="text-white fw-bold mb-0">{{ $deliveries->total() }}</h3>
+            </div>
         </div>
-        <div class="text-muted">
-            إجمالي: <strong>{{ $deliveries->total() }}</strong> أمر
+        <div class="col-md-3">
+             <div class="glass-card p-4 h-100 position-relative overflow-hidden">
+                <div class="absolute-glow top-0 end-0 bg-yellow-500/20"></div>
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h6 class="text-gray-400 mb-0">جاهز للشحن</h6>
+                    <div class="icon-box bg-yellow-500/20 text-yellow-400 rounded-circle"><i class="bi bi-box-seam fs-4"></i></div>
+                </div>
+                <h3 class="text-white fw-bold mb-0">{{ \Modules\Sales\Models\DeliveryOrder::where('status', \Modules\Sales\Enums\DeliveryStatus::READY)->count() }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+             <div class="glass-card p-4 h-100 position-relative overflow-hidden">
+                <div class="absolute-glow top-0 end-0 bg-purple-500/20"></div>
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h6 class="text-gray-400 mb-0">تم الشحن</h6>
+                    <div class="icon-box bg-purple-500/20 text-purple-400 rounded-circle"><i class="bi bi-truck fs-4"></i></div>
+                </div>
+                <h3 class="text-white fw-bold mb-0">{{ \Modules\Sales\Models\DeliveryOrder::where('status', \Modules\Sales\Enums\DeliveryStatus::SHIPPED)->count() }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card p-4 h-100 position-relative overflow-hidden">
+                <div class="bg-gradient-to-br from-indigo-600 to-purple-700 w-100 h-100 position-absolute top-0 start-0 opacity-10"></div>
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h6 class="text-indigo-200 mb-0">تسليم جديد</h6>
+                    <div class="icon-box bg-white/20 text-white rounded-circle"><i class="bi bi-plus-lg fs-4"></i></div>
+                </div>
+                <a href="{{ route('deliveries.create') }}" class="btn btn-light w-100 fw-bold stretched-link shadow-lg">إنشاء إذن صرف</a>
+            </div>
         </div>
     </div>
 
-    <!-- Filters Card -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form action="{{ route('deliveries.index') }}" method="GET" class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label">الحالة</label>
-                    <select class="form-select" name="status">
+    <!-- Filters -->
+    <div class="glass-card p-4 mb-4">
+        <form action="{{ route('deliveries.index') }}" method="GET" class="row g-3">
+            <div class="col-md-3">
+                <div class="form-floating">
+                    <input type="text" name="search" class="form-control glass-input" placeholder="بحث..." value="{{ request('search') }}">
+                    <label>رقم الإذن / العميل</label>
+                </div>
+            </div>
+            <div class="col-md-3">
+                 <div class="form-floating">
+                    <select name="status" class="form-select glass-input">
                         <option value="">الكل</option>
                         @foreach($statuses as $status)
                             <option value="{{ $status->value }}" {{ request('status') == $status->value ? 'selected' : '' }}>
@@ -35,116 +67,122 @@
                             </option>
                         @endforeach
                     </select>
+                    <label>الحالة</label>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label">من تاريخ</label>
-                    <input type="date" class="form-control" name="from_date" value="{{ request('from_date') }}">
+            </div>
+            <div class="col-md-3">
+                <div class="form-floating">
+                    <input type="date" name="from_date" class="form-control glass-input" value="{{ request('from_date') }}">
+                    <label>من تاريخ</label>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label">إلى تاريخ</label>
-                    <input type="date" class="form-control" name="to_date" value="{{ request('to_date') }}">
-                </div>
-                <div class="col-md-3 d-flex align-items-end gap-2">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-search"></i> بحث
-                    </button>
-                    <a href="{{ route('deliveries.index') }}" class="btn btn-secondary">
-                        <i class="bi bi-x-lg"></i>
-                    </a>
-                </div>
-            </form>
-        </div>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100 h-100 fw-bold">
+                    <i class="bi bi-filter me-2"></i> تصفية
+                </button>
+            </div>
+        </form>
     </div>
 
-    <!-- Deliveries Table -->
-    <div class="card">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>رقم التسليم</th>
-                            <th>رقم أمر البيع</th>
-                            <th>العميل</th>
-                            <th>المستودع</th>
-                            <th>تاريخ التسليم</th>
-                            <th>الحالة</th>
-                            <th class="text-center">الإجراءات</th>
+    <!-- Data Table -->
+    <div class="glass-card p-0 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-gray-900 text-gray-400 text-uppercase small">
+                    <tr>
+                        <th class="ps-4 py-3">رقم الإذن</th>
+                        <th class="py-3">مرجع الطلب</th>
+                        <th class="py-3">العميل</th>
+                        <th class="py-3">المخزن</th>
+                        <th class="py-3">الحالة</th>
+                        <th class="py-3">التاريخ</th>
+                        <th class="text-end pe-4 py-3">إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody class="text-white">
+                    @forelse($deliveries as $delivery)
+                        <tr class="border-bottom border-white/5 hover:bg-white/5 transition-colors">
+                            <td class="ps-4 py-3 font-monospace fw-bold text-info">
+                                <a href="{{ route('deliveries.show', $delivery->id) }}" class="text-decoration-none text-reset">
+                                    {{ $delivery->do_number }}
+                                </a>
+                            </td>
+                            <td class="font-monospace text-gray-300">
+                                @if($delivery->salesOrder)
+                                    <a href="{{ route('sales-orders.show', $delivery->salesOrder->id) }}" class="text-gray-400 hover:text-white text-decoration-none">
+                                        {{ $delivery->salesOrder->so_number }}
+                                    </a>
+                                @else
+                                    -
+                                @endif
+                            </td>
+                            <td><div class="fw-bold">{{ $delivery->customer->name ?? '-' }}</div></td>
+                            <td><span class="badge bg-white/10 border border-white/10">{{ $delivery->warehouse->name ?? '-' }}</span></td>
+                            <td>
+                                <span class="badge bg-gray-700 border border-white/20 rounded-pill px-3">
+                                    {{ $delivery->status->label() }}
+                                </span>
+                            </td>
+                            <td class="text-gray-400 small">{{ $delivery->delivery_date->format('Y-m-d') }}</td>
+                            <td class="text-end pe-4">
+                                <a href="{{ route('deliveries.show', $delivery->id) }}" class="btn btn-icon-glass btn-sm rounded-circle" title="عرض التفاصيل">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($deliveries as $delivery)
-                            <tr>
-                                <td>
-                                    <a href="{{ route('deliveries.show', $delivery) }}" class="fw-bold text-decoration-none">
-                                        {{ $delivery->do_number }}
-                                    </a>
-                                </td>
-                                <td>
-                                    <a href="{{ route('sales-orders.show', $delivery->sales_order_id) }}">
-                                        {{ $delivery->salesOrder?->so_number ?? '-' }}
-                                    </a>
-                                </td>
-                                <td>{{ $delivery->customer?->name ?? '-' }}</td>
-                                <td>{{ $delivery->warehouse?->name ?? '-' }}</td>
-                                <td>{{ $delivery->delivery_date?->format('Y-m-d') ?? '-' }}</td>
-                                <td>
-                                    @php
-                                        $statusClass = match ($delivery->status->value) {
-                                            'draft' => 'secondary',
-                                            'ready' => 'info',
-                                            'shipped' => 'warning',
-                                            'delivered' => 'success',
-                                            'cancelled' => 'danger',
-                                            default => 'secondary'
-                                        };
-                                    @endphp
-                                    <span class="badge bg-{{ $statusClass }}">
-                                        {{ $delivery->status->label() }}
-                                    </span>
-                                </td>
-                                <td class="text-center">
-                                    <div class="btn-group btn-group-sm">
-                                        <a href="{{ route('deliveries.show', $delivery) }}" class="btn btn-outline-primary"
-                                            title="عرض">
-                                            <i class="bi bi-eye"></i>
-                                        </a>
-                                        @if($delivery->status->value === 'ready')
-                                            <form action="{{ route('deliveries.ship', $delivery) }}" method="POST" class="d-inline">
-                                                @csrf
-                                                <button type="submit" class="btn btn-outline-warning" title="شحن">
-                                                    <i class="bi bi-truck"></i>
-                                                </button>
-                                            </form>
-                                        @endif
-                                        @if(in_array($delivery->status->value, ['ready', 'shipped']))
-                                            <form action="{{ route('deliveries.complete', $delivery) }}" method="POST"
-                                                class="d-inline">
-                                                @csrf
-                                                <button type="submit" class="btn btn-outline-success" title="إتمام التسليم">
-                                                    <i class="bi bi-check-lg"></i>
-                                                </button>
-                                            </form>
-                                        @endif
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="7" class="text-center text-muted py-5">
-                                    <i class="bi bi-truck fs-1 d-block mb-2"></i>
-                                    لا توجد أوامر تسليم
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-gray-500">
+                                <i class="bi bi-box-seam fs-1 d-block mb-3 opacity-50"></i>
+                                لا توجد أذونات صرف مطابقة
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
         @if($deliveries->hasPages())
-            <div class="card-footer">
-                {{ $deliveries->withQueryString()->links() }}
+            <div class="p-4 border-top border-white/10">
+                {{ $deliveries->links('partials.pagination') }}
             </div>
         @endif
     </div>
+</div>
+
+<style>
+    .glass-card {
+        background: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+    }
+    .glass-input {
+        background: rgba(15, 23, 42, 0.6) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: white !important;
+    }
+    .glass-input:focus {
+        background: rgba(15, 23, 42, 0.9) !important;
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    }
+    .icon-box {
+        width: 40px; height: 40px;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .btn-icon-glass {
+        color: white;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    .btn-icon-glass:hover {
+        background: rgba(255,255,255,0.15);
+    }
+     .absolute-glow {
+        position: absolute;
+        width: 150px; height: 150px;
+        filter: blur(40px);
+        pointer-events: none;
+    }
+</style>
 @endsection

@@ -1,143 +1,219 @@
 @extends('layouts.app')
 
-@section('title', 'تعديل ' . $customer->name . ' - Twinx ERP')
-@section('page-title', 'تعديل بيانات العميل')
-
-@section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">الرئيسية</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('customers.index') }}">العملاء</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('customers.show', $customer) }}">{{ $customer->name }}</a></li>
-    <li class="breadcrumb-item active">تعديل</li>
-@endsection
+@section('title', 'تعديل بيانات العميل')
 
 @section('content')
-    <div class="card">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="bi bi-pencil me-2"></i>تعديل بيانات العميل</h5>
+    <div class="container-fluid p-0">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <a href="{{ route('customers.index') }}" class="btn btn-outline-light btn-sm rounded-circle shadow-sm"
+                    style="width: 32px; height: 32px;"><i class="bi bi-arrow-right"></i></a>
+                <div>
+                    <h2 class="fw-bold text-white mb-0">تعديل بيانات العميل</h2>
+                    <p class="text-gray-400 mb-0 x-small">تحديث بيانات: {{ $customer->name }}</p>
+                </div>
+            </div>
+            <button type="submit" form="editForm"
+                class="btn btn-action-indigo fw-bold shadow-lg d-flex align-items-center gap-2">
+                <i class="bi bi-save"></i> حفظ التعديلات
+            </button>
         </div>
-        <div class="card-body">
-            <form action="{{ route('customers.update', $customer) }}" method="POST">
-                @csrf
-                @method('PUT')
 
-                <div class="row g-3">
-                    <!-- Basic Info -->
-                    <div class="col-md-6">
-                        <label class="form-label">كود العميل <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control @error('code') is-invalid @enderror" name="code"
-                            value="{{ old('code', $customer->code) }}" readonly>
-                        <small class="text-muted">الكود لا يمكن تغييره</small>
-                        @error('code')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
+        <form action="{{ route('customers.update', $customer->id) }}" method="POST" id="editForm">
+            @csrf
+            @method('PUT')
 
-                    <div class="col-md-6">
-                        <label class="form-label">اسم العميل <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control @error('name') is-invalid @enderror" name="name"
-                            value="{{ old('name', $customer->name) }}" required>
-                        @error('name')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
+            <div class="row g-4">
+                <!-- Main Info -->
+                <div class="col-md-8">
+                    <div class="glass-panel p-4 mb-4">
+                        <div
+                            class="d-flex justify-content-between align-items-center mb-4 border-bottom border-white-5 pb-2">
+                            <h5 class="text-indigo-400 fw-bold mb-0"><i class="bi bi-info-circle me-2"></i>البيانات الأساسية
+                            </h5>
 
-                    <div class="col-md-6">
-                        <label class="form-label">البريد الإلكتروني</label>
-                        <input type="email" class="form-control @error('email') is-invalid @enderror" name="email"
-                            value="{{ old('email', $customer->email) }}">
-                        @error('email')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label">رقم الهاتف</label>
-                        <input type="text" class="form-control @error('phone') is-invalid @enderror" name="phone"
-                            value="{{ old('phone', $customer->phone) }}" dir="ltr">
-                        @error('phone')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="col-12">
-                        <label class="form-label">العنوان</label>
-                        <textarea class="form-control @error('address') is-invalid @enderror" name="address"
-                            rows="2">{{ old('address', $customer->address) }}</textarea>
-                        @error('address')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label">الرقم الضريبي</label>
-                        <input type="text" class="form-control @error('tax_number') is-invalid @enderror" name="tax_number"
-                            value="{{ old('tax_number', $customer->tax_number) }}">
-                        @error('tax_number')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <!-- Financial Info -->
-                    <div class="col-12">
-                        <hr>
-                        <h6 class="text-muted mb-3">المعلومات المالية</h6>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label">شروط الدفع (بالأيام)</label>
-                        <input type="number" class="form-control @error('payment_terms') is-invalid @enderror"
-                            name="payment_terms" value="{{ old('payment_terms', $customer->payment_terms) }}" min="0">
-                        @error('payment_terms')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label">حد الائتمان</label>
-                        <div class="input-group">
-                            <input type="number" class="form-control @error('credit_limit') is-invalid @enderror"
-                                name="credit_limit" value="{{ old('credit_limit', $customer->credit_limit) }}" step="0.01"
-                                min="0">
-                            <span class="input-group-text">ج.م</span>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="is_active" value="1" id="activeCheck"
+                                    {{ $customer->is_active ? 'checked' : '' }}>
+                                <label class="form-check-label text-white small" for="activeCheck">العميل نشط
+                                    (Active)</label>
+                            </div>
                         </div>
-                        @error('credit_limit')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <label class="form-label text-gray-400 x-small fw-bold">اسم العميل <span
+                                        class="text-danger">*</span></label>
+                                <input type="text" name="name" class="form-control form-control-dark focus-ring-indigo"
+                                    value="{{ old('name', $customer->name) }}" required>
+                                @error('name') <div class="text-danger x-small mt-1">{{ $message }}</div> @enderror
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label text-gray-400 x-small fw-bold">المسؤول (Contact Person)</label>
+                                <input type="text" name="contact_person"
+                                    class="form-control form-control-dark focus-ring-indigo"
+                                    value="{{ old('contact_person', $customer->contact_person) }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-gray-400 x-small fw-bold">الرقم الضريبي</label>
+                                <input type="text" name="tax_number"
+                                    class="form-control form-control-dark focus-ring-indigo"
+                                    value="{{ old('tax_number', $customer->tax_number) }}">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label text-gray-400 x-small fw-bold">نوع العميل</label>
+                                <select name="type" class="form-select form-select-dark focus-ring-indigo">
+                                    <option value="individual" {{ old('type', $customer->type) == 'individual' ? 'selected' : '' }}>فرد (Consumer)</option>
+                                    <option value="company" {{ old('type', $customer->type) == 'company' ? 'selected' : '' }}>
+                                        شركة (Company)</option>
+                                    <hr>
+                                    <option value="distributor" {{ old('type', $customer->type) == 'distributor' ? 'selected' : '' }}>موزع معتمد (Distributor)</option>
+                                    <option value="wholesale" {{ old('type', $customer->type) == 'wholesale' ? 'selected' : '' }}>تاجر جملة (Wholesale)</option>
+                                    <option value="half_wholesale" {{ old('type', $customer->type) == 'half_wholesale' ? 'selected' : '' }}>نص جملة (Half Wholesale)</option>
+                                    <option value="quarter_wholesale" {{ old('type', $customer->type) == 'quarter_wholesale' ? 'selected' : '' }}>ربع جملة (Quarter Wholesale)</option>
+                                    <hr>
+                                    <option value="technician" {{ old('type', $customer->type) == 'technician' ? 'selected' : '' }}>فني / مقاول (Technician)</option>
+                                    <option value="employee" {{ old('type', $customer->type) == 'employee' ? 'selected' : '' }}>موظف (Employee)</option>
+                                    <option value="vip" {{ old('type', $customer->type) == 'vip' ? 'selected' : '' }}>عميل
+                                        مميز (VIP)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-gray-400 x-small fw-bold">الهاتف</label>
+                                <input type="text" name="phone" class="form-control form-control-dark focus-ring-indigo"
+                                    value="{{ old('phone', $customer->phone) }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-gray-400 x-small fw-bold">الموبايل</label>
+                                <input type="text" name="mobile" class="form-control form-control-dark focus-ring-indigo"
+                                    value="{{ old('mobile', $customer->mobile) }}">
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label text-gray-400 x-small fw-bold">البريد الإلكتروني</label>
+                                <input type="email" name="email" class="form-control form-control-dark focus-ring-indigo"
+                                    value="{{ old('email', $customer->email) }}">
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="col-md-4">
-                        <label class="form-label">الحالة</label>
-                        <select class="form-select @error('is_active') is-invalid @enderror" name="is_active">
-                            <option value="1" {{ old('is_active', $customer->is_active) ? 'selected' : '' }}>نشط</option>
-                            <option value="0" {{ !old('is_active', $customer->is_active) ? 'selected' : '' }}>غير نشط
-                            </option>
-                        </select>
-                        @error('is_active')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
+                    <div class="glass-panel p-4">
+                        <h5 class="text-indigo-400 fw-bold mb-4 border-bottom border-white-5 pb-2"><i
+                                class="bi bi-geo-alt me-2"></i>العناوين</h5>
 
-                    <div class="col-12">
-                        <label class="form-label">ملاحظات</label>
-                        <textarea class="form-control @error('notes') is-invalid @enderror" name="notes"
-                            rows="3">{{ old('notes', $customer->notes) }}</textarea>
-                        @error('notes')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <h6 class="text-white small fw-bold mb-3">عنوان الفوترة (Billing)</h6>
+                                <div class="mb-2">
+                                    <label class="form-label text-gray-400 x-small">العنوان</label>
+                                    <input type="text" name="billing_address"
+                                        class="form-control form-control-dark focus-ring-indigo"
+                                        value="{{ old('billing_address', $customer->billing_address) }}">
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label text-gray-400 x-small">المدينة</label>
+                                    <input type="text" name="billing_city"
+                                        class="form-control form-control-dark focus-ring-indigo"
+                                        value="{{ old('billing_city', $customer->billing_city) }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6 border-start border-white-5 ps-md-4">
+                                <h6 class="text-white small fw-bold mb-3">عنوان الشحن (Shipping)</h6>
+                                <div class="mb-2">
+                                    <label class="form-label text-gray-400 x-small">العنوان</label>
+                                    <input type="text" name="shipping_address"
+                                        class="form-control form-control-dark focus-ring-indigo"
+                                        value="{{ old('shipping_address', $customer->shipping_address) }}">
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label text-gray-400 x-small">المدينة</label>
+                                    <input type="text" name="shipping_city"
+                                        class="form-control form-control-dark focus-ring-indigo"
+                                        value="{{ old('shipping_city', $customer->shipping_city) }}">
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <hr>
+                <!-- Financial Info (Sidebar) -->
+                <div class="col-md-4">
+                    <div class="glass-panel p-4 mb-4">
+                        <h5 class="text-indigo-400 fw-bold mb-4 border-bottom border-white-5 pb-2"><i
+                                class="bi bi-cash-stack me-2"></i>البيانات المالية</h5>
 
-                <div class="d-flex justify-content-between">
-                    <a href="{{ route('customers.show', $customer) }}" class="btn btn-secondary">
-                        <i class="bi bi-arrow-right me-1"></i>إلغاء
-                    </a>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check-lg me-1"></i>حفظ التغييرات
-                    </button>
+                        <div class="mb-3">
+                            <label class="form-label text-gray-400 x-small fw-bold">حد الائتمان (Credit Limit)</label>
+                            <div class="input-group">
+                                <input type="number" step="0.01" name="credit_limit"
+                                    class="form-control form-control-dark focus-ring-indigo"
+                                    value="{{ old('credit_limit', $customer->credit_limit) }}">
+                                <span class="input-group-text bg-dark-input border-start-0 text-gray-400">EGP</span>
+                            </div>
+                            <div class="form-text text-gray-500 x-small">أقصى مبلغ مسموح به كمديونية</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label text-gray-400 x-small fw-bold">شروط الدفع (Payment Terms)</label>
+                            <div class="input-group">
+                                <input type="number" name="payment_terms"
+                                    class="form-control form-control-dark focus-ring-indigo"
+                                    value="{{ old('payment_terms', $customer->payment_terms) }}">
+                                <span class="input-group-text bg-dark-input border-start-0 text-gray-400">يوم</span>
+                            </div>
+                            <div class="form-text text-gray-500 x-small">عدد الأيام المسموح بها للسداد</div>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-4">
+                        <h5 class="text-gray-400 fw-bold mb-3 border-bottom border-white-5 pb-2">ملاحظات</h5>
+                        <textarea name="notes" class="form-control form-control-dark focus-ring-indigo"
+                            rows="4">{{ old('notes', $customer->notes) }}</textarea>
+                    </div>
                 </div>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
+
+    <style>
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            backdrop-filter: blur(12px);
+        }
+
+        .form-control-dark,
+        .form-select-dark {
+            background: rgba(15, 23, 42, 0.6) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: white !important;
+        }
+
+        .btn-action-indigo {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            border: none;
+            color: white;
+            padding: 10px 24px;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+
+        .btn-action-indigo:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .focus-ring-indigo:focus {
+            border-color: #818cf8 !important;
+            box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.1) !important;
+        }
+
+        .bg-dark-input {
+            background: rgba(0, 0, 0, 0.3) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+    </style>
 @endsection

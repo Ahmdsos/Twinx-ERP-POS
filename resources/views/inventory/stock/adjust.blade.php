@@ -1,132 +1,135 @@
 @extends('layouts.app')
 
-@section('title', 'تسوية مخزون - Twinx ERP')
-@section('page-title', 'تسوية المخزون')
-
-@section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">الرئيسية</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('stock.index') }}">حركات المخزون</a></li>
-    <li class="breadcrumb-item active">تسوية مخزون</li>
-@endsection
+@section('title', 'تسوية المخزون')
 
 @section('content')
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-sliders me-2"></i>تسوية المخزون</h5>
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-warning">
-                        <i class="bi bi-exclamation-triangle me-2"></i>
-                        <strong>تنبيه:</strong> تسوية المخزون ستؤثر على قيمة المخزون والحسابات المالية.
+    <div class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Header -->
+                <div class="text-center mb-5">
+                    <div class="d-inline-flex align-items-center justify-content-center icon-box-lg mb-3 shadow-neon-cyan">
+                        <i class="bi bi-sliders fs-2 text-white"></i>
                     </div>
+                    <h3 class="fw-bold text-white tracking-wide">تسوية المخزون اليدوية</h3>
+                    <p class="text-gray-400">تعديل كميات المخزون الحالية (عجز / زيادة)</p>
+                </div>
 
-                    <form action="{{ route('stock.adjust.process') }}" method="POST">
+                <!-- Glass Card Content -->
+                <div class="glass-panel p-5 position-relative overflow-hidden">
+                    <div class="glow-orb bg-cyan-500 opacity-10" style="top: -50px; left: -50px;"></div>
+
+                    <form action="{{ route('stock.adjust.process') }}" method="POST" id="adjustForm">
                         @csrf
 
-                        <div class="row g-3">
-                            <!-- Product Selection -->
+                        <div class="row g-4 mb-4">
+                            <!-- Warehouse Select -->
                             <div class="col-md-6">
-                                <label class="form-label">المنتج <span class="text-danger">*</span></label>
-                                <select class="form-select @error('product_id') is-invalid @enderror" name="product_id"
-                                    id="product_id" required>
-                                    <option value="">اختر المنتج...</option>
-                                    @foreach($products as $product)
-                                        <option value="{{ $product->id }}" {{ old('product_id') == $product->id ? 'selected' : '' }}>
-                                            {{ $product->sku }} - {{ $product->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('product_id')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <!-- Warehouse Selection -->
-                            <div class="col-md-6">
-                                <label class="form-label">المستودع <span class="text-danger">*</span></label>
-                                <select class="form-select @error('warehouse_id') is-invalid @enderror" name="warehouse_id"
-                                    id="warehouse_id" required>
-                                    <option value="">اختر المستودع...</option>
-                                    @foreach($warehouses as $warehouse)
-                                        <option value="{{ $warehouse->id }}" {{ old('warehouse_id') == $warehouse->id ? 'selected' : '' }}>
-                                            {{ $warehouse->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('warehouse_id')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <!-- Current Stock Info -->
-                            <div class="col-12" id="stock-info" style="display: none;">
-                                <div class="card bg-light">
-                                    <div class="card-body">
-                                        <div class="row text-center">
-                                            <div class="col-md-4">
-                                                <h6 class="text-muted mb-1">الكمية الحالية</h6>
-                                                <h4 class="text-primary" id="current-qty">0</h4>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <h6 class="text-muted mb-1">المحجوز</h6>
-                                                <h4 class="text-warning" id="reserved-qty">0</h4>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <h6 class="text-muted mb-1">متوسط التكلفة</h6>
-                                                <h4 class="text-success" id="avg-cost">0.00</h4>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- New Quantity -->
-                            <div class="col-md-6">
-                                <label class="form-label">الكمية الجديدة <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control @error('new_quantity') is-invalid @enderror"
-                                    name="new_quantity" id="new_quantity" value="{{ old('new_quantity') }}" step="0.01"
-                                    min="0" required>
-                                @error('new_quantity')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                <small class="text-muted" id="qty-diff"></small>
-                            </div>
-
-                            <!-- New Unit Cost (Optional) -->
-                            <div class="col-md-6">
-                                <label class="form-label">سعر الوحدة الجديد (اختياري)</label>
+                                <label
+                                    class="form-label text-cyan-400 small fw-bold text-uppercase tracking-wider ps-1">المستودع
+                                    <span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <input type="number" class="form-control @error('new_unit_cost') is-invalid @enderror"
-                                        name="new_unit_cost" value="{{ old('new_unit_cost') }}" step="0.01" min="0"
-                                        placeholder="اتركه فارغاً للإبقاء على السعر الحالي">
-                                    <span class="input-group-text">ج.م</span>
+                                    <span class="input-group-text bg-dark-input border-end-0 text-gray-500"><i
+                                            class="bi bi-building"></i></span>
+                                    <select name="warehouse_id" id="warehouseSelect"
+                                        class="form-select form-select-dark border-start-0 ps-0 text-white cursor-pointer"
+                                        required>
+                                        <option value="" selected disabled>-- اختر المستودع --</option>
+                                        @foreach($warehouses as $warehouse)
+                                            <option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
-                                @error('new_unit_cost')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
                             </div>
 
-                            <!-- Reason -->
-                            <div class="col-12">
-                                <label class="form-label">سبب التسوية <span class="text-danger">*</span></label>
-                                <textarea class="form-control @error('reason') is-invalid @enderror" name="reason" rows="2"
-                                    required placeholder="اذكر سبب تسوية المخزون...">{{ old('reason') }}</textarea>
-                                @error('reason')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                            <!-- Product Select -->
+                            <div class="col-md-6">
+                                <label
+                                    class="form-label text-cyan-400 small fw-bold text-uppercase tracking-wider ps-1">المنتج
+                                    <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark-input border-end-0 text-gray-500"><i
+                                            class="bi bi-box-seam"></i></span>
+                                    <select name="product_id" id="productSelect"
+                                        class="form-select form-select-dark border-start-0 ps-0 text-white cursor-pointer"
+                                        required>
+                                        <option value="" selected disabled>-- اختر المنتج --</option>
+                                        @foreach($products as $product)
+                                            <option value="{{ $product->id }}" data-price="{{ $product->cost_price }}">
+                                                {{ $product->name }} ({{ $product->sku }})</option>
+                                        @endforeach
+                                    </select>
+                                </div>
                             </div>
                         </div>
 
-                        <hr>
+                        <!-- Current Stock Display (AJAX) -->
+                        <div id="stockDisplay"
+                            class="d-none mb-4 p-4 rounded-3 bg-slate-900 bg-opacity-50 border border-white-5 transition-all">
+                            <div class="row text-center align-items-center">
+                                <div class="col-4 border-end border-white-10">
+                                    <p class="text-gray-500 x-small text-uppercase mb-1">الكمية الحالية</p>
+                                    <h4 class="fw-bold text-white mb-0" id="currentQty">0</h4>
+                                    <span class="text-gray-600 small" id="unitDisplay">-</span>
+                                </div>
+                                <div class="col-4 border-end border-white-10">
+                                    <p class="text-gray-500 x-small text-uppercase mb-1">المحجوز</p>
+                                    <h4 class="fw-bold text-warning mb-0" id="reservedQty">0</h4>
+                                </div>
+                                <div class="col-4">
+                                    <p class="text-gray-500 x-small text-uppercase mb-1">المتاح الفعلي</p>
+                                    <h4 class="fw-bold text-emerald-400 mb-0" id="availableQty">0</h4>
+                                </div>
+                            </div>
+                        </div>
 
-                        <div class="d-flex justify-content-between">
-                            <a href="{{ route('stock.index') }}" class="btn btn-secondary">
-                                <i class="bi bi-x me-1"></i>إلغاء
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <label
+                                    class="form-label text-cyan-400 small fw-bold text-uppercase tracking-wider ps-1">الكمية
+                                    الجديدة (الجرده) <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark-input border-end-0 text-gray-500"><i
+                                            class="bi bi-list-ol"></i></span>
+                                    <input type="number" step="0.01" name="new_quantity" id="newQuantity"
+                                        class="form-control form-control-dark border-start-0 ps-0 text-white placeholder-gray-600 focus-ring-cyan fw-bold fs-5"
+                                        placeholder="0.00" required>
+                                </div>
+                                <div class="form-text text-gray-500 ms-1" id="diffText">أدخل الكمية الموجودة فعلياً في
+                                    المخزن</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label
+                                    class="form-label text-cyan-400 small fw-bold text-uppercase tracking-wider ps-1">تحديث
+                                    التكلفة (اختياري)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark-input border-end-0 text-gray-500"><i
+                                            class="bi bi-currency-dollar"></i></span>
+                                    <input type="number" step="0.01" name="new_unit_cost"
+                                        class="form-control form-control-dark border-start-0 ps-0 text-white placeholder-gray-600 focus-ring-cyan"
+                                        placeholder="اترك فارغاً للإبقاء على التكلفة الحالية">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-5">
+                            <label class="form-label text-cyan-400 small fw-bold text-uppercase tracking-wider ps-1">سبب
+                                التسوية</label>
+                            <textarea name="reason"
+                                class="form-control form-control-dark text-white placeholder-gray-600 focus-ring-cyan"
+                                rows="3" placeholder="مثال: جرد سنوي، تلف بضاعة، خطأ في الإدخال..." required></textarea>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="d-flex justify-content-between align-items-center pt-4 border-top border-white-10">
+                            <a href="{{ route('stock.index') }}"
+                                class="btn btn-link text-gray-400 text-decoration-none hover-text-white d-flex align-items-center gap-2">
+                                <i class="bi bi-arrow-right"></i> إلغاء
                             </a>
-                            <button type="submit" class="btn btn-warning">
-                                <i class="bi bi-check-lg me-1"></i>تأكيد التسوية
+                            <button type="submit"
+                                class="btn btn-action-cyan px-5 py-2 rounded-pill fw-bold shadow-neon-cyan d-flex align-items-center gap-2">
+                                <i class="bi bi-check-lg"></i> تأكيد التسوية
                             </button>
                         </div>
                     </form>
@@ -134,49 +137,134 @@
             </div>
         </div>
     </div>
-@endsection
 
-@push('scripts')
     <script>
-        let currentQty = 0;
+        document.addEventListener('DOMContentLoaded', function () {
+            const warehouseSelect = document.getElementById('warehouseSelect');
+            const productSelect = document.getElementById('productSelect');
+            const stockDisplay = document.getElementById('stockDisplay');
+            const currentQtyEl = document.getElementById('currentQty');
+            const reservedQtyEl = document.getElementById('reservedQty');
+            const availableQtyEl = document.getElementById('availableQty');
+            const diffText = document.getElementById('diffText');
+            const newQuantityInput = document.getElementById('newQuantity');
 
-        document.getElementById('product_id').addEventListener('change', fetchStock);
-        document.getElementById('warehouse_id').addEventListener('change', fetchStock);
+            let currentStock = 0;
 
-        document.getElementById('new_quantity').addEventListener('input', function () {
-            const newQty = parseFloat(this.value) || 0;
-            const diff = newQty - currentQty;
-            const diffText = document.getElementById('qty-diff');
+            async function fetchStock() {
+                const warehouseId = warehouseSelect.value;
+                const productId = productSelect.value;
 
-            if (diff > 0) {
-                diffText.innerHTML = `<span class="text-success">+${diff.toFixed(2)} (زيادة)</span>`;
-            } else if (diff < 0) {
-                diffText.innerHTML = `<span class="text-danger">${diff.toFixed(2)} (نقص)</span>`;
-            } else {
-                diffText.innerHTML = '<span class="text-muted">لا تغيير</span>';
+                if (warehouseId && productId) {
+                    // Show loading state could be added here
+                    try {
+                        const response = await fetch(`{{ route('stock.get-stock') }}?warehouse_id=${warehouseId}&product_id=${productId}`);
+                        const data = await response.json();
+
+                        currentStock = parseFloat(data.quantity);
+                        currentQtyEl.textContent = currentStock;
+                        reservedQtyEl.textContent = data.reserved;
+                        availableQtyEl.textContent = data.available;
+
+                        stockDisplay.classList.remove('d-none');
+                        stockDisplay.classList.add('d-block');
+                    } catch (error) {
+                        console.error('Error fetching stock:', error);
+                    }
+                } else {
+                    stockDisplay.classList.add('d-none');
+                }
             }
+
+            warehouseSelect.addEventListener('change', fetchStock);
+            productSelect.addEventListener('change', fetchStock);
+
+            newQuantityInput.addEventListener('input', function () {
+                const newQty = parseFloat(this.value);
+                if (!isNaN(newQty)) {
+                    const diff = newQty - currentStock;
+                    const diffStr = diff > 0 ? `+${diff}` : `${diff}`;
+                    const colorClass = diff >= 0 ? 'text-success' : 'text-danger';
+                    const action = diff >= 0 ? 'زيادة' : 'عجز';
+
+                    diffText.innerHTML = `<span class="${colorClass} fw-bold">${action} بمقدار ${diffStr}</span>`;
+                } else {
+                    diffText.innerText = 'أدخل الكمية الموجودة فعلياً في المخزن';
+                }
+            });
         });
-
-        function fetchStock() {
-            const productId = document.getElementById('product_id').value;
-            const warehouseId = document.getElementById('warehouse_id').value;
-
-            if (productId && warehouseId) {
-                fetch(`/stock/get-stock?product_id=${productId}&warehouse_id=${warehouseId}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        currentQty = data.quantity;
-                        document.getElementById('current-qty').textContent = data.quantity.toFixed(2);
-                        document.getElementById('reserved-qty').textContent = data.reserved.toFixed(2);
-                        document.getElementById('avg-cost').textContent = data.average_cost.toFixed(2);
-                        document.getElementById('stock-info').style.display = 'block';
-
-                        // Pre-fill current quantity
-                        document.getElementById('new_quantity').value = data.quantity.toFixed(2);
-                    });
-            } else {
-                document.getElementById('stock-info').style.display = 'none';
-            }
-        }
     </script>
-@endpush
+
+    <style>
+        /* Scoped Styles for Adjust Form (Cyan Theme) */
+        .icon-box-lg {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(30, 41, 59, 0.5));
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(6, 182, 212, 0.15);
+        }
+
+        .bg-dark-input {
+            background: rgba(15, 23, 42, 0.6) !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+            color: #94a3b8;
+        }
+
+        .form-control-dark,
+        .form-select-dark {
+            background: rgba(15, 23, 42, 0.6) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: white !important;
+            padding: 0.8rem 1rem;
+        }
+
+        .form-control-dark:focus,
+        .form-select-dark:focus {
+            border-color: #06b6d4 !important;
+            box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.1) !important;
+            background: rgba(15, 23, 42, 0.8) !important;
+        }
+
+        .btn-action-cyan {
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            border: none;
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .btn-action-cyan:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(6, 182, 212, 0.5);
+        }
+
+        .placeholder-gray-600::placeholder {
+            color: #475569;
+        }
+
+        .bg-white-5 {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .border-white-10 {
+            border-color: rgba(255, 255, 255, 0.05) !important;
+        }
+
+        .x-small {
+            font-size: 0.75rem;
+        }
+
+        .text-cyan-400 {
+            color: #22d3ee !important;
+        }
+
+        .bg-cyan-500 {
+            background-color: #06b6d4 !important;
+        }
+
+        .shadow-neon-cyan {
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+        }
+    </style>
+@endsection

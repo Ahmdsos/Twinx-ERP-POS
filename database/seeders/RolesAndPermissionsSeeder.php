@@ -2,259 +2,76 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
+use Illuminate\Support\Facades\Schema;
 
-/**
- * RolesAndPermissionsSeeder - Creates default roles and permissions
- * 
- * This seeder creates the initial RBAC structure for Twinx ERP.
- * Run with: php artisan db:seed --class=RolesAndPermissionsSeeder
- */
 class RolesAndPermissionsSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
-    public function run(): void
+    public function run()
     {
         // Reset cached roles and permissions
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // Define permissions grouped by module
+        // 1. Create Permissions
         $permissions = [
-            // Users module
-            'users.view',
-            'users.create',
-            'users.edit',
-            'users.delete',
-
-            // Accounting module
-            'accounts.view',
-            'accounts.create',
-            'accounts.edit',
-            'accounts.delete',
-            'journals.view',
-            'journals.create',
-            'journals.post',
-            'journals.reverse',
-
-            // Products module
-            'products.view',
-            'products.create',
-            'products.edit',
-            'products.delete',
-
-            // Inventory module
+            'dashboard.view',
             'inventory.view',
-            'inventory.adjust',
-            'inventory.transfer',
-            'warehouses.manage',
-
-            // Sales module
-            'quotations.view',
-            'quotations.create',
-            'quotations.edit',
-            'quotations.delete',
-            'sales_orders.view',
-            'sales_orders.create',
-            'sales_orders.edit',
-            'sales_orders.approve',
-            'sales_invoices.view',
-            'sales_invoices.create',
-            'sales_invoices.void',
-            'payments.receive',
-
-            // Purchases module
-            'purchase_orders.view',
-            'purchase_orders.create',
-            'purchase_orders.edit',
-            'purchase_orders.approve',
-            'grn.create',
-            'purchase_invoices.view',
-            'purchase_invoices.create',
-            'payments.make',
-
-            // Customers & Suppliers
-            'customers.view',
-            'customers.create',
-            'customers.edit',
-            'suppliers.view',
-            'suppliers.create',
-            'suppliers.edit',
-
-            // Delivery module
-            'delivery.view',
-            'delivery.create',
-            'delivery.update_status',
-
-            // Reports
-            'reports.financial',
-            'reports.inventory',
-            'reports.sales',
-            'reports.purchases',
-
-            // System
-            'settings.view',
-            'settings.edit',
-            'audit_logs.view',
+            'inventory.manage',
+            'purchases.view',
+            'purchases.manage', // Suppliers included
+            'sales.view',
+            'sales.create',
+            'sales.manage', // POS included in create
+            'finance.view',
+            'finance.manage',
+            'reports.view',
+            'settings.manage',
+            'users.manage',
         ];
 
-        // Create all permissions
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::firstOrCreate(['name' => $permission]);
         }
 
-        // Create roles and assign permissions
-        $this->createSuperAdmin($permissions);
-        $this->createAdmin();
-        $this->createAccountant();
-        $this->createSales();
-        $this->createPurchasing();
-        $this->createWarehouse();
-        $this->createDelivery();
+        // 2. Create Roles and Assign Permissions
 
-        // Create default super admin user
-        $this->createDefaultUser();
-    }
+        // A. Admin (Super Admin) - Has everything
+        $admin = Role::firstOrCreate(['name' => 'admin']);
+        $admin->givePermissionTo(Permission::all());
 
-    private function createSuperAdmin(array $allPermissions): void
-    {
-        $role = Role::create(['name' => 'super_admin']);
-        $role->givePermissionTo($allPermissions);
-    }
-
-    private function createAdmin(): void
-    {
-        $role = Role::create(['name' => 'admin']);
-        $role->givePermissionTo([
-            'users.view',
-            'users.create',
-            'users.edit',
-            'accounts.view',
-            'accounts.create',
-            'accounts.edit',
-            'products.view',
-            'products.create',
-            'products.edit',
-            'products.delete',
+        // B. Manager - Can do everything except Settings & Users
+        $manager = Role::firstOrCreate(['name' => 'manager']);
+        $manager->givePermissionTo([
+            'dashboard.view',
             'inventory.view',
-            'warehouses.manage',
-            'customers.view',
-            'customers.create',
-            'customers.edit',
-            'suppliers.view',
-            'suppliers.create',
-            'suppliers.edit',
-            'reports.financial',
-            'reports.inventory',
-            'reports.sales',
-            'reports.purchases',
-            'settings.view',
+            'inventory.manage',
+            'purchases.view',
+            'purchases.manage',
+            'sales.view',
+            'sales.create',
+            'sales.manage',
+            'finance.view',
+            'finance.manage',
+            'reports.view',
         ]);
-    }
 
-    private function createAccountant(): void
-    {
-        $role = Role::create(['name' => 'accountant']);
-        $role->givePermissionTo([
-            'accounts.view',
-            'accounts.create',
-            'accounts.edit',
-            'journals.view',
-            'journals.create',
-            'journals.post',
-            'journals.reverse',
-            'sales_invoices.view',
-            'purchase_invoices.view',
-            'payments.receive',
-            'payments.make',
-            'customers.view',
-            'suppliers.view',
-            'reports.financial',
+        // C. Cashier - Only Sales & Dashboard View (Limited)
+        $cashier = Role::firstOrCreate(['name' => 'cashier']);
+        $cashier->givePermissionTo([
+            'dashboard.view',
+            'sales.view',
+            'sales.create',
+            'inventory.view', // Needs to search products
         ]);
-    }
 
-    private function createSales(): void
-    {
-        $role = Role::create(['name' => 'sales']);
-        $role->givePermissionTo([
-            'products.view',
+        // D. Warehouse Keeper - Only Inventory
+        $warehouse = Role::firstOrCreate(['name' => 'warehouse_keeper']);
+        $warehouse->givePermissionTo([
+            'dashboard.view',
             'inventory.view',
-            'quotations.view',
-            'quotations.create',
-            'quotations.edit',
-            'quotations.delete',
-            'sales_orders.view',
-            'sales_orders.create',
-            'sales_orders.edit',
-            'sales_invoices.view',
-            'sales_invoices.create',
-            'customers.view',
-            'customers.create',
-            'customers.edit',
-            'delivery.view',
-            'reports.sales',
+            'inventory.manage',
         ]);
-    }
-
-    private function createPurchasing(): void
-    {
-        $role = Role::create(['name' => 'purchasing']);
-        $role->givePermissionTo([
-            'products.view',
-            'inventory.view',
-            'purchase_orders.view',
-            'purchase_orders.create',
-            'purchase_orders.edit',
-            'grn.create',
-            'purchase_invoices.view',
-            'purchase_invoices.create',
-            'suppliers.view',
-            'suppliers.create',
-            'suppliers.edit',
-            'reports.purchases',
-        ]);
-    }
-
-    private function createWarehouse(): void
-    {
-        $role = Role::create(['name' => 'warehouse']);
-        $role->givePermissionTo([
-            'products.view',
-            'inventory.view',
-            'inventory.adjust',
-            'inventory.transfer',
-            'grn.create',
-            'delivery.view',
-            'delivery.create',
-            'reports.inventory',
-        ]);
-    }
-
-    private function createDelivery(): void
-    {
-        $role = Role::create(['name' => 'delivery']);
-        $role->givePermissionTo([
-            'delivery.view',
-            'delivery.update_status',
-        ]);
-    }
-
-    private function createDefaultUser(): void
-    {
-        $user = User::create([
-            'name' => 'Super Admin',
-            'email' => 'admin@twinx.local',
-            'password' => Hash::make('password'),
-            'phone' => '+201000000000',
-            'is_active' => true,
-            'email_verified_at' => now(),
-        ]);
-
-        $user->assignRole('super_admin');
     }
 }

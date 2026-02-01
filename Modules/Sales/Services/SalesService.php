@@ -86,7 +86,7 @@ class SalesService
                     'quantity' => $lineData['quantity'],
                     'unit_price' => $lineData['unit_price'] ?? $product->selling_price,
                     'discount_percent' => $lineData['discount_percent'] ?? 0,
-                    'tax_percent' => $lineData['tax_percent'] ?? $product->tax_rate ?? 0,
+                    'tax_percent' => $lineData['tax_percent'] ?? ($product->tax_rate > 0 ? $product->tax_rate : \App\Models\Setting::getValue('default_tax_rate', 0)),
                     'unit_id' => $lineData['unit_id'] ?? $product->unit_id,
                     'description' => $lineData['description'] ?? null,
                 ]);
@@ -147,6 +147,7 @@ class SalesService
                 $quantity = min($item['quantity'], $soLine->getRemainingToDeliver());
 
                 // Remove stock via InventoryService (returns cost for COGS)
+                // Pass false for createJournal to prevent double-booking
                 $stockMovement = $this->inventoryService->removeStock(
                     $product,
                     $warehouse,
@@ -155,7 +156,8 @@ class SalesService
                     $do->do_number,
                     "Delivery for SO: {$so->so_number}",
                     DeliveryOrder::class,
-                    $do->id
+                    $do->id,
+                    false
                 );
 
                 $unitCost = $stockMovement->unit_cost;
@@ -186,8 +188,11 @@ class SalesService
      */
     protected function createCogsJournalEntry(DeliveryOrder $do, float $totalCost): void
     {
-        $cogsAccount = Account::where('code', '5101')->first(); // COGS
-        $inventoryAccount = Account::where('code', '1301')->first(); // Inventory
+        $cogsCode = \App\Models\Setting::getValue('acc_cogs', '5101');
+        $inventoryCode = \App\Models\Setting::getValue('acc_inventory', '1301');
+
+        $cogsAccount = Account::where('code', $cogsCode)->first(); // COGS
+        $inventoryAccount = Account::where('code', $inventoryCode)->first(); // Inventory
 
         if (!$cogsAccount || !$inventoryAccount) {
             return;
@@ -203,6 +208,9 @@ class SalesService
             ['account_id' => $cogsAccount->id, 'debit' => $totalCost, 'credit' => 0],
             ['account_id' => $inventoryAccount->id, 'debit' => 0, 'credit' => $totalCost],
         ]);
+
+        // AUTO-POST to update account balances
+        $this->journalService->post($entry);
 
         $do->update(['journal_entry_id' => $entry->id]);
     }
@@ -266,16 +274,26 @@ class SalesService
      */
     protected function createInvoiceJournalEntry(SalesInvoice $invoice): void
     {
-        $arAccount = Account::where('code', '1201')->first(); // AR
-        $salesAccount = Account::where('code', '4101')->first(); // Sales Revenue
-        $taxAccount = Account::where('code', '2105')->first(); // Tax Payable
+        $arCode = \App\Models\Setting::getValue('acc_ar', '1201');
+        $salesCode = \App\Models\Setting::getValue('acc_sales_revenue', '4101');
+        $taxCode = \App\Models\Setting::getValue('acc_tax_payable', '2201');
+
+        $arAccount = Account::where('code', $arCode)->first(); // AR
+        $salesAccount = Account::where('code', $salesCode)->first(); // Sales Revenue
+        $taxAccount = Account::where('code', $taxCode)->first(); // Tax Payable
 
         if (!$arAccount || !$salesAccount) {
             return;
         }
 
         $lines = [
-            ['account_id' => $arAccount->id, 'debit' => $invoice->total, 'credit' => 0],
+            [
+                'account_id' => $arAccount->id,
+                'debit' => $invoice->total,
+                'credit' => 0,
+                'subledger_type' => \Modules\Sales\Models\Customer::class,
+                'subledger_id' => $invoice->customer_id
+            ],
             ['account_id' => $salesAccount->id, 'debit' => 0, 'credit' => $invoice->subtotal],
         ];
 
@@ -290,6 +308,9 @@ class SalesService
             'source_type' => SalesInvoice::class,
             'source_id' => $invoice->id,
         ], $lines);
+
+        // AUTO-POST to update account balances
+        $this->journalService->post($entry);
 
         $invoice->update(['journal_entry_id' => $entry->id]);
     }
@@ -321,24 +342,21 @@ class SalesService
                 'created_by' => auth()->id(),
             ]);
 
-            foreach ($invoiceAllocations as $allocation) {
-                // Ensure allocation is an array (could be string or object)
-                if (is_string($allocation)) {
-                    $allocation = json_decode($allocation, true) ?? [];
-                }
-                if (!is_array($allocation) || empty($allocation['invoice_id'])) {
+            // Process invoice allocations (ensure it's an array)
+            $allocations = is_array($invoiceAllocations) ? $invoiceAllocations : [];
+
+            foreach ($allocations as $allocation) {
+                // Ensure allocation is an array with required keys
+                if (!is_array($allocation) || !isset($allocation['invoice_id']) || !isset($allocation['amount'])) {
                     continue;
                 }
 
                 $invoice = SalesInvoice::find($allocation['invoice_id']);
                 if ($invoice && $invoice->customer_id === $customer->id) {
-                    $allocAmount = min($allocation['amount'] ?? 0, $invoice->balance_due);
-                    if ($allocAmount > 0) {
-                        $payment->allocateToInvoice($invoice, $allocAmount);
-                    }
+                    $allocAmount = min($allocation['amount'], $invoice->balance_due);
+                    $payment->allocateToInvoice($invoice, $allocAmount);
                 }
             }
-
 
             // Create journal entry: DR Cash/Bank, CR AR
             $this->createPaymentJournalEntry($payment, $customer);
@@ -352,9 +370,10 @@ class SalesService
      */
     protected function createPaymentJournalEntry(CustomerPayment $payment, Customer $customer): void
     {
+        $arCode = \App\Models\Setting::getValue('acc_ar', '1201');
         $arAccount = $customer->account_id
             ? Account::find($customer->account_id)
-            : Account::where('code', '1201')->first();
+            : Account::where('code', $arCode)->first();
 
         if (!$arAccount) {
             return;
@@ -362,14 +381,23 @@ class SalesService
 
         $entry = $this->journalService->create([
             'entry_date' => $payment->payment_date,
-            'reference' => $payment->receipt_number,
+            'reference' => $payment->payment_reference,
             'description' => "Payment from {$customer->name}",
             'source_type' => CustomerPayment::class,
             'source_id' => $payment->id,
         ], [
             ['account_id' => $payment->payment_account_id, 'debit' => $payment->amount, 'credit' => 0],
-            ['account_id' => $arAccount->id, 'debit' => 0, 'credit' => $payment->amount],
+            [
+                'account_id' => $arAccount->id,
+                'debit' => 0,
+                'credit' => $payment->amount,
+                'subledger_type' => \Modules\Sales\Models\Customer::class,
+                'subledger_id' => $customer->id
+            ],
         ]);
+
+        // AUTO-POST to update account balances
+        $this->journalService->post($entry);
 
         $payment->update(['journal_entry_id' => $entry->id]);
     }

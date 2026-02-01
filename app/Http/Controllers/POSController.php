@@ -10,14 +10,14 @@ use Modules\Inventory\Models\Product;
 use Modules\Inventory\Models\Category;
 use Modules\Inventory\Models\ProductStock;
 use Modules\Inventory\Models\StockMovement;
+use Modules\Inventory\Enums\MovementType;
+use Modules\Inventory\Services\InventoryService;
 use Modules\Sales\Models\Customer;
 use Modules\Sales\Models\SalesInvoice;
 use Modules\Sales\Models\SalesInvoiceLine;
 use Modules\Accounting\Models\Account;
-
 use Modules\Inventory\Models\Warehouse;
 use Modules\Accounting\Services\JournalService;
-use Modules\Inventory\Services\InventoryService;
 
 /**
  * POSController
@@ -25,22 +25,34 @@ use Modules\Inventory\Services\InventoryService;
  */
 class POSController extends Controller
 {
-    public function __construct(
-        protected JournalService $journalService,
-        protected InventoryService $inventoryService
-    ) {
+    protected JournalService $journalService;
+    protected InventoryService $inventoryService;
+
+    public function __construct(JournalService $journalService, InventoryService $inventoryService)
+    {
+        $this->journalService = $journalService;
+        $this->inventoryService = $inventoryService;
     }
+
     /**
      * POS main interface
      */
     public function index()
     {
-        $categories = Category::active()->orderBy('name')->get();
-        $customers = Customer::active()->orderBy('name')->get(['id', 'code', 'name']);
-        $warehouses = Warehouse::all();
+        $categories = Category::with([
+            'products' => function ($q) {
+                $q->where('is_active', true);
+            }
+        ])->active()->orderBy('name')->get();
+        $customers = Customer::active()->orderBy('name')->get(['id', 'code', 'name', 'type']);
+        $warehouses = Warehouse::active()->orderBy('name')->get(['id', 'name']);
+        $paymentAccounts = Account::whereIn('code', ['1100', '1101', '1102', '1110', '1111'])
+            ->active()
+            ->orderBy('code')
+            ->get(['id', 'code', 'name']);
         $activeShift = PosShift::getActiveShift();
 
-        return view('pos.index', compact('categories', 'customers', 'warehouses', 'activeShift'));
+        return view('pos.index', compact('categories', 'customers', 'warehouses', 'paymentAccounts', 'activeShift'));
     }
 
     /**
@@ -50,6 +62,7 @@ class POSController extends Controller
     {
         $query = $request->get('q', '');
         $categoryId = $request->get('category_id');
+        $warehouseId = $request->get('warehouse_id'); // Get selected warehouse
 
         $products = Product::query()
             ->where('is_active', true)
@@ -60,7 +73,27 @@ class POSController extends Controller
                     ->orWhere('barcode', 'like', "%{$query}%");
             })
             ->when($categoryId, fn($q) => $q->where('category_id', $categoryId))
-            ->with(['category:id,name', 'unit:id,name,abbreviation', 'images'])
+            ->with([
+                'category:id,name',
+                'unit:id,name,abbreviation',
+                'images',
+                'stock' => function ($q) use ($warehouseId) {
+                    if ($warehouseId) {
+                        $q->where('warehouse_id', $warehouseId);
+                    }
+                }
+            ])
+            ->when($warehouseId, function ($q) use ($warehouseId) {
+                // Filter by stock only if "Allow Negative Stock" is FALSE
+                $allowNegative = \App\Models\Setting::getValue('pos_allow_negative_stock', false);
+
+                if (!$allowNegative) {
+                    $q->whereHas('stock', function ($sq) use ($warehouseId) {
+                        $sq->where('warehouse_id', $warehouseId)
+                            ->where('quantity', '>', 0);
+                    });
+                }
+            })
             ->limit(50)
             ->get()
             ->map(fn($p) => [
@@ -69,9 +102,19 @@ class POSController extends Controller
                 'barcode' => $p->barcode,
                 'name' => $p->name,
                 'price' => (float) $p->selling_price,
+                // Multi-tier prices
+                'price_distributor' => (float) $p->price_distributor,
+                'price_wholesale' => (float) $p->price_wholesale,
+                'price_half_wholesale' => (float) $p->price_half_wholesale,
+                'price_quarter_wholesale' => (float) $p->price_quarter_wholesale,
+                'price_special' => (float) $p->price_special,
+
                 'cost' => (float) $p->cost_price,
                 'tax_rate' => (float) $p->tax_rate,
-                'stock' => $p->getTotalStock(),
+                // Get stock for specific warehouse, or total if no warehouse selected (though UI should enforce one)
+                'stock' => $warehouseId
+                    ? (float) ($p->stock->first()?->available_quantity ?? 0)
+                    : (float) $p->available_stock,
                 'category' => $p->category?->name,
                 'unit' => $p->unit?->abbreviation ?? 'PCS',
                 'image' => $p->primaryImageUrl,
@@ -120,110 +163,203 @@ class POSController extends Controller
         $request->validate([
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.quantity' => 'required|numeric|not_in:0', // Allow negative for returns
             'items.*.price' => 'required|numeric|min:0',
             'items.*.discount' => 'nullable|numeric|min:0',
             'customer_id' => 'nullable|exists:customers,id',
             'payment_method' => 'required|in:cash,card,credit,split',
-            'amount_paid' => 'required|numeric|min:0',
+            'amount_paid' => 'required|numeric', // Allow negative for refunds
             'discount' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string|max:500',
         ]);
+
+        // Get or create Walk-in Customer for POS
+        $customerId = $request->customer_id;
+        if (!$customerId) {
+            $walkInCustomer = Customer::firstOrCreate(
+                ['code' => 'WALK-IN'],
+                [
+                    'name' => 'Walk-in Customer',
+                    'phone' => 'N/A',
+                    'is_active' => true,
+                    'created_by' => 1,
+                ]
+            );
+            $customerId = $walkInCustomer->id;
+        }
 
         DB::beginTransaction();
         try {
             // Calculate totals
             $subtotal = 0;
             $totalTax = 0;
+            $invoiceLinesData = [];
 
             foreach ($request->items as $item) {
-                $lineTotal = $item['quantity'] * $item['price'] - ($item['discount'] ?? 0);
-                $subtotal += $lineTotal;
+                $product = Product::findOrFail($item['product_id']);
+
+                // Calculate line values
+                $quantity = $item['quantity'];
+                $price = $item['price'];
+                $discount = $item['discount'] ?? 0;
+
+                $lineTotalBeforeTax = ($quantity * $price) - $discount;
+
+                // Calculate Tax
+                // 1. Determine Rate (Product specific takes precedence, otherwise Global)
+                // If product tax is NULL, use Global. If Product Tax is 0, use 0.
+                $globalTax = \App\Models\Setting::getValue('default_tax_rate', 0);
+                $taxRate = $product->tax_rate ?? $globalTax;
+
+                // 2. Check Inclusive/Exclusive Setting
+                $isInclusive = \App\Models\Setting::getValue('tax_inclusive', false);
+
+                if ($isInclusive) {
+                    // Price is Gross
+                    $lineGross = ($quantity * $price) - $discount;
+
+                    // Net = Gross / (1 + Rate/100)
+                    $lineNet = $lineGross / (1 + ($taxRate / 100));
+                    $taxAmount = $lineGross - $lineNet;
+
+                    $lineTotal = $lineGross;
+                } else {
+                    // Price is Net
+                    $lineNet = ($quantity * $price) - $discount;
+
+                    // Tax = Net * Rate/100
+                    $taxAmount = ($lineNet * $taxRate) / 100;
+
+                    $lineTotal = $lineNet + $taxAmount;
+                }
+
+                $subtotal += $lineNet;
+                $totalTax += $taxAmount;
+
+                // Prepare line data for creation later
+                $invoiceLinesData[] = [
+                    'product_id' => $product->id,
+                    'quantity' => $quantity,
+                    'unit_price' => $isInclusive ? ($price / (1 + ($taxRate / 100))) : $price, // Always store Net Unit Price for consistency? Or maintain user input? Let's store Net to be safe for accounting.
+                    'discount_amount' => $discount,
+                    'tax_percent' => $taxRate,
+                    'tax_amount' => $taxAmount,
+                    'line_total' => $lineTotal, // This is Gross Line Total
+                    'product_instance' => $product
+                ];
             }
 
             $discount = $request->get('discount', 0);
-            $total = $subtotal - $discount;
+
+            // Total = Net Subtotal + Total Tax - Global Discount
+            $total = $subtotal + $totalTax - $discount;
+
+            // Recalculate Change/Due
             $amountPaid = $request->amount_paid;
             $change = max(0, $amountPaid - $total);
             $balanceDue = max(0, $total - $amountPaid);
 
             // Generate invoice number
-            $lastInvoice = SalesInvoice::whereDate('invoice_date', today())->orderByDesc('id')->first();
-            $sequence = $lastInvoice ? (int) substr($lastInvoice->invoice_number, -4) + 1 : 1;
-            $invoiceNumber = 'POS-' . now()->format('Ymd') . '-' . str_pad($sequence, 4, '0', STR_PAD_LEFT);
+            $datestamp = now()->format('Ymd');
+            $prefix = 'POS-' . $datestamp . '-';
 
-            // Get or create walk-in customer if no customer selected
-            $customerId = $request->customer_id;
-            if (!$customerId) {
-                $walkInCustomer = Customer::firstOrCreate(
-                    ['email' => 'walkin@pos.local'],
-                    [
-                        'name' => 'عميل نقدي (Walk-in)',
-                        'phone' => '0000000000',
-                        'is_active' => true,
-                    ]
-                );
-                $customerId = $walkInCustomer->id;
+            // Find last POS invoice specifically to avoid collision with 'INV-' or other types
+            $lastPosInvoice = SalesInvoice::where('invoice_number', 'like', $prefix . '%')
+                ->orderByDesc('id')
+                ->first();
+
+            $sequence = $lastPosInvoice ? (int) substr($lastPosInvoice->invoice_number, -4) + 1 : 1;
+
+            // Double check availability (simple collision avoidance)
+            $invoiceNumber = $prefix . str_pad($sequence, 4, '0', STR_PAD_LEFT);
+            while (SalesInvoice::where('invoice_number', $invoiceNumber)->exists()) {
+                $sequence++;
+                $invoiceNumber = $prefix . str_pad($sequence, 4, '0', STR_PAD_LEFT);
             }
 
             // Create invoice
             $invoice = SalesInvoice::create([
                 'invoice_number' => $invoiceNumber,
-                'customer_id' => $customerId,
+                'customer_id' => $customerId, // Use walk-in customer if not specified
                 'invoice_date' => now(),
                 'due_date' => now(),
                 'subtotal' => $subtotal,
                 'discount_amount' => $discount,
                 'tax_amount' => $totalTax,
                 'total' => $total,
-                'paid_amount' => min($amountPaid, $total), // Don't exceed total
+                'paid_amount' => $amountPaid, // Store actual paid amount (even if > total)
                 'balance_due' => $balanceDue,
-                'status' => $balanceDue > 0 ? 'partial' : 'paid',
+                'status' => $balanceDue > 0 ? \Modules\Sales\Enums\SalesInvoiceStatus::PARTIAL : \Modules\Sales\Enums\SalesInvoiceStatus::PAID,
                 'notes' => $request->notes,
-                'created_by' => auth()->id(),
-                'pos_shift_id' => PosShift::getActiveShift()?->id,
-                'payment_method' => $request->payment_method,
             ]);
 
-            // Update shift totals if active shift exists
-            $activeShift = PosShift::getActiveShift();
-            if ($activeShift) {
-                $activeShift->incrementSales($total, $request->payment_method);
-            }
-
-
             // Create invoice lines and update stock
-            foreach ($request->items as $item) {
-                $product = Product::findOrFail($item['product_id']);
-                $lineTotal = $item['quantity'] * $item['price'] - ($item['discount'] ?? 0);
+            foreach ($invoiceLinesData as $lineData) {
+                // Keep product instance for stock reduction
+                $product = $lineData['product_instance'];
+                unset($lineData['product_instance']);
 
                 SalesInvoiceLine::create([
                     'sales_invoice_id' => $invoice->id,
-                    'product_id' => $item['product_id'],
-                    'quantity' => $item['quantity'],
-                    'unit_price' => $item['price'],
-                    'discount_amount' => $item['discount'] ?? 0,
-                    'tax_percent' => 0,
-                    'tax_amount' => 0,
-                    'line_total' => $lineTotal,
+                    ...$lineData
                 ]);
 
-                // Reduce stock via InventoryService (handles movements and COGS)
-                $warehouse = Warehouse::find($request->warehouse_id) ?? Warehouse::first();
-                $this->inventoryService->removeStock(
-                    $product,
-                    $warehouse,
-                    $item['quantity'],
-                    \Modules\Inventory\Enums\MovementType::SALE,
-                    $invoice->invoice_number,
-                    'POS Sale',
-                    SalesInvoice::class,
-                    $invoice->id
-                );
+                // Stock Management (Sale vs Return)
+                // Simplify: Just reduce stock and log movement. No COGS reduction here.
+                if ($lineData['quantity'] > 0) {
+                    $this->reduceStock($product, $lineData['quantity'], $invoice, $request->get('warehouse_id'));
+                } else {
+                    $this->restoreStock($product->id, abs($lineData['quantity']), $invoice->invoice_number);
+                }
             }
 
-            // Create Journal Entry via JournalService
-            $this->createPosJournalEntry($invoice, $request->payment_method);
+            // Record Payment if amount paid > 0
+            if ($amountPaid > 0) {
+                // Use SalesService to handle payment creation and allocation (SSOT)
+                // Assuming SalesService is injected as $salesService
+                $paymentMethod = $request->payment_method ?? 'cash';
+
+                // Find default cash account if not provided
+                $paymentAccountId = $request->payment_account_id;
+                if (!$paymentAccountId) {
+                    $paymentAccountId = \Modules\Accounting\Models\Account::where('code', 'like', '1%')->first()->id ?? 1;
+                }
+
+                // If SalesService expects specific args, align them.
+                // receivePayment(Customer $customer, float $amount, string $method, ?string $reference, ?string $notes)
+                // NOTE: We need to allocate this payment to the invoice we just created.
+
+                $payment = \Modules\Sales\Models\CustomerPayment::create([
+                    'customer_id' => $customerId,
+                    'payment_account_id' => $paymentAccountId, // Required field
+                    'payment_date' => now(), // Use full timestamp
+                    'amount' => $amountPaid,
+                    'payment_method' => $paymentMethod,
+                    'reference' => 'POS-' . $invoiceNumber, // specific ref
+                    'receipt_number' => 'RCT-' . now()->format('YmdHis') . '-' . rand(100, 999), // unique receipt
+                    'notes' => 'POS Payment for ' . $invoiceNumber,
+                    'created_by' => auth()->id(),
+                ]);
+
+                // Allocate to this invoice
+                \Modules\Sales\Models\CustomerPaymentAllocation::create([
+                    'customer_payment_id' => $payment->id,
+                    'sales_invoice_id' => $invoice->id,
+                    'amount' => min($amountPaid, $total), // Allocate up to invoice total
+                ]);
+
+                // Update Invoice Paid Amount (Redundant but safe for consistency if not using observers)
+                // Actually the invoice was created with paid_amount, so we are good.
+            }
+
+            // Create Single Journal Entry (TEMP_SALE_ENTRY)
+            $journalEntryId = $this->createJournalEntry($invoice, $request->payment_method);
+
+            // Link JE to Invoice
+            if ($journalEntryId) {
+                $invoice->journal_entry_id = $journalEntryId;
+                $invoice->save();
+            }
 
             DB::commit();
 
@@ -250,149 +386,89 @@ class POSController extends Controller
     }
 
     /**
-     * Create journal entry for POS sale using JournalService
+     * Reduce stock for POS sale
+     * REFACTORED: Uses InventoryService (Single Write Path Enforcement)
      */
-    protected function createPosJournalEntry(SalesInvoice $invoice, string $paymentMethod): void
+    protected function reduceStock(Product $product, float $quantity, SalesInvoice $invoice, ?int $warehouseId = null): void
     {
-        // AR or Cash/Bank account
-        $cashAccount = Account::where('code', '1001')->first(); // Cash
-        $bankAccount = Account::where('code', '1002')->first(); // Bank
-        $salesAccount = Account::where('code', '4101')->first(); // Sales Revenue
-        $taxAccount = Account::where('code', '2105')->first(); // Tax Payable
+        // Get warehouse (default to first if not specified)
+        $warehouseId = $warehouseId ?? Warehouse::first()?->id ?? 1;
+        $warehouse = Warehouse::findOrFail($warehouseId);
 
-        if (!$salesAccount)
-            return;
-
-        $debitAccountId = ($paymentMethod === 'card' || $paymentMethod === 'bank')
-            ? ($bankAccount?->id ?? $cashAccount?->id)
-            : $cashAccount?->id;
-
-        if (!$debitAccountId)
-            return;
-
-        $lines = [
-            ['account_id' => $debitAccountId, 'debit' => $invoice->total, 'credit' => 0],
-            ['account_id' => $salesAccount->id, 'debit' => 0, 'credit' => $invoice->subtotal],
-        ];
-
-        if ($taxAccount && $invoice->tax_amount > 0) {
-            $lines[] = ['account_id' => $taxAccount->id, 'debit' => 0, 'credit' => $invoice->tax_amount];
-        }
-
-        $entry = $this->journalService->create([
-            'entry_date' => $invoice->invoice_date,
-            'reference' => $invoice->invoice_number,
-            'description' => "POS Sale to {$invoice->customer->name}",
-            'source_type' => SalesInvoice::class,
-            'source_id' => $invoice->id,
-        ], $lines);
-
-        // Auto-post the entry to affect balances immediately
-        $this->journalService->post($entry);
-
-        $invoice->update(['journal_entry_id' => $entry->id]);
+        // Use InventoryService for proper stock reduction with event logging
+        $this->inventoryService->removeStock(
+            $product,
+            $warehouse,
+            $quantity,
+            MovementType::SALE,
+            $invoice->invoice_number,
+            'POS Sale',
+            SalesInvoice::class,
+            $invoice->id
+        );
     }
 
     /**
      * Create journal entry for POS sale
-     * Debits: Cash/Bank, Credits: Sales Revenue
+     * Simplified: Single Entry (Revenue only), tagged as TEMP_SALE_ENTRY
      */
-    protected function createJournalEntry(SalesInvoice $invoice, string $paymentMethod): void
+    protected function createJournalEntry(SalesInvoice $invoice, string $paymentMethod): ?int
     {
-        // Find accounts
-        $cashAccount = Account::where('code', '1001')->first(); // Cash
-        $bankAccount = Account::where('code', '1002')->first(); // Bank
-        $salesAccount = Account::where('code', '4001')->first(); // Sales Revenue
+        // Find accounts - using actual chart of accounts codes
+        $cashAccount = Account::where('code', '1101')->first(); // Cash
+        $bankAccount = Account::where('code', '1102')->first(); // Bank
+        $salesAccount = Account::where('code', '4101')->first(); // Sales Revenue
 
         if (!$salesAccount)
-            return; // Skip if accounts not set up
+            return null;
 
         $debitAccount = ($paymentMethod === 'card' || $paymentMethod === 'bank')
             ? ($bankAccount ?? $cashAccount)
             : $cashAccount;
 
         if (!$debitAccount)
-            return;
+            return null;
 
-        // Create journal entry (simplified - would use JournalEntry model if exists)
-        DB::table('journal_entries')->insert([
-            'entry_date' => now(),
-            'reference_type' => SalesInvoice::class,
-            'reference_id' => $invoice->id,
-            'description' => 'POS Sale: ' . $invoice->invoice_number,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $lines = [];
 
-        $entryId = DB::getPdo()->lastInsertId();
-
-        // Debit Cash/Bank
-        DB::table('journal_entry_lines')->insert([
-            'journal_entry_id' => $entryId,
+        // Debit: Cash/Bank
+        $lines[] = [
             'account_id' => $debitAccount->id,
             'debit' => $invoice->total,
             'credit' => 0,
-            'description' => 'Cash received from POS sale',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+            'description' => 'Cash received (POS)'
+        ];
 
-        // Credit Sales Revenue
-        DB::table('journal_entry_lines')->insert([
-            'journal_entry_id' => $entryId,
+        // Credit: Sales Revenue
+        $lines[] = [
             'account_id' => $salesAccount->id,
             'debit' => 0,
             'credit' => $invoice->total,
-            'description' => 'Sales revenue from POS',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-    }
-
-    /**
-     * Show POS Returns page (GET)
-     */
-    public function showReturns(Request $request)
-    {
-        $invoiceNumber = $request->get('invoice');
-        $invoice = null;
-
-        if ($invoiceNumber) {
-            $invoice = SalesInvoice::where('invoice_number', $invoiceNumber)
-                ->with(['lines.product', 'customer'])
-                ->first();
-        }
-
-        return view('pos.returns', compact('invoice', 'invoiceNumber'));
-    }
-
-    /**
-     * Show Daily Report page (GET)
-     */
-    public function showDailyReport()
-    {
-        $today = today();
-        $shift = PosShift::getActiveShift();
-
-        $sales = SalesInvoice::whereDate('invoice_date', $today)
-            ->where('invoice_number', 'like', 'POS-%')
-            ->get();
-
-        $summary = [
-            'total_sales' => $sales->sum('total'),
-            'sales_count' => $sales->count(),
-            'cash_sales' => $sales->where('payment_method', 'cash')->sum('total'),
-            'card_sales' => $sales->where('payment_method', 'card')->sum('total'),
-            'credit_sales' => $sales->where('payment_method', 'credit')->sum('total'),
-            'total_discounts' => $sales->sum('discount_amount'),
-            'shift' => $shift,
+            'description' => 'Sales Revenue (POS)'
         ];
 
-        return view('pos.daily-report', compact('summary'));
+        try {
+            $entry = $this->journalService->create([
+                'entry_date' => now(),
+                'reference' => $invoice->invoice_number,
+                'description' => 'POS Sale: ' . $invoice->invoice_number . ' [TEMP_SALE_ENTRY]',
+                'source_type' => SalesInvoice::class,
+                'source_id' => $invoice->id,
+            ], $lines);
+
+            // Auto-post
+            $this->journalService->post($entry);
+
+            return $entry->id;
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("POS Journal Entry Failed: " . $e->getMessage());
+            throw $e; // Enforce atomic transaction
+        }
     }
 
     /**
-     * Process Sales Return from POS (POST)
+     * Process Sales Return from POS
      */
     public function salesReturn(Request $request)
     {
@@ -409,13 +485,9 @@ class POSController extends Controller
             $originalInvoice = SalesInvoice::findOrFail($request->invoice_id);
 
             // Generate return number
-            $lastReturn = SalesInvoice::where('invoice_number', 'like', 'RET-%')
-                ->whereDate('invoice_date', today())
-                ->orderByDesc('id')
-                ->first();
-            $sequence = $lastReturn ? (int) substr($lastReturn->invoice_number, -4) + 1 : 1;
-            $returnNumber = 'RET-' . now()->format('Ymd') . '-' . str_pad($sequence, 4, '0', STR_PAD_LEFT);
+            $returnNumber = 'RET-' . now()->format('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
 
+            // Create return invoice (negative amounts)
             $returnTotal = 0;
             $returnLines = [];
 
@@ -425,12 +497,6 @@ class POSController extends Controller
                     continue;
 
                 $lineTotal = $originalLine->unit_price * $item['quantity'];
-                // Apply proportional discount if any
-                if ($originalLine->discount_amount > 0 && $originalLine->quantity > 0) {
-                    $itemDiscount = ($originalLine->discount_amount / $originalLine->quantity) * $item['quantity'];
-                    $lineTotal -= $itemDiscount;
-                }
-
                 $returnTotal += $lineTotal;
 
                 $returnLines[] = [
@@ -440,11 +506,11 @@ class POSController extends Controller
                     'line_total' => $lineTotal,
                 ];
 
-                // Restore stock via InventoryService
-                $this->restoreStock($originalLine->product_id, $item['quantity'], $returnNumber, $originalInvoice);
+                // Restore stock
+                $this->restoreStock($originalLine->product_id, $item['quantity'], $returnNumber);
             }
 
-            // Create return record as a negative invoice
+            // Create return record (could be separate table or negative invoice)
             $returnInvoice = SalesInvoice::create([
                 'invoice_number' => $returnNumber,
                 'customer_id' => $originalInvoice->customer_id,
@@ -458,16 +524,7 @@ class POSController extends Controller
                 'balance_due' => 0,
                 'status' => 'refunded',
                 'notes' => 'مرتجع من فاتورة: ' . $originalInvoice->invoice_number . ($request->reason ? ' - السبب: ' . $request->reason : ''),
-                'created_by' => auth()->id(),
-                'pos_shift_id' => PosShift::getActiveShift()?->id,
-                'payment_method' => 'cash', // Returns are usually cash
             ]);
-
-            // Update shift totals (decrement)
-            $activeShift = PosShift::getActiveShift();
-            if ($activeShift) {
-                $activeShift->incrementSales(-$returnTotal, 'cash');
-            }
 
             foreach ($returnLines as $line) {
                 SalesInvoiceLine::create([
@@ -481,9 +538,6 @@ class POSController extends Controller
                     'line_total' => -$line['line_total'],
                 ]);
             }
-
-            // Create Reversal Accounting Entry
-            $this->createPosReturnJournalEntry($returnInvoice);
 
             DB::commit();
 
@@ -504,60 +558,29 @@ class POSController extends Controller
     }
 
     /**
-     * Create journal entry for POS return
+     * Restore stock for returns
+     * REFACTORED: Uses InventoryService (Single Write Path Enforcement)
      */
-    protected function createPosReturnJournalEntry(SalesInvoice $returnInvoice): void
+    protected function restoreStock(int $productId, float $quantity, string $reference): void
     {
-        $cashAccount = Account::where('code', '1001')->first(); // Cash
-        $salesAccount = Account::where('code', '4101')->first(); // Sales Revenue
+        $product = Product::findOrFail($productId);
 
-        if (!$cashAccount || !$salesAccount)
-            return;
+        // Get stock to determine warehouse and cost
+        $stock = ProductStock::where('product_id', $productId)->first();
+        $warehouseId = $stock?->warehouse_id ?? Warehouse::first()?->id ?? 1;
+        $warehouse = Warehouse::findOrFail($warehouseId);
+        $unitCost = $stock?->average_cost ?? $product->cost_price;
 
-        // Swapped DR/CR from sale: DR Sales Revenue, CR Cash
-        $lines = [
-            ['account_id' => $salesAccount->id, 'debit' => abs($returnInvoice->total), 'credit' => 0],
-            ['account_id' => $cashAccount->id, 'debit' => 0, 'credit' => abs($returnInvoice->total)],
-        ];
-
-        $entry = $this->journalService->create([
-            'entry_date' => $returnInvoice->invoice_date,
-            'reference' => $returnInvoice->invoice_number,
-            'description' => $returnInvoice->notes,
-            'source_type' => SalesInvoice::class,
-            'source_id' => $returnInvoice->id,
-        ], $lines);
-
-        $this->journalService->post($entry);
-        $returnInvoice->update(['journal_entry_id' => $entry->id]);
-    }
-
-    /**
-     * Restore stock for returns using InventoryService
-     */
-    protected function restoreStock(int $productId, float $quantity, string $reference, ?SalesInvoice $invoice = null): void
-    {
-        $product = Product::find($productId);
-        if (!$product)
-            return;
-
-        // Try to find original warehouse if invoice is provided, else use first warehouse
-        $warehouseId = $invoice?->warehouse_id ?? Warehouse::first()?->id;
-        $warehouse = Warehouse::find($warehouseId);
-
-        if ($warehouse) {
-            $this->inventoryService->addStock(
-                $product,
-                $warehouse,
-                $quantity,
-                $product->cost_price,
-                \Modules\Inventory\Enums\MovementType::RETURN_IN,
-                $reference,
-                'POS Return',
-                SalesInvoice::class,
-                $invoice?->id
-            );
-        }
+        // Use InventoryService for proper stock addition with event logging
+        $this->inventoryService->addStock(
+            $product,
+            $warehouse,
+            $quantity,
+            $unitCost,
+            MovementType::RETURN_IN,
+            $reference,
+            'Sales Return'
+        );
     }
 
     /**
@@ -679,69 +702,60 @@ class POSController extends Controller
     public function closeShift(Request $request)
     {
         $request->validate([
-            'closing_cash' => 'required|numeric|min:0',
+            'closing_cash' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string|max:500',
         ]);
 
         $shift = PosShift::getActiveShift();
         if (!$shift) {
-            return response()->json([
-                'success' => false,
-                'message' => 'لا يوجد وردية مفتوحة'
-            ], 400);
+            return response()->json(['message' => 'لا يوجد وردية مفتوحة'], 400);
         }
 
-        $shift->close($request->closing_cash, $request->notes);
+        // Logic handled by model, assume it takes exact cash and calculates diff
+        // If not, we implement here:
+        $expectedCash = $shift->opening_cash + $shift->sales_cash; // Simplified
+        $closingCash = $request->closing_cash ?? $expectedCash;
+        $diff = $closingCash - $expectedCash;
+
+        $shift->update([
+            'closing_cash' => $closingCash,
+            'difference' => $diff,
+            'closed_at' => now(),
+            'status' => 'closed',
+            'notes' => $request->notes
+        ]);
 
         return response()->json([
             'success' => true,
             'message' => 'تم إغلاق الوردية بنجاح',
-            'shift' => $shift->fresh()
+            'diff' => $diff
         ]);
     }
 
-    /**
-     * Get current shift status
-     */
     public function shiftStatus()
     {
         $shift = PosShift::getActiveShift();
-
         return response()->json([
             'hasActiveShift' => $shift !== null,
             'shift' => $shift
         ]);
     }
 
-    /**
-     * Shift report
-     */
     public function shiftReport(PosShift $shift)
     {
-        $shift->load('user');
-        return view('pos.shift-report', compact('shift'));
+        // Placeholder view or JSON
+        return response()->json($shift);
     }
 
-    /**
-     * Get recent transactions for POS panel (AJAX)
-     */
+
+
     public function recentTransactions()
     {
-        $transactions = SalesInvoice::where('invoice_number', 'like', 'POS-%')
-            ->orderByDesc('created_at')
-            ->limit(10)
-            ->get(['id', 'invoice_number', 'total', 'created_at'])
-            ->map(fn($t) => [
-                'id' => $t->id,
-                'invoice_number' => $t->invoice_number,
-                'total' => $t->total,
-                'created_at' => $t->created_at->format('Y-m-d H:i'),
-            ]);
-
-        return response()->json([
-            'transactions' => $transactions
-        ]);
+        $invoices = SalesInvoice::latest()->limit(5)->get();
+        return response()->json($invoices);
     }
+
+
 
     /**
      * Get shift report data for quick view (AJAX)
@@ -777,4 +791,3 @@ class POSController extends Controller
         ]);
     }
 }
-

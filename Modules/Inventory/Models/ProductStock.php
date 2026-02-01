@@ -45,6 +45,14 @@ class ProductStock extends Model
     }
 
     /**
+     * Get available quantity (quantity - reserved)
+     */
+    public function getAvailableQuantityAttribute(): float
+    {
+        return max(0, $this->quantity - $this->reserved_quantity);
+    }
+
+    /**
      * Reserve stock for an order
      */
     public function reserve(float $quantity): bool

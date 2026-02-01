@@ -6,9 +6,12 @@ use Illuminate\Http\Request;
 use Modules\Inventory\Models\Product;
 use Modules\Inventory\Models\Category;
 use Modules\Inventory\Models\Unit;
+use App\Models\Brand;
 use Modules\Inventory\Models\Warehouse;
 use Modules\Inventory\Models\ProductStock;
 use Modules\Inventory\Enums\ProductType;
+use Modules\Inventory\Enums\MovementType;
+use Modules\Inventory\Services\InventoryService;
 
 /**
  * ProductController - Product management web UI
@@ -20,13 +23,20 @@ use Modules\Inventory\Enums\ProductType;
  */
 class ProductController extends Controller
 {
+    protected InventoryService $inventoryService;
+
+    public function __construct(InventoryService $inventoryService)
+    {
+        $this->inventoryService = $inventoryService;
+    }
+
     /**
      * List all products
      */
     public function index(Request $request)
     {
         $query = Product::query()
-            ->with(['category', 'unit'])
+            ->with(['category', 'unit', 'brand'])
             ->orderBy('name');
 
         if ($request->filled('search')) {
@@ -42,14 +52,19 @@ class ProductController extends Controller
             $query->where('category_id', $request->category_id);
         }
 
+        if ($request->filled('brand_id')) {
+            $query->where('brand_id', $request->brand_id);
+        }
+
         if ($request->boolean('active_only', true)) {
             $query->where('is_active', true);
         }
 
         $products = $query->paginate(25);
         $categories = Category::orderBy('name')->get();
+        $brands = Brand::orderBy('name')->get();
 
-        return view('inventory.products.index', compact('products', 'categories'));
+        return view('inventory.products.index', compact('products', 'categories', 'brands'));
     }
 
     /**
@@ -58,11 +73,12 @@ class ProductController extends Controller
     public function create()
     {
         $categories = Category::orderBy('name')->get();
+        $brands = Brand::orderBy('name')->get();
         $units = Unit::orderBy('name')->get();
         $warehouses = Warehouse::active()->orderBy('name')->get();
         $types = ProductType::cases();
 
-        return view('inventory.products.create', compact('categories', 'units', 'warehouses', 'types'));
+        return view('inventory.products.create', compact('categories', 'brands', 'units', 'warehouses', 'types'));
     }
 
     /**
@@ -84,6 +100,13 @@ class ProductController extends Controller
             'max_stock_level' => 'nullable|numeric|min:0',
             'reorder_quantity' => 'numeric|min:0',
             'tax_rate' => 'numeric|min:0|max:100',
+            // Pricing Tiers
+            'price_distributor' => 'nullable|numeric|min:0',
+            'price_wholesale' => 'nullable|numeric|min:0',
+            'price_half_wholesale' => 'nullable|numeric|min:0',
+            'price_quarter_wholesale' => 'nullable|numeric|min:0',
+            'price_special' => 'nullable|numeric|min:0',
+
             'is_active' => 'boolean',
             'is_sellable' => 'boolean',
             'is_purchasable' => 'boolean',
@@ -91,7 +114,7 @@ class ProductController extends Controller
             'initial_warehouse_id' => 'nullable|exists:warehouses,id',
             'initial_stock' => 'nullable|numeric|min:0',
             // New extended fields
-            'brand' => 'nullable|string|max:100',
+            'brand_id' => 'nullable|exists:brands,id',
             'warranty_months' => 'nullable|integer|min:0',
             'weight' => 'nullable|numeric|min:0',
             'weight_unit' => 'nullable|in:kg,g,lb',
@@ -103,6 +126,9 @@ class ProductController extends Controller
             'country_of_origin' => 'nullable|string|max:100',
             'track_batches' => 'boolean',
             'track_serials' => 'boolean',
+            // Images
+            'images' => 'nullable|array|max:5',
+            'images.*' => 'image|mimes:jpeg,jpg,png,webp|max:2048',
         ]);
 
         // Map form fields to database columns
@@ -124,7 +150,7 @@ class ProductController extends Controller
             'is_sellable' => $request->has('is_sellable'),
             'is_purchasable' => $request->has('is_purchasable'),
             // Extended fields
-            'brand' => $validated['brand'] ?? null,
+            'brand_id' => $validated['brand_id'] ?? null,
             'warranty_months' => $validated['warranty_months'] ?? 0,
             'weight' => $validated['weight'] ?? null,
             'weight_unit' => $validated['weight_unit'] ?? 'kg',
@@ -141,14 +167,38 @@ class ProductController extends Controller
 
         $product = Product::create($data);
 
+        // Handle image uploads
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $index => $image) {
+                $path = $image->store('products', 'public');
+                \Modules\Inventory\Models\ProductImage::create([
+                    'product_id' => $product->id,
+                    'path' => $path,
+                    'filename' => basename($path),
+                    'disk' => 'public',
+                    'mime_type' => $image->getMimeType(),
+                    'size' => $image->getSize(),
+                    'is_primary' => $index === 0,
+                    'sort_order' => $index,
+                ]);
+            }
+        }
+
         // Create initial stock if warehouse and quantity provided
+        // REFACTORED: Uses InventoryService (Single Write Path Enforcement)
         if (!empty($validated['initial_warehouse_id']) && !empty($validated['initial_stock']) && $validated['initial_stock'] > 0) {
-            ProductStock::create([
-                'product_id' => $product->id,
-                'warehouse_id' => $validated['initial_warehouse_id'],
-                'quantity' => $validated['initial_stock'],
-                'average_cost' => $validated['cost_price'],
-            ]);
+            $warehouse = Warehouse::find($validated['initial_warehouse_id']);
+            if ($warehouse) {
+                $this->inventoryService->addStock(
+                    $product,
+                    $warehouse,
+                    $validated['initial_stock'],
+                    $validated['cost_price'],
+                    MovementType::ADJUSTMENT_IN,
+                    null,
+                    'Initial stock on product creation'
+                );
+            }
         }
 
         return redirect()->route('products.index')
@@ -161,7 +211,7 @@ class ProductController extends Controller
     public function show(Product $product)
     {
         // Use correct relationship name: stock() not stocks()
-        $product->load(['category', 'unit', 'stock.warehouse']);
+        $product->load(['category', 'unit', 'stock.warehouse', 'brand']);
 
         return view('inventory.products.show', compact('product'));
     }
@@ -172,10 +222,12 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         $categories = Category::orderBy('name')->get();
+        $brands = Brand::orderBy('name')->get();
         $units = Unit::orderBy('name')->get();
+        $warehouses = Warehouse::active()->orderBy('name')->get();
         $types = ProductType::cases();
 
-        return view('inventory.products.edit', compact('product', 'categories', 'units', 'types'));
+        return view('inventory.products.edit', compact('product', 'categories', 'brands', 'units', 'warehouses', 'types'));
     }
 
     /**
@@ -196,10 +248,19 @@ class ProductController extends Controller
             'min_stock_level' => 'numeric|min:0',
             'max_stock_level' => 'nullable|numeric|min:0',
             'reorder_quantity' => 'numeric|min:0',
+            'reorder_quantity' => 'numeric|min:0',
             'tax_rate' => 'numeric|min:0|max:100',
+            // Pricing Tiers
+            'price_distributor' => 'nullable|numeric|min:0',
+            'price_wholesale' => 'nullable|numeric|min:0',
+            'price_half_wholesale' => 'nullable|numeric|min:0',
+            'price_quarter_wholesale' => 'nullable|numeric|min:0',
+            'price_special' => 'nullable|numeric|min:0',
+
             'is_active' => 'boolean',
             'is_sellable' => 'boolean',
             'is_purchasable' => 'boolean',
+            'brand_id' => 'nullable|exists:brands,id',
         ]);
 
         // Map form fields to database columns
@@ -217,13 +278,41 @@ class ProductController extends Controller
             'max_stock' => $validated['max_stock_level'] ?? null,
             'reorder_quantity' => $validated['reorder_quantity'] ?? 0,
             'tax_rate' => $validated['tax_rate'] ?? 14,
+            // Pricing Tiers
+            'price_distributor' => $validated['price_distributor'] ?? 0,
+            'price_wholesale' => $validated['price_wholesale'] ?? 0,
+            'price_half_wholesale' => $validated['price_half_wholesale'] ?? 0,
+            'price_quarter_wholesale' => $validated['price_quarter_wholesale'] ?? 0,
+            'price_special' => $validated['price_special'] ?? 0,
+
             'is_active' => $request->has('is_active'),
             'is_sellable' => $request->has('is_sellable'),
             'is_purchasable' => $request->has('is_purchasable'),
+            'brand_id' => $validated['brand_id'] ?? null,
             'updated_by' => auth()->id(),
         ];
 
         $product->update($data);
+
+        // Handle image uploads
+        if ($request->hasFile('images')) {
+            // Get current max sort order
+            $currentMaxSort = $product->images()->max('sort_order') ?? -1;
+
+            foreach ($request->file('images') as $index => $image) {
+                $path = $image->store('products', 'public');
+                \Modules\Inventory\Models\ProductImage::create([
+                    'product_id' => $product->id,
+                    'path' => $path,
+                    'filename' => basename($path),
+                    'disk' => 'public',
+                    'mime_type' => $image->getMimeType(),
+                    'size' => $image->getSize(),
+                    'is_primary' => $product->images()->doesntExist() && $index === 0, // Primary if no other images exist
+                    'sort_order' => $currentMaxSort + 1 + $index,
+                ]);
+            }
+        }
 
         return redirect()->route('products.index')
             ->with('success', 'تم تحديث المنتج بنجاح');

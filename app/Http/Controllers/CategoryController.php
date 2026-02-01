@@ -26,6 +26,25 @@ class CategoryController extends Controller
     }
 
     /**
+     * Show the form for creating a new category.
+     */
+    public function create()
+    {
+        $categories = Category::whereNull('parent_id')->get(); // Only main categories as parents
+        return view('inventory.categories.create', compact('categories'));
+    }
+
+    /**
+     * Display the specified category.
+     */
+    public function show(Category $category)
+    {
+        // Eager load stock to prevent N+1 and ensure calculation is correct
+        $category->load(['parent', 'children', 'products.stock']);
+        return view('inventory.categories.show', compact('category'));
+    }
+
+    /**
      * Store a newly created category.
      */
     public function store(Request $request)

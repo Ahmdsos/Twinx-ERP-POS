@@ -1,341 +1,441 @@
 @extends('layouts.app')
 
-@section('title', 'تعديل ' . $salesOrder->so_number . ' - Twinx ERP')
-@section('page-title', 'تعديل أمر البيع')
-
-@section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">الرئيسية</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('sales-orders.index') }}">أوامر البيع</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('sales-orders.show', $salesOrder) }}">{{ $salesOrder->so_number }}</a></li>
-    <li class="breadcrumb-item active">تعديل</li>
-@endsection
+@section('title', 'تعديل أمر بيع ' . $salesOrder->so_number)
 
 @section('content')
-<form action="{{ route('sales-orders.update', $salesOrder) }}" method="POST" id="sales-order-form">
-    @csrf
-    @method('PUT')
+<div class="container-fluid p-0" x-data="salesOrderBuilder({{ $salesOrder->lines->map(function($line) {
+    return [
+        'product_id' => $line->product_id,
+        'quantity' => $line->quantity,
+        'unit_price' => $line->unit_price,
+        'discount_percent' => $line->discount_percent,
+        'unit_name' => $line->unit->name ?? '',
+        'line_total' => $line->line_total
+    ];
+}) }}, {{ $salesOrder->discount_amount ?? 0 }}, '{{ $salesOrder->warehouse_id }}')">
     
-    <div class="row">
-        <!-- Main Form -->
-        <div class="col-lg-8">
-            <!-- Order Header -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="bi bi-cart me-2"></i>
-                        تعديل {{ $salesOrder->so_number }}
-                        <span class="badge bg-secondary ms-2">مسودة</span>
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">العميل <span class="text-danger">*</span></label>
-                            <select class="form-select @error('customer_id') is-invalid @enderror" 
-                                    name="customer_id" id="customer_id" required>
-                                <option value="">اختر العميل...</option>
-                                @foreach($customers as $customer)
-                                    <option value="{{ $customer->id }}" 
-                                            data-balance="{{ $customer->balance ?? 0 }}"
-                                            data-credit="{{ $customer->credit_limit }}"
-                                            data-address="{{ $customer->billing_address }}"
-                                            {{ old('customer_id', $salesOrder->customer_id) == $customer->id ? 'selected' : '' }}>
-                                        {{ $customer->code }} - {{ $customer->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('customer_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <label class="form-label">المستودع <span class="text-danger">*</span></label>
-                            <select class="form-select @error('warehouse_id') is-invalid @enderror" 
-                                    name="warehouse_id" id="warehouse_id" required>
-                                <option value="">اختر المستودع...</option>
-                                @foreach($warehouses as $warehouse)
-                                    <option value="{{ $warehouse->id }}" {{ old('warehouse_id', $salesOrder->warehouse_id) == $warehouse->id ? 'selected' : '' }}>
-                                        {{ $warehouse->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('warehouse_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        
+    <!-- Top Action Bar -->
+    <div class="d-flex justify-content-between align-items-center mb-4 sticky-top py-3 glass-header z-20">
+        <div class="d-flex align-items-center gap-3">
+            <div class="icon-box bg-gradient-to-br from-yellow-500 to-orange-600 rounded-circle shadow-lg text-white">
+                <i class="bi bi-pencil-square fs-4"></i>
+            </div>
+            <div>
+                <h3 class="fw-bold text-white mb-0" style="letter-spacing: -0.5px;">تعديل أمر بيع</h3>
+                <small class="text-warning fw-bold">No. <span class="font-monospace">{{ $salesOrder->so_number }}</span></small>
+            </div>
+        </div>
+        
+        <div class="d-flex gap-3">
+            <a href="{{ route('sales-orders.show', $salesOrder->id) }}" class="btn btn-glass-outline rounded-pill px-4 fw-bold">
+                إلغاء
+            </a>
+            <button type="button" @click="submitForm" class="btn btn-gradient-warning rounded-pill px-5 fw-bold shadow-lg hover-scale">
+                <i class="bi bi-check-circle-fill me-2"></i> حفظ التعديلات
+            </button>
+        </div>
+    </div>
+
+    <form action="{{ route('sales-orders.update', $salesOrder->id) }}" method="POST" id="order-form" @keydown.enter.prevent>
+        @csrf
+        @method('PUT')
+
+        <div class="row g-4">
+            <!-- Left Column: Customer & Line Items -->
+            <div class="col-xl-9 col-lg-8">
+                
+                <!-- 1. Customer & Meta Data Card -->
+                <div class="glass-card mb-4 p-4 position-relative overflow-hidden">
+                    <div class="absolute-glow top-0 end-0"></div>
+                    <div class="row g-4 position-relative z-10">
                         <div class="col-md-4">
-                            <label class="form-label">تاريخ الأمر <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control @error('order_date') is-invalid @enderror" 
-                                   name="order_date" value="{{ old('order_date', $salesOrder->order_date->format('Y-m-d')) }}" required>
-                            @error('order_date')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <label class="section-label mb-2">العميل <span class="text-danger">*</span></label>
+                            <div class="position-relative">
+                                <i class="bi bi-person-bounding-box position-absolute top-50 start-0 translate-middle-y ms-3 text-blue-400"></i>
+                                <select name="customer_id" class="form-select glass-select ps-5 text-white fw-bold h-50px" required>
+                                    <option value="" class="text-gray-500">اختر العميل...</option>
+                                    @foreach($customers as $customer)
+                                        <option value="{{ $customer->id }}" class="bg-gray-900 text-white py-2" 
+                                            {{ (old('customer_id', $salesOrder->customer_id) == $customer->id) ? 'selected' : '' }}>
+                                            {{ $customer->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="section-label mb-2">المخزن <span class="text-danger">*</span></label>
+                            <div class="position-relative">
+                                <i class="bi bi-house-door position-absolute top-50 start-0 translate-middle-y ms-3 text-purple-400"></i>
+                                <select name="warehouse_id" class="form-select glass-select ps-5 text-white fw-bold h-50px" required x-model="warehouseId">
+                                    <option value="" class="text-gray-500">اختر المخزن...</option>
+                                    @foreach($warehouses as $warehouse)
+                                        <option value="{{ $warehouse->id }}" class="bg-gray-900 text-white py-2"
+                                            {{ (old('warehouse_id', $salesOrder->warehouse_id) == $warehouse->id) ? 'selected' : '' }}>
+                                            {{ $warehouse->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
                         
-                        <div class="col-md-4">
-                            <label class="form-label">تاريخ التسليم المتوقع</label>
-                            <input type="date" class="form-control @error('expected_date') is-invalid @enderror" 
-                                   name="expected_date" value="{{ old('expected_date', $salesOrder->expected_date?->format('Y-m-d')) }}">
-                            @error('expected_date')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                        <div class="col-md-2">
+                            <label class="section-label mb-2">تاريخ الطلب</label>
+                            <div class="position-relative">
+                                <i class="bi bi-calendar-event position-absolute top-50 start-0 translate-middle-y ms-3 text-blue-400"></i>
+                                <input type="date" name="order_date" class="form-control glass-input ps-5 text-white fw-bold h-50px" 
+                                       value="{{ old('order_date', $salesOrder->order_date->format('Y-m-d')) }}">
+                            </div>
                         </div>
-                        
-                        <div class="col-md-4">
-                            <label class="form-label">طريقة الشحن</label>
-                            <input type="text" class="form-control" 
-                                   name="shipping_method" value="{{ old('shipping_method', $salesOrder->shipping_method) }}" 
-                                   placeholder="مثال: توصيل محلي">
+
+                        <div class="col-md-2">
+                            <label class="section-label mb-2 text-info">تاريخ التسليم</label>
+                            <div class="position-relative">
+                                <i class="bi bi-calendar-check position-absolute top-50 start-0 translate-middle-y ms-3 text-info"></i>
+                                <input type="date" name="expected_date" class="form-control glass-input ps-5 text-white fw-bold h-50px" 
+                                       value="{{ old('expected_date', $salesOrder->expected_date ? $salesOrder->expected_date->format('Y-m-d') : '') }}">
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Order Lines -->
-            <div class="card mb-4">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i>أصناف الأمر</h5>
-                    <button type="button" class="btn btn-success btn-sm" id="add-line">
-                        <i class="bi bi-plus-lg me-1"></i>إضافة صنف
-                    </button>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-bordered mb-0" id="lines-table">
-                            <thead class="table-light">
+                <!-- 2. Items Builder -->
+                <div class="glass-card p-0 mb-4 overflow-hidden min-h-600 d-flex flex-column">
+                    <div class="p-4 border-bottom border-white/10 d-flex justify-content-between align-items-center bg-white/5">
+                        <h5 class="fw-bold text-white mb-0"><i class="bi bi-basket2 me-2 text-info"></i> جدول الأصناف</h5>
+                        <div class="badge bg-blue-500/20 text-blue-300 px-3 py-2 rounded-pill">
+                            <span x-text="items.length"></span> بنود
+                        </div>
+                    </div>
+
+                    <div class="table-responsive flex-grow-1">
+                        <table class="table table-borderless align-middle mb-0">
+                            <thead class="bg-white/5 text-gray-400 text-uppercase small fw-bold">
                                 <tr>
-                                    <th style="width: 35%;">المنتج</th>
-                                    <th style="width: 12%;">الكمية</th>
-                                    <th style="width: 15%;">سعر الوحدة</th>
-                                    <th style="width: 10%;">خصم %</th>
-                                    <th style="width: 18%;">الإجمالي</th>
-                                    <th style="width: 10%;">حذف</th>
+                                    <th class="ps-4 py-3" style="width: 5%">#</th>
+                                    <th class="py-3" style="width: 35%">المنتج</th>
+                                    <th class="text-center py-3" style="width: 12%">الكمية</th>
+                                    <th class="text-center py-3" style="width: 15%">السعر</th>
+                                    <th class="text-center py-3" style="width: 12%">خصم %</th>
+                                    <th class="text-end py-3 pe-4" style="width: 15%">الإجمالي</th>
+                                    <th style="width: 6%"></th>
                                 </tr>
                             </thead>
-                            <tbody id="lines-body">
-                                <!-- Existing lines -->
-                                @foreach($salesOrder->lines as $index => $line)
-                                    <tr class="line-row">
-                                        <td>
-                                            <select class="form-select product-select" name="lines[{{ $index }}][product_id]" required>
-                                                <option value="">اختر المنتج...</option>
-                                                @foreach($products as $product)
-                                                    <option value="{{ $product->id }}" 
-                                                            data-price="{{ $product->selling_price }}"
-                                                            data-unit="{{ $product->unit?->abbreviation ?? '' }}"
-                                                            {{ $line->product_id == $product->id ? 'selected' : '' }}>
-                                                        {{ $product->sku }} - {{ $product->name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            <small class="text-muted product-info">{{ $line->product?->unit?->abbreviation ?? '' }}</small>
+                            <tbody>
+                                <template x-for="(item, index) in items" :key="index">
+                                    <tr class="item-row hover:bg-white/5 transition-colors">
+                                        <td class="ps-4 text-gray-500 font-monospace" x-text="index + 1"></td>
+                                        
+                                        <!-- Product Select -->
+                                        <td class="p-2">
+                                            <div class="position-relative">
+                                                <select :name="'lines[' + index + '][product_id]'" 
+                                                        class="form-select glass-input-sm text-white fw-bold border-0 shadow-none" 
+                                                        x-model="item.product_id" 
+                                                        @change="updateProductDetails(index, $event)" required>
+                                                    <option value="" class="bg-gray-900">اختر منتج...</option>
+                                                    @foreach($products as $product)
+                                                        <option value="{{ $product->id }}" 
+                                                                data-price="{{ $product->selling_price }}" 
+                                                                data-unit="{{ $product->unit->name ?? '' }}"
+                                                                class="bg-gray-900 py-2">
+                                                            {{ $product->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                <small class="text-blue-400 ms-2" x-text="item.unit_name"></small>
+                                            </div>
                                         </td>
-                                        <td>
-                                            <input type="number" class="form-control quantity-input" 
-                                                   name="lines[{{ $index }}][quantity]" step="0.01" min="0.01" 
-                                                   value="{{ $line->quantity }}" required>
+
+                                        <!-- Qty -->
+                                        <td class="p-2">
+                                            <input type="number" :name="'lines[' + index + '][quantity]'" 
+                                                   class="form-control glass-input-number text-center text-white fw-bold" 
+                                                   x-model.number="item.quantity" min="1" step="0.01" required>
                                         </td>
-                                        <td>
-                                            <input type="number" class="form-control unit-price-input" 
-                                                   name="lines[{{ $index }}][unit_price]" step="0.01" min="0" 
-                                                   value="{{ $line->unit_price }}" required>
+
+                                        <!-- Price -->
+                                        <td class="p-2">
+                                            <input type="number" :name="'lines[' + index + '][unit_price]'" 
+                                                   class="form-control glass-input-number text-center text-white fw-bold" 
+                                                   x-model.number="item.unit_price" min="0" step="0.01" required>
                                         </td>
-                                        <td>
-                                            <input type="number" class="form-control discount-input" 
-                                                   name="lines[{{ $index }}][discount_percent]" step="0.01" min="0" max="100" 
-                                                   value="{{ $line->discount_percent }}">
+
+                                        <!-- Discount -->
+                                        <td class="p-2">
+                                            <div class="position-relative">
+                                                <input type="number" :name="'lines[' + index + '][discount_percent]'" 
+                                                       class="form-control glass-input-number text-center text-warning fw-bold" 
+                                                       x-model.number="item.discount_percent" min="0" max="100" step="0.1">
+                                                <span class="position-absolute top-50 end-0 translate-middle-y me-2 text-warning small">%</span>
+                                            </div>
                                         </td>
-                                        <td>
-                                            <strong class="line-total">{{ number_format($line->line_total, 2) }}</strong> ج.م
+
+                                        <!-- Total -->
+                                        <td class="p-2 text-end pe-4">
+                                            <div class="fw-bold fs-6 text-white" x-text="formatMoney(calculateLineTotal(item))"></div>
                                         </td>
+
+                                        <!-- Delete -->
                                         <td class="text-center">
-                                            <button type="button" class="btn btn-danger btn-sm remove-line">
-                                                <i class="bi bi-trash"></i>
+                                            <button type="button" class="btn btn-icon-glass text-danger hover-scale" @click="removeItem(index)" x-show="items.length > 1">
+                                                <i class="bi bi-x-lg"></i>
                                             </button>
                                         </td>
                                     </tr>
-                                @endforeach
+                                </template>
                             </tbody>
-                            <tfoot class="table-light">
-                                <tr>
-                                    <td colspan="4" class="text-start"><strong>الإجمالي الفرعي</strong></td>
-                                    <td colspan="2"><strong id="subtotal">{{ number_format($salesOrder->subtotal, 2) }}</strong> ج.م</td>
-                                </tr>
-                                <tr>
-                                    <td colspan="4" class="text-start"><strong>الإجمالي النهائي</strong></td>
-                                    <td colspan="2"><strong id="total" class="fs-5 text-primary">{{ number_format($salesOrder->total, 2) }}</strong> ج.م</td>
-                                </tr>
-                            </tfoot>
                         </table>
                     </div>
-                </div>
-            </div>
 
-            <!-- Notes -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-chat-text me-2"></i>ملاحظات</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">ملاحظات داخلية</label>
-                            <textarea class="form-control" name="notes" rows="3">{{ old('notes', $salesOrder->notes) }}</textarea>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">ملاحظات للعميل</label>
-                            <textarea class="form-control" name="customer_notes" rows="3">{{ old('customer_notes', $salesOrder->customer_notes) }}</textarea>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">عنوان الشحن</label>
-                            <textarea class="form-control" name="shipping_address" rows="2" id="shipping_address">{{ old('shipping_address', $salesOrder->shipping_address) }}</textarea>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Sidebar -->
-        <div class="col-lg-4">
-            <!-- Actions -->
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="mb-0"><i class="bi bi-gear me-2"></i>إجراءات</h6>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="bi bi-save me-2"></i>حفظ التغييرات
+                    <div class="p-0">
+                        <button type="button" class="btn btn-dark w-100 py-3 text-success fw-bold hover-bg-success-dark transition-all rounded-0 border-top border-white/10" @click="addItem()">
+                            <i class="bi bi-plus-circle-fill me-2 fs-5 align-middle"></i> إضافة سطر جديد
                         </button>
-                        <a href="{{ route('sales-orders.show', $salesOrder) }}" class="btn btn-secondary">
-                            <i class="bi bi-x me-2"></i>إلغاء
-                        </a>
+                    </div>
+                </div>
+
+                 <!-- Notes & Terms -->
+                 <div class="glass-card p-4">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="section-label mb-2"><i class="bi bi-chat-text me-1"></i> ملاحظات</label>
+                            <textarea name="notes" class="form-control glass-textarea text-white" rows="3" placeholder="أي ملاحظات إضافية...">{{ old('notes', $salesOrder->notes) }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="section-label mb-2"><i class="bi bi-truck me-1"></i> عنوان الشحن</label>
+                            <textarea name="shipping_address" class="form-control glass-textarea text-white" rows="3" placeholder="عنوان التسليم بالتفصيل...">{{ old('shipping_address', $salesOrder->shipping_address) }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Summary Sticky -->
+            <div class="col-xl-3 col-lg-4">
+                <div class="sticky-top" style="top: 100px;">
+                    <div class="glass-card p-4 border-0 shadow-2xl bg-gradient-to-b from-gray-900 to-black position-relative overflow-hidden">
+                        <!-- Neon Glow Effect -->
+                        <div class="position-absolute bottom-0 start-50 translate-middle-x w-100 h-50 bg-yellow-500/10 blur-3xl rounded-circle pointer-events-none"></div>
+
+                        <h5 class="fw-bold text-white mb-4">ملخص الحساب</h5>
+
+                        <div class="d-flex justify-content-between mb-3 text-gray-400">
+                            <span>المجموع الفرعي</span>
+                            <span class="fw-bold text-white" x-text="formatMoney(totals.subtotal)"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mb-3 text-gray-400">
+                            <span>خصم كلي</span>
+                            <div class="w-50 position-relative">
+                                <input type="number" name="discount_amount" 
+                                       class="form-control glass-input-sm text-end text-warning border-warning/30" 
+                                       x-model.number="globalDiscount" min="0" step="0.01">
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-4 text-gray-400">
+                            <span>الضريبة (14%)</span>
+                            <span class="fw-bold text-white" x-text="formatMoney(totals.tax)"></span>
+                        </div>
+
+                        <div class="border-top border-white/10 my-4"></div>
+
+                        <div class="text-center mb-4">
+                            <small class="text-gray-500 text-uppercase tracking-widest d-block mb-1">الإجمالي النهائي</small>
+                            <h2 class="display-6 fw-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-300" x-text="formatMoney(totals.grandTotal)"></h2>
+                            <input type="hidden" name="total" :value="totals.grandTotal">
+                        </div>
+
+                        <button type="button" @click="submitForm" class="btn btn-warning w-100 py-3 fw-bold rounded-xl shadow-lg hover-scale shimmer-effect text-black">
+                            تحديث أمر البيع
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</form>
+    </form>
+</div>
 
-<!-- Product Line Template (Hidden) -->
-<template id="line-template">
-    <tr class="line-row">
-        <td>
-            <select class="form-select product-select" name="lines[INDEX][product_id]" required>
-                <option value="">اختر المنتج...</option>
-                @foreach($products as $product)
-                    <option value="{{ $product->id }}" 
-                            data-price="{{ $product->selling_price }}"
-                            data-unit="{{ $product->unit?->abbreviation ?? '' }}">
-                        {{ $product->sku }} - {{ $product->name }}
-                    </option>
-                @endforeach
-            </select>
-            <small class="text-muted product-info"></small>
-        </td>
-        <td>
-            <input type="number" class="form-control quantity-input" 
-                   name="lines[INDEX][quantity]" step="0.01" min="0.01" value="1" required>
-        </td>
-        <td>
-            <input type="number" class="form-control unit-price-input" 
-                   name="lines[INDEX][unit_price]" step="0.01" min="0" required>
-        </td>
-        <td>
-            <input type="number" class="form-control discount-input" 
-                   name="lines[INDEX][discount_percent]" step="0.01" min="0" max="100" value="0">
-        </td>
-        <td>
-            <strong class="line-total">0.00</strong> ج.م
-        </td>
-        <td class="text-center">
-            <button type="button" class="btn btn-danger btn-sm remove-line">
-                <i class="bi bi-trash"></i>
-            </button>
-        </td>
-    </tr>
-</template>
-@endsection
-
-@push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    let lineIndex = {{ $salesOrder->lines->count() }};
-    const linesBody = document.getElementById('lines-body');
-    const lineTemplate = document.getElementById('line-template');
-    
-    // Initialize existing lines
-    document.querySelectorAll('.line-row').forEach(initLineRow);
-    calculateTotals();
-    
-    // Add line button
-    document.getElementById('add-line').addEventListener('click', addLine);
-    
-    function initLineRow(row) {
-        const productSelect = row.querySelector('.product-select');
-        const quantityInput = row.querySelector('.quantity-input');
-        const unitPriceInput = row.querySelector('.unit-price-input');
-        const discountInput = row.querySelector('.discount-input');
-        const removeBtn = row.querySelector('.remove-line');
-        
-        productSelect.addEventListener('change', function() {
-            const selected = this.options[this.selectedIndex];
-            if (this.value) {
-                unitPriceInput.value = selected.dataset.price || 0;
-                row.querySelector('.product-info').textContent = selected.dataset.unit || '';
-                calculateLineTotal(row);
+    function salesOrderBuilder(initialItems = [], initialDiscount = 0, initialWarehouse = '') {
+        return {
+            warehouseId: initialWarehouse,
+            items: initialItems.length ? initialItems : [
+                { product_id: '', quantity: 1, unit_price: 0, discount_percent: 0, unit_name: '' }
+            ],
+            globalDiscount: initialDiscount,
+            
+            addItem() {
+                this.items.push({ product_id: '', quantity: 1, unit_price: 0, discount_percent: 0, unit_name: '' });
+                // Scroll to bottom of table logic if needed
+            },
+
+            removeItem(index) {
+                if (this.items.length > 1) {
+                    this.items.splice(index, 1);
+                }
+            },
+
+            updateProductDetails(index, event) {
+                let select = event.target;
+                let option = select.options[select.selectedIndex];
+                
+                if (option.value) {
+                    this.items[index].unit_price = parseFloat(option.dataset.price) || 0;
+                    this.items[index].unit_name = option.dataset.unit || '';
+                } else {
+                    this.items[index].unit_price = 0;
+                    this.items[index].unit_name = '';
+                }
+            },
+
+            calculateLineTotal(item) {
+                let gross = (parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0);
+                let discount = gross * ((parseFloat(item.discount_percent) || 0) / 100);
+                return Math.max(0, gross - discount);
+            },
+
+            get totals() {
+                let subtotal = this.items.reduce((sum, item) => sum + this.calculateLineTotal(item), 0);
+                let grand = subtotal - (parseFloat(this.globalDiscount) || 0);
+                let tax = grand * 0.14; // Fixed 14% VAT
+                
+                return {
+                    subtotal: subtotal,
+                    tax: tax,
+                    grandTotal: Math.max(0, grand + tax)
+                };
+            },
+
+            formatMoney(value) {
+                return new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'EGP'
+                }).format(value);
+            },
+
+            submitForm() {
+                if(!this.warehouseId) {
+                    alert('يرجى اختيار المخزن');
+                    return;
+                }
+                document.getElementById('order-form').submit();
             }
-        });
-        
-        quantityInput.addEventListener('input', () => calculateLineTotal(row));
-        unitPriceInput.addEventListener('input', () => calculateLineTotal(row));
-        discountInput.addEventListener('input', () => calculateLineTotal(row));
-        
-        removeBtn.addEventListener('click', function() {
-            if (document.querySelectorAll('.line-row').length > 1) {
-                row.remove();
-                calculateTotals();
-            } else {
-                alert('يجب أن يحتوي الأمر على صنف واحد على الأقل');
-            }
-        });
+        }
     }
-    
-    function addLine() {
-        const template = lineTemplate.content.cloneNode(true);
-        const row = template.querySelector('tr');
-        
-        row.innerHTML = row.innerHTML.replace(/INDEX/g, lineIndex);
-        initLineRow(row);
-        
-        linesBody.appendChild(row);
-        lineIndex++;
-    }
-    
-    function calculateLineTotal(row) {
-        const qty = parseFloat(row.querySelector('.quantity-input').value) || 0;
-        const price = parseFloat(row.querySelector('.unit-price-input').value) || 0;
-        const discount = parseFloat(row.querySelector('.discount-input').value) || 0;
-        
-        const subtotal = qty * price;
-        const discountAmount = subtotal * (discount / 100);
-        const total = subtotal - discountAmount;
-        
-        row.querySelector('.line-total').textContent = total.toFixed(2);
-        calculateTotals();
-    }
-    
-    function calculateTotals() {
-        let subtotal = 0;
-        document.querySelectorAll('.line-total').forEach(el => {
-            subtotal += parseFloat(el.textContent) || 0;
-        });
-        
-        document.getElementById('subtotal').textContent = subtotal.toFixed(2);
-        document.getElementById('total').textContent = subtotal.toFixed(2);
-    }
-});
 </script>
-@endpush
+
+<style>
+    /* Premium Glass Styles */
+    .glass-header {
+        background: rgba(15, 23, 42, 0.85);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .glass-card {
+        background: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .glass-select, .glass-input, .glass-textarea {
+        background: rgba(15, 23, 42, 0.6) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: white !important;
+        transition: all 0.3s ease;
+    }
+
+    /* Force option styling for ALL glass inputs */
+    .glass-select option, .glass-input option, .glass-input-sm option, select option {
+        background-color: #111827 !important; /* Gray 900 */
+        color: #ffffff !important;
+        padding: 10px;
+    }
+
+    .glass-select:focus, .glass-input:focus, .glass-textarea:focus {
+        background: rgba(15, 23, 42, 0.9) !important;
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    }
+
+    .section-label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #94a3b8;
+    }
+
+    /* Item Table Inputs */
+    .glass-input-sm {
+        background: transparent !important;
+        border: none !important;
+        color: white !important;
+        padding-left: 0;
+    }
+    .glass-input-sm:focus {
+        background: rgba(255,255,255,0.05) !important;
+        box-shadow: none;
+    }
+
+    .glass-input-number {
+        background: rgba(0,0,0,0.2) !important;
+        border: 1px solid rgba(255,255,255,0.05) !important;
+        border-radius: 8px;
+    }
+
+    .h-50px { height: 50px; }
+    .icon-box {
+        width: 48px; height: 48px;
+        display: flex; align-items: center; justify-content: center;
+    }
+
+    .hover-scale { transition: transform 0.2s; }
+    .hover-scale:hover { transform: translateY(-2px); }
+
+    .btn-gradient-warning {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        border: none;
+        color: black;
+    }
+
+    .btn-glass-outline {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: white;
+    }
+    .btn-glass-outline:hover {
+        background: rgba(255,255,255,0.1);
+        border-color: rgba(255,255,255,0.2);
+    }
+
+    .shimmer-effect {
+        position: relative;
+        overflow: hidden;
+    }
+    .shimmer-effect::after {
+        content: '';
+        position: absolute;
+        top: 0; left: -100%;
+        width: 100%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        animation: shimmer 2s infinite;
+    }
+    
+    @keyframes shimmer {
+        100% { left: 100%; }
+    }
+
+    .absolute-glow {
+        position: absolute;
+        width: 150px; height: 150px;
+        background: radial-gradient(circle, rgba(59,130,246,0.3) 0%, transparent 70%);
+        filter: blur(40px);
+        pointer-events: none;
+    }
+</style>
+@endsection

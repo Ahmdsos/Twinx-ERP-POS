@@ -1,191 +1,139 @@
 @extends('layouts.app')
 
-@section('title', $grn->grn_number . ' - Twinx ERP')
-@section('page-title', 'تفاصيل سند الاستلام')
-
-@section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">الرئيسية</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('grns.index') }}">سندات الاستلام</a></li>
-    <li class="breadcrumb-item active">{{ $grn->grn_number }}</li>
-@endsection
+@section('title', 'سند استلام: ' . $grn->grn_number)
 
 @section('content')
-    <div class="row">
-        <!-- Main Content -->
-        <div class="col-lg-8">
-            <!-- GRN Header Card -->
-            <div class="card mb-4">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="bi bi-box-seam me-2"></i>
-                        {{ $grn->grn_number }}
-                    </h5>
-                    @php
-                        $statusColors = [
-                            'draft' => 'secondary',
-                            'completed' => 'success',
-                            'cancelled' => 'danger',
-                        ];
-                    @endphp
-                    <span class="badge bg-{{ $statusColors[$grn->status->value] ?? 'secondary' }} fs-6">
-                        {{ $grn->status->label() }}
-                    </span>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <table class="table table-sm table-borderless">
-                                <tr>
-                                    <td class="text-muted" style="width: 40%;">المورد</td>
-                                    <td>
-                                        <strong>{{ $grn->supplier?->name ?? '-' }}</strong>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="text-muted">أمر الشراء</td>
-                                    <td>
-                                        @if($grn->purchaseOrder)
-                                            <a href="{{ route('purchase-orders.show', $grn->purchaseOrder) }}">
-                                                {{ $grn->purchaseOrder->po_number }}
-                                            </a>
-                                        @else
-                                            -
-                                        @endif
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="text-muted">المستودع</td>
-                                    <td>{{ $grn->warehouse?->name ?? '-' }}</td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div class="col-md-6">
-                            <table class="table table-sm table-borderless">
-                                <tr>
-                                    <td class="text-muted" style="width: 40%;">تاريخ الاستلام</td>
-                                    <td>{{ $grn->received_date?->format('Y-m-d') ?? '-' }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="text-muted">مستند المورد</td>
-                                    <td>{{ $grn->supplier_delivery_note ?? '-' }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="text-muted">مستلم بواسطة</td>
-                                    <td>{{ $grn->receiver?->name ?? '-' }}</td>
-                                </tr>
-                            </table>
-                        </div>
+    <div class="container-fluid p-0">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <a href="{{ route('grns.index') }}" class="btn btn-outline-light btn-sm rounded-circle shadow-sm"
+                    style="width: 32px; height: 32px;"><i class="bi bi-arrow-right"></i></a>
+                <div>
+                    <h2 class="fw-bold text-white mb-0">سند استلام بضاعة</h2>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-gray-400 font-monospace">{{ $grn->grn_number }}</span>
+                        <span
+                            class="badge bg-green-500 bg-opacity-10 text-green-400 border border-green-500 border-opacity-20 rounded-pill px-2">
+                            {{ $grn->status->label() }}
+                        </span>
                     </div>
                 </div>
             </div>
+            <div class="d-flex gap-2">
+                @if(!$grn->invoice)
+                    <a href="{{ route('purchase-invoices.create', ['grn_id' => $grn->id]) }}" class="btn btn-action-cyan">
+                        <i class="bi bi-receipt me-2"></i> تحويل لفاتورة شراء
+                    </a>
+                @else
+                    <a href="{{ route('purchase-invoices.show', $grn->invoice->id) }}" class="btn btn-outline-cyan">
+                        <i class="bi bi-eye me-2"></i> عرض الفاتورة
+                    </a>
+                @endif
+            </div>
+        </div>
 
-            <!-- GRN Lines -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i>الأصناف المستلمة</h5>
-                </div>
-                <div class="card-body p-0">
+        <div class="row g-4">
+            <!-- Details -->
+            <div class="col-md-9">
+                <div class="glass-panel p-0 overflow-hidden mb-4">
+                    <div class="p-4 border-bottom border-white-5">
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <label class="text-gray-500 x-small fw-bold text-uppercase mb-1">المورد</label>
+                                <h6 class="text-white fw-bold mb-0">{{ $grn->supplier->name }}</h6>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="text-gray-500 x-small fw-bold text-uppercase mb-1">تاريخ الاستلام</label>
+                                <p class="text-white fw-bold mb-0">{{ $grn->received_date->format('Y-m-d') }}</p>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="text-gray-500 x-small fw-bold text-uppercase mb-1">المخزن</label>
+                                <p class="text-white mb-0">{{ $grn->warehouse->name }}</p>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="text-gray-500 x-small fw-bold text-uppercase mb-1">أمر الشراء</label>
+                                <a href="{{ route('purchase-orders.show', $grn->purchase_order_id) }}"
+                                    class="text-blue-400 text-decoration-none font-monospace d-block">
+                                    {{ $grn->purchaseOrder->po_number }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Items Table -->
                     <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
+                        <table class="table table-dark-custom align-middle mb-0">
+                            <thead>
                                 <tr>
-                                    <th>#</th>
-                                    <th>المنتج</th>
-                                    <th>الكمية</th>
-                                    <th>سعر الوحدة</th>
-                                    <th>الإجمالي</th>
+                                    <th class="ps-4">المنتج</th>
+                                    <th class="text-center">الكمية المستلمة</th>
+                                    <th class="text-center">الوحدة</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($grn->lines as $index => $line)
+                                @foreach($grn->lines as $line)
                                     <tr>
-                                        <td>{{ $index + 1 }}</td>
-                                        <td>
-                                            <strong>{{ $line->product?->name ?? '-' }}</strong>
-                                            <br>
-                                            <small class="text-muted">{{ $line->product?->sku }}</small>
+                                        <td class="ps-4">
+                                            <h6 class="text-white mb-0">{{ $line->product->name }}</h6>
+                                            <span class="text-gray-500 x-small code-font">{{ $line->product->sku }}</span>
                                         </td>
-                                        <td>{{ number_format($line->quantity, 2) }} {{ $line->product?->unit?->name }}</td>
-                                        <td>{{ number_format($line->unit_price ?? 0, 2) }}</td>
-                                        <td class="fw-bold">{{ number_format($line->line_total ?? 0, 2) }}</td>
+                                        <td class="text-center fw-bold text-green-300 fs-5">{{ $line->quantity }}</td>
+                                        <td class="text-center text-gray-400 x-small">{{ $line->product->unit->name ?? '-' }}
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
-                            <tfoot class="table-light">
-                                <tr class="table-primary">
-                                    <td colspan="4" class="text-start"><strong>إجمالي القيمة</strong></td>
-                                    <td><strong>{{ number_format($grn->getTotalValue(), 2) }} ج.م</strong></td>
-                                </tr>
-                            </tfoot>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <!-- Notes -->
-            @if($grn->notes)
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="bi bi-chat-text me-2"></i>ملاحظات</h5>
+            <!-- Sidebar Info -->
+            <div class="col-md-3">
+                @if($grn->notes)
+                    <div class="glass-panel p-4 mb-4">
+                        <h6 class="text-gray-400 x-small fw-bold text-uppercase mb-2">ملاحظات</h6>
+                        <p class="text-gray-300 small mb-0">{{ $grn->notes }}</p>
                     </div>
-                    <div class="card-body">
-                        <p class="mb-0 text-muted">{{ $grn->notes }}</p>
+                @endif
+
+                @if($grn->supplier_delivery_note)
+                    <div class="glass-panel p-4">
+                        <h6 class="text-gray-400 x-small fw-bold text-uppercase mb-2">إذن تسليم المورد</h6>
+                        <p class="text-white font-monospace mb-0">{{ $grn->supplier_delivery_note }}</p>
                     </div>
-                </div>
-            @endif
-        </div>
-
-        <!-- Sidebar -->
-        <div class="col-lg-4">
-            <!-- Actions Card -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h6 class="mb-0"><i class="bi bi-gear me-2"></i>الإجراءات</h6>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        @if($grn->purchaseOrder)
-                            <a href="{{ route('purchase-orders.show', $grn->purchaseOrder) }}" class="btn btn-outline-primary">
-                                <i class="bi bi-cart me-2"></i>عرض أمر الشراء
-                            </a>
-                        @endif
-
-                        @if($grn->canEdit())
-                            <form action="{{ route('grns.cancel', $grn) }}" method="POST">
-                                @csrf
-                                <button type="submit" class="btn btn-outline-danger w-100"
-                                    onclick="return confirm('هل أنت متأكد من إلغاء هذا السند؟')">
-                                    <i class="bi bi-x-lg me-2"></i>إلغاء السند
-                                </button>
-                            </form>
-                        @endif
-
-                        <hr>
-                        <a href="{{ route('grns.index') }}" class="btn btn-secondary">
-                            <i class="bi bi-arrow-right me-2"></i>العودة للقائمة
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Document Info -->
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>معلومات المستند</h6>
-                </div>
-                <div class="card-body">
-                    <table class="table table-sm table-borderless mb-0">
-                        <tr>
-                            <td class="text-muted">تاريخ الإنشاء</td>
-                            <td>{{ $grn->created_at?->format('Y-m-d H:i') }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">آخر تحديث</td>
-                            <td>{{ $grn->updated_at?->format('Y-m-d H:i') }}</td>
-                        </tr>
-                    </table>
-                </div>
+                @endif
             </div>
         </div>
     </div>
+
+    <style>
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            backdrop-filter: blur(12px);
+        }
+
+        .table-dark-custom {
+            --bs-table-bg: transparent;
+            --bs-table-border-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .table-dark-custom th {
+            background: rgba(0, 0, 0, 0.2);
+            color: #94a3b8;
+            font-weight: 600;
+            padding: 1rem;
+        }
+
+        .btn-action-cyan {
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+        }
+    </style>
 @endsection

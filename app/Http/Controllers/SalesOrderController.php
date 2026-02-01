@@ -284,6 +284,23 @@ class SalesOrderController extends Controller
             ->with('success', 'تم حذف أمر البيع: ' . $soNumber);
     }
 
+    public function print(SalesOrder $salesOrder)
+    {
+        return view('sales.orders.print', compact('salesOrder'));
+    }
+
+    public function deliver(SalesOrder $salesOrder)
+    {
+        return redirect()->route('deliveries.create', ['sales_order_id' => $salesOrder->id]);
+    }
+
+    public function invoice(SalesOrder $salesOrder)
+    {
+        // Placeholder for invoice logic
+        // Ideally redirect to invoices.create with SO data
+        return redirect()->route('sales-invoices.create', ['from_so' => $salesOrder->id]);
+    }
+
     /**
      * Get product info for AJAX (price, stock)
      */

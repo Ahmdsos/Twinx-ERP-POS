@@ -1,94 +1,237 @@
 @extends('layouts.app')
 
-@section('title', 'تعديل ' . $warehouse->name . ' - Twinx ERP')
-@section('page-title', 'تعديل المستودع')
-
-@section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">الرئيسية</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('warehouses.index') }}">المستودعات</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('warehouses.show', $warehouse) }}">{{ $warehouse->name }}</a></li>
-    <li class="breadcrumb-item active">تعديل</li>
-@endsection
+@section('title', 'تعديل مستودع')
 
 @section('content')
-<div class="row justify-content-center">
-    <div class="col-lg-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-pencil me-2"></i>تعديل المستودع</h5>
-            </div>
-            <div class="card-body">
-                <form action="{{ route('warehouses.update', $warehouse) }}" method="POST">
-                    @csrf
-                    @method('PUT')
-                    
-                    <div class="mb-3">
-                        <label class="form-label">كود المستودع</label>
-                        <input type="text" class="form-control" value="{{ $warehouse->code }}" readonly>
-                        <small class="text-muted">الكود لا يمكن تغييره</small>
+    <div class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Header -->
+                <div class="text-center mb-5">
+                    <div class="d-inline-flex align-items-center justify-content-center icon-box-lg mb-3 shadow-neon-amber">
+                        <i class="bi bi-pencil-square fs-2 text-white"></i>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">اسم المستودع <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control @error('name') is-invalid @enderror" 
-                               name="name" value="{{ old('name', $warehouse->name) }}" required>
-                        @error('name')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">العنوان</label>
-                        <input type="text" class="form-control @error('address') is-invalid @enderror" 
-                               name="address" value="{{ old('address', $warehouse->address) }}">
-                        @error('address')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">رقم الهاتف</label>
-                        <input type="text" class="form-control @error('phone') is-invalid @enderror" 
-                               name="phone" value="{{ old('phone', $warehouse->phone) }}">
-                        @error('phone')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">البريد الإلكتروني</label>
-                        <input type="email" class="form-control @error('email') is-invalid @enderror" 
-                               name="email" value="{{ old('email', $warehouse->email) }}">
-                        @error('email')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    
-                    <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" name="is_active" id="is_active" 
-                               value="1" {{ old('is_active', $warehouse->is_active) ? 'checked' : '' }}>
-                        <label class="form-check-label" for="is_active">مستودع نشط</label>
-                    </div>
-                    
-                    <div class="form-check form-switch mb-4">
-                        <input class="form-check-input" type="checkbox" name="is_default" id="is_default" 
-                               value="1" {{ old('is_default', $warehouse->is_default) ? 'checked' : '' }}>
-                        <label class="form-check-label" for="is_default">المستودع الافتراضي</label>
-                    </div>
-                    
-                    <hr>
-                    
-                    <div class="d-flex justify-content-between">
-                        <a href="{{ route('warehouses.show', $warehouse) }}" class="btn btn-secondary">
-                            <i class="bi bi-arrow-right me-1"></i>إلغاء
-                        </a>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-lg me-1"></i>حفظ التغييرات
-                        </button>
-                    </div>
-                </form>
+                    <h3 class="fw-bold text-white tracking-wide">تعديل بيانات المستودع</h3>
+                    <p class="text-gray-400">تحديث: <span class="text-amber-400 fw-bold">{{ $warehouse->name }}</span></p>
+                </div>
+
+                <!-- Glass Card Content -->
+                <div class="glass-panel p-5 position-relative overflow-hidden">
+                    <div class="glow-orb bg-amber-500 opacity-10" style="top: -50px; right: -50px;"></div>
+
+                    <form action="{{ route('warehouses.update', $warehouse) }}" method="POST">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-4">
+                                <label
+                                    class="form-label text-amber-400 small fw-bold text-uppercase tracking-wider ps-1">كود
+                                    المستودع</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark-input border-end-0 text-gray-500"><i
+                                            class="bi bi-qr-code"></i></span>
+                                    <input type="text" value="{{ $warehouse->code }}"
+                                        class="form-control form-control-dark border-start-0 ps-0 text-gray-400 font-monospace"
+                                        disabled style="background: rgba(0,0,0,0.5) !important;">
+                                </div>
+                                <div class="form-text text-gray-600 x-small ms-1 mt-1">لا يمكن تعديل كود المستودع</div>
+                            </div>
+                            <div class="col-md-8">
+                                <label
+                                    class="form-label text-amber-400 small fw-bold text-uppercase tracking-wider ps-1">اسم
+                                    المستودع <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark-input border-end-0 text-gray-500"><i
+                                            class="bi bi-tag-fill"></i></span>
+                                    <input type="text" name="name" value="{{ old('name', $warehouse->name) }}"
+                                        class="form-control form-control-dark border-start-0 ps-0 text-white placeholder-gray-600 focus-ring-amber"
+                                        placeholder="اسم المستودع..." required>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <label
+                                    class="form-label text-amber-400 small fw-bold text-uppercase tracking-wider ps-1">العنوان</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark-input border-end-0 text-gray-500"><i
+                                            class="bi bi-geo-alt-fill"></i></span>
+                                    <input type="text" name="address" value="{{ old('address', $warehouse->address) }}"
+                                        class="form-control form-control-dark border-start-0 ps-0 text-white placeholder-gray-600 focus-ring-amber"
+                                        placeholder="العنوان بالتفصيل">
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label
+                                    class="form-label text-amber-400 small fw-bold text-uppercase tracking-wider ps-1">رقم
+                                    الهاتف</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark-input border-end-0 text-gray-500"><i
+                                            class="bi bi-telephone-fill"></i></span>
+                                    <input type="text" name="phone" value="{{ old('phone', $warehouse->phone) }}"
+                                        class="form-control form-control-dark border-start-0 ps-0 text-white placeholder-gray-600 focus-ring-amber"
+                                        placeholder="01xxxxxxxxx">
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label
+                                    class="form-label text-amber-400 small fw-bold text-uppercase tracking-wider ps-1">البريد
+                                    الإلكتروني</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark-input border-end-0 text-gray-500"><i
+                                            class="bi bi-envelope-fill"></i></span>
+                                    <input type="email" name="email" value="{{ old('email', $warehouse->email) }}"
+                                        class="form-control form-control-dark border-start-0 ps-0 text-white placeholder-gray-600 focus-ring-amber"
+                                        placeholder="email@example.com">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-4 mb-5">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center justify-content-between p-3 rounded-3 border border-white-10 bg-white-5 transition-all hover:bg-white-10 cursor-pointer"
+                                    onclick="document.getElementById('isActiveCheck').click()">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div
+                                            class="icon-box-sm {{ $warehouse->is_active ? 'bg-success text-success' : 'bg-danger text-danger' }} bg-opacity-10">
+                                            <i class="bi bi-power"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold text-white mb-0">تفعيل المستودع</h6>
+                                            <p
+                                                class="mb-0 {{ $warehouse->is_active ? 'text-success' : 'text-danger' }} x-small">
+                                                {{ $warehouse->is_active ? 'نشط حالياً' : 'معطل حالياً' }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="form-check form-switch custom-switch-amber">
+                                        <input class="form-check-input fs-5 cursor-pointer" type="checkbox" name="is_active"
+                                            value="1" id="isActiveCheck" {{ $warehouse->is_active ? 'checked' : '' }}
+                                            onclick="event.stopPropagation()">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center justify-content-between p-3 rounded-3 border border-white-10 bg-white-5 transition-all hover:bg-white-10 cursor-pointer"
+                                    onclick="document.getElementById('isDefaultCheck').click()">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="icon-box-sm bg-amber bg-opacity-10 text-amber-400">
+                                            <i class="bi bi-star-fill"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold text-white mb-0">تعيين كافتراضي</h6>
+                                            <p class="mb-0 text-gray-500 x-small">تعيين كمستودع رئيسي للنظام</p>
+                                        </div>
+                                    </div>
+                                    <div class="form-check form-switch custom-switch-amber">
+                                        <input class="form-check-input fs-5 cursor-pointer" type="checkbox"
+                                            name="is_default" value="1" id="isDefaultCheck" {{ $warehouse->is_default ? 'checked' : '' }} onclick="event.stopPropagation()">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="d-flex justify-content-between align-items-center pt-4 border-top border-white-10">
+                            <a href="{{ route('warehouses.index') }}"
+                                class="btn btn-link text-gray-400 text-decoration-none hover-text-white d-flex align-items-center gap-2">
+                                <i class="bi bi-arrow-right"></i> إلغاء
+                            </a>
+                            <button type="submit"
+                                class="btn btn-action-amber px-5 py-2 rounded-pill fw-bold shadow-neon-amber d-flex align-items-center gap-2">
+                                <i class="bi bi-save"></i> حفظ التعديلات
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
+
+    <style>
+        /* Scoped Styles for Edit Form (Amber Theme) */
+        .icon-box-lg {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(30, 41, 59, 0.5));
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(245, 158, 11, 0.15);
+        }
+
+        .icon-box-sm {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .bg-dark-input {
+            background: rgba(15, 23, 42, 0.6) !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+            color: #94a3b8;
+        }
+
+        .form-control-dark {
+            background: rgba(15, 23, 42, 0.6) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: white !important;
+            padding: 0.8rem 1rem;
+        }
+
+        .form-control-dark:focus {
+            border-color: #f59e0b !important;
+            box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.1) !important;
+            background: rgba(15, 23, 42, 0.8) !important;
+        }
+
+        .custom-switch-amber .form-check-input:checked {
+            background-color: #f59e0b;
+            border-color: #f59e0b;
+        }
+
+        .btn-action-amber {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border: none;
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .btn-action-amber:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(245, 158, 11, 0.5);
+        }
+
+        .placeholder-gray-600::placeholder {
+            color: #475569;
+        }
+
+        .bg-white-5 {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .bg-white-10 {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .border-white-10 {
+            border-color: rgba(255, 255, 255, 0.05) !important;
+        }
+
+        .x-small {
+            font-size: 0.75rem;
+        }
+
+        .text-amber-400 {
+            color: #fbbf24 !important;
+        }
+
+        .bg-amber-500 {
+            background-color: #f59e0b !important;
+        }
+    </style>
 @endsection

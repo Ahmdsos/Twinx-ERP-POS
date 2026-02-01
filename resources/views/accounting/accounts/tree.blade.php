@@ -1,55 +1,57 @@
 @extends('layouts.app')
 
-@section('title', 'دليل الحسابات - شجرة')
+@section('title', 'دليل الحسابات الشجري')
 
 @section('content')
-    <div class="container-fluid">
-        <!-- Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h1 class="h3 mb-0">دليل الحسابات</h1>
-                <p class="text-muted mb-0">عرض شجري للحسابات</p>
-            </div>
-            <div class="btn-group">
-                <a href="{{ route('accounts.index') }}" class="btn btn-outline-secondary">
-                    <i class="bi bi-list me-1"></i>
-                    عرض جدول
-                </a>
-                <a href="{{ route('accounts.create') }}" class="btn btn-primary">
-                    <i class="bi bi-plus-lg me-1"></i>
-                    حساب جديد
-                </a>
-            </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold text-white mb-1">دليل الحسابات</h4>
+            <div class="text-white-50 small">عرض شجري للهيكل المحاسبي</div>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ route('accounts.index') }}" class="btn btn-glass-outline">
+                <i class="bi bi-list-ul me-1"></i> عرض القائمة
+            </a>
+            <a href="{{ route('accounts.create') }}" class="btn btn-primary shadow-lg fw-bold px-4 py-2">
+                <i class="bi bi-plus-lg me-1"></i> حساب جديد
+            </a>
+        </div>
+    </div>
+
+    <div class="glass-card p-4">
+        <div class="alert alert-info bg-opacity-10 border-info border-opacity-25 text-info mb-4">
+            <i class="bi bi-info-circle me-2"></i>
+            يمكنك التعديل أو الحذف بالضغط على أيقونات الحساب. الحسابات الرئيسية (Header) لا يمكن الترحيل عليها.
         </div>
 
-        <!-- Account Type Tabs -->
-        <ul class="nav nav-tabs mb-4" role="tablist">
-            @foreach($accountsByType as $type => $accounts)
-                <li class="nav-item">
-                    <a class="nav-link {{ $loop->first ? 'active' : '' }}" data-bs-toggle="tab" href="#type-{{ $type }}"
-                        role="tab">
-                        {{ $typeLabels[$type] ?? $type }}
-                        <span class="badge bg-secondary ms-1">{{ count($accounts) }}</span>
-                    </a>
-                </li>
-            @endforeach
-        </ul>
-
-        <!-- Tab Content -->
-        <div class="tab-content">
-            @foreach($accountsByType as $type => $accounts)
-                <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}" id="type-{{ $type }}" role="tabpanel">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body">
+        <div class="accordion" id="accountsAccordion">
+            @foreach($accountsByType as $typeKey => $accounts)
+                <div class="accordion-item bg-transparent border-0 mb-3">
+                    <h2 class="accordion-header" id="heading{{ $typeKey }}">
+                        <button class="accordion-button collapsed glass-accordion-btn text-white fw-bold rounded-3"
+                            type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ $typeKey }}">
+                            <span class="d-flex w-100 justify-content-between align-items-center">
+                                <span>
+                                    <i class="bi bi-folder2-open me-2 text-warning"></i>
+                                    {{ $typeLabels[$typeKey] }}
+                                </span>
+                                <span class="badge bg-white bg-opacity-10 text-white rounded-pill ms-3">
+                                    {{ count($accounts) }} جذر
+                                </span>
+                            </span>
+                        </button>
+                    </h2>
+                    <div id="collapse{{ $typeKey }}" class="accordion-collapse collapse show"
+                        data-bs-parent="#accountsAccordion">
+                        <div class="accordion-body text-white pt-2 ps-4">
                             @if(count($accounts) > 0)
-                                <div class="account-tree">
-                                    @include('accounting.accounts.partials.tree-node', ['accounts' => $accounts, 'level' => 0])
-                                </div>
+                                <ul class="list-unstyled account-tree">
+                                    @foreach($accounts as $account)
+                                        @include('accounting.accounts.tree-item', ['account' => $account])
+                                    @endforeach
+                                </ul>
                             @else
-                                <div class="text-center py-4 text-muted">
-                                    <i class="bi bi-inbox fs-2 d-block mb-2"></i>
-                                    لا توجد حسابات في هذا النوع
-                                </div>
+                                <div class="text-white-50 small py-2 fst-italic">لا توجد حسابات مسجلة لهذا النوع</div>
                             @endif
                         </div>
                     </div>
@@ -59,108 +61,49 @@
     </div>
 
     <style>
+        .glass-card {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            min-height: 400px;
+        }
+
+        .glass-accordion-btn {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white !important;
+            box-shadow: none !important;
+        }
+
+        .glass-accordion-btn:not(.collapsed) {
+            background: rgba(255, 255, 255, 0.1) !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+        }
+
         .account-tree {
-            font-size: 0.95rem;
+            border-right: 1px dashed rgba(255, 255, 255, 0.2);
         }
 
-        .tree-item {
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #f0f0f0;
+        .account-tree .tree-item {
+            position: relative;
+            padding-right: 20px;
         }
 
-        .tree-item:last-child {
-            border-bottom: none;
+        .account-tree .tree-item::before {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 18px;
+            width: 15px;
+            height: 1px;
+            background-color: rgba(255, 255, 255, 0.2);
         }
 
-        .tree-toggle {
-            cursor: pointer;
-            user-select: none;
-            color: #6c757d;
-        }
-
-        .tree-toggle:hover {
-            color: #0d6efd;
-        }
-
-        .tree-children {
-            margin-right: 1.5rem;
-            border-right: 2px solid #e9ecef;
-            padding-right: 1rem;
-        }
-
-        .tree-children.collapsed {
-            display: none;
-        }
-
-        .account-code {
-            font-family: monospace;
-            background: #f8f9fa;
-            padding: 0.125rem 0.375rem;
-            border-radius: 4px;
-            font-size: 0.85rem;
-        }
-
-        .account-balance {
-            font-weight: 600;
-        }
-
-        .account-balance.positive {
-            color: #198754;
-        }
-
-        .account-balance.negative {
-            color: #dc3545;
+        .btn-glass-outline {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
         }
     </style>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Toggle tree nodes
-            document.querySelectorAll('.tree-toggle').forEach(function (toggle) {
-                toggle.addEventListener('click', function () {
-                    const item = this.closest('.tree-item');
-                    const children = item.querySelector('.tree-children');
-                    const icon = this.querySelector('i');
-
-                    if (children) {
-                        children.classList.toggle('collapsed');
-                        if (children.classList.contains('collapsed')) {
-                            icon.classList.remove('bi-chevron-down');
-                            icon.classList.add('bi-chevron-left');
-                        } else {
-                            icon.classList.remove('bi-chevron-left');
-                            icon.classList.add('bi-chevron-down');
-                        }
-                    }
-                });
-            });
-
-            // Expand All / Collapse All buttons
-            document.querySelectorAll('.expand-all').forEach(function (btn) {
-                btn.addEventListener('click', function () {
-                    const container = this.closest('.tab-pane');
-                    container.querySelectorAll('.tree-children').forEach(function (children) {
-                        children.classList.remove('collapsed');
-                    });
-                    container.querySelectorAll('.tree-toggle i').forEach(function (icon) {
-                        icon.classList.remove('bi-chevron-left');
-                        icon.classList.add('bi-chevron-down');
-                    });
-                });
-            });
-
-            document.querySelectorAll('.collapse-all').forEach(function (btn) {
-                btn.addEventListener('click', function () {
-                    const container = this.closest('.tab-pane');
-                    container.querySelectorAll('.tree-children').forEach(function (children) {
-                        children.classList.add('collapsed');
-                    });
-                    container.querySelectorAll('.tree-toggle i').forEach(function (icon) {
-                        icon.classList.remove('bi-chevron-down');
-                        icon.classList.add('bi-chevron-left');
-                    });
-                });
-            });
-        });
-    </script>
 @endsection

@@ -127,6 +127,7 @@ class PurchasingService
                 $unitCost = $item['unit_cost'] ?? $poLine->unit_price;
 
                 // Add stock via InventoryService
+                // Pass false for createJournal to prevent double-booking
                 $stockMovement = $this->inventoryService->addStock(
                     $product,
                     $warehouse,
@@ -136,7 +137,8 @@ class PurchasingService
                     $grn->grn_number,
                     "GRN from PO: {$po->po_number}",
                     Grn::class,
-                    $grn->id
+                    $grn->id,
+                    false
                 );
 
                 // Create GRN line
@@ -158,7 +160,7 @@ class PurchasingService
             // Complete GRN
             $grn->complete();
 
-            // Create journal entry for inventory DR, GRN Clearing CR
+            // Create journal entry for inventory DR, AP CR
             $this->createGrnJournalEntry($grn, $totalValue);
 
             return $grn->fresh(['lines', 'purchaseOrder', 'warehouse']);
@@ -170,24 +172,35 @@ class PurchasingService
      */
     protected function createGrnJournalEntry(Grn $grn, float $totalValue): void
     {
-        $inventoryAccount = Account::where('code', '1301')->first(); // Inventory
-        // Use GRN Clearing Account (2120) instead of AP directly
-        $clearingAccount = Account::where('code', '2120')->first();
+        $inventoryCode = \App\Models\Setting::getValue('acc_inventory', '1301');
+        $apCode = \App\Models\Setting::getValue('acc_ap', '2101');
 
-        if (!$inventoryAccount || !$clearingAccount) {
+        $inventoryAccount = Account::where('code', $inventoryCode)->first(); // Inventory
+        $apAccount = Account::where('code', $apCode)->first(); // Accounts Payable
+
+        if (!$inventoryAccount || !$apAccount) {
             return; // Skip if accounts not configured
         }
 
         $entry = $this->journalService->create([
             'entry_date' => $grn->received_date,
             'reference' => $grn->grn_number,
-            'description' => "Goods Receipt from {$grn->supplier->name} (Pending Invoice)",
+            'description' => "Goods Receipt from {$grn->supplier->name}",
             'source_type' => Grn::class,
             'source_id' => $grn->id,
         ], [
             ['account_id' => $inventoryAccount->id, 'debit' => $totalValue, 'credit' => 0],
-            ['account_id' => $clearingAccount->id, 'debit' => 0, 'credit' => $totalValue],
+            [
+                'account_id' => $apAccount->id,
+                'debit' => 0,
+                'credit' => $totalValue,
+                'subledger_type' => \Modules\Purchasing\Models\Supplier::class,
+                'subledger_id' => $grn->supplier_id
+            ],
         ]);
+
+        // AUTO-POST to update account balances and maintain ledger truth
+        $this->journalService->post($entry);
 
         $grn->update(['journal_entry_id' => $entry->id]);
     }
@@ -218,11 +231,9 @@ class PurchasingService
                 'purchase_order_id' => $grn->purchase_order_id,
                 'invoice_date' => $invoiceDate,
                 'due_date' => $dueDate,
-                'status' => PurchaseInvoiceStatus::APPROVED, // Auto-approve for now since it matches GRN
+                'status' => PurchaseInvoiceStatus::PENDING,
                 'created_by' => auth()->id(),
             ]);
-
-            $totalValue = 0;
 
             // Copy lines from GRN
             foreach ($grn->lines as $grnLine) {
@@ -233,41 +244,60 @@ class PurchasingService
                     'unit_price' => $grnLine->unit_cost,
                     'tax_percent' => $grnLine->product->tax_rate ?? 0,
                 ]);
-
-                $totalValue += $grnLine->quantity * $grnLine->unit_cost;
             }
-
-            // Create Journal Entry: DR GRN Clearing, CR Accounts Payable
-            $this->createInvoiceJournalEntry($invoice, $totalValue);
 
             return $invoice->fresh(['lines', 'supplier']);
         });
     }
 
     /**
-     * Create journal entry for Purchase Invoice
+     * Create Direct Purchase Invoice (Auto PO -> GRN -> Invoice)
      */
-    protected function createInvoiceJournalEntry(PurchaseInvoice $invoice, float $totalValue): void
-    {
-        $clearingAccount = Account::where('code', '2120')->first(); // GRN Clearing
-        $apAccount = Account::where('code', '2101')->first(); // Accounts Payable
+    public function createDirectInvoice(
+        Supplier $supplier,
+        Warehouse $warehouse,
+        array $items,
+        array $invoiceData
+    ): PurchaseInvoice {
+        return DB::transaction(function () use ($supplier, $warehouse, $items, $invoiceData) {
+            // 1. Create & Approve PO
+            $po = $this->createPurchaseOrder([
+                'supplier_id' => $supplier->id,
+                'warehouse_id' => $warehouse->id,
+                'order_date' => $invoiceData['invoice_date'],
+                'expected_date' => $invoiceData['invoice_date'],
+                'notes' => 'Auto-generated from Direct Invoice',
+            ], $items);
 
-        if (!$clearingAccount || !$apAccount) {
-            return;
-        }
+            $this->approvePurchaseOrder($po);
 
-        $entry = $this->journalService->create([
-            'entry_date' => $invoice->invoice_date,
-            'reference' => $invoice->invoice_number,
-            'description' => "Purchase Invoice #{$invoice->supplier_invoice_number} from {$invoice->supplier->name}",
-            'source_type' => PurchaseInvoice::class,
-            'source_id' => $invoice->id,
-        ], [
-            ['account_id' => $clearingAccount->id, 'debit' => $totalValue, 'credit' => 0],
-            ['account_id' => $apAccount->id, 'debit' => 0, 'credit' => $totalValue],
-        ]);
+            // 2. Receive Goods (GRN)
+            // Transform items to match receiveGoods expectation
+            $receiveItems = [];
+            foreach ($po->lines as $line) {
+                $receiveItems[] = [
+                    'purchase_order_line_id' => $line->id,
+                    'quantity' => $line->quantity,
+                    'unit_cost' => $line->unit_price,
+                ];
+            }
 
-        $invoice->update(['journal_entry_id' => $entry->id]);
+            $grn = $this->receiveGoods(
+                $po,
+                $warehouse,
+                $receiveItems,
+                $invoiceData['supplier_invoice_number'],
+                $invoiceData['notes'] ?? null
+            );
+
+            // 3. Create Invoice
+            return $this->createInvoiceFromGrn(
+                $grn,
+                $invoiceData['supplier_invoice_number'],
+                $invoiceData['invoice_date'],
+                $invoiceData['due_date']
+            );
+        });
     }
 
     // ========================================
@@ -299,23 +329,12 @@ class PurchasingService
 
             // Allocate to invoices
             foreach ($invoiceAllocations as $allocation) {
-                // Ensure allocation is an array (could be string or object)
-                if (is_string($allocation)) {
-                    $allocation = json_decode($allocation, true) ?? [];
-                }
-                if (!is_array($allocation) || empty($allocation['invoice_id'])) {
-                    continue;
-                }
-
                 $invoice = PurchaseInvoice::find($allocation['invoice_id']);
                 if ($invoice && $invoice->supplier_id === $supplier->id) {
-                    $allocAmount = min($allocation['amount'] ?? 0, $invoice->balance_due);
-                    if ($allocAmount > 0) {
-                        $payment->allocateToInvoice($invoice, $allocAmount);
-                    }
+                    $allocAmount = min($allocation['amount'], $invoice->balance_due);
+                    $payment->allocateToInvoice($invoice, $allocAmount);
                 }
             }
-
 
             // Create journal entry: DR AP, CR Cash/Bank
             $this->createPaymentJournalEntry($payment, $supplier);
@@ -329,9 +348,10 @@ class PurchasingService
      */
     protected function createPaymentJournalEntry(SupplierPayment $payment, Supplier $supplier): void
     {
+        $apCode = \App\Models\Setting::getValue('acc_ap', '2101');
         $apAccount = $supplier->account_id
             ? Account::find($supplier->account_id)
-            : Account::where('code', '2101')->first();
+            : Account::where('code', $apCode)->first();
 
         if (!$apAccount) {
             return;
@@ -344,7 +364,13 @@ class PurchasingService
             'source_type' => SupplierPayment::class,
             'source_id' => $payment->id,
         ], [
-            ['account_id' => $apAccount->id, 'debit' => $payment->amount, 'credit' => 0],
+            [
+                'account_id' => $apAccount->id,
+                'debit' => $payment->amount,
+                'credit' => 0,
+                'subledger_type' => \Modules\Purchasing\Models\Supplier::class,
+                'subledger_id' => $supplier->id
+            ],
             ['account_id' => $payment->payment_account_id, 'debit' => 0, 'credit' => $payment->amount],
         ]);
 

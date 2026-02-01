@@ -1,254 +1,189 @@
 @extends('layouts.app')
 
-@section('title', 'تسجيل دفعة - Twinx ERP')
-@section('page-title', 'تسجيل دفعة جديدة')
-
-@section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">الرئيسية</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('customer-payments.index') }}">المدفوعات</a></li>
-    <li class="breadcrumb-item active">دفعة جديدة</li>
-@endsection
+@section('title', 'تسجيل تحصيل جديد')
 
 @section('content')
-    <form action="{{ route('customer-payments.store') }}" method="POST" id="payment-form">
-        @csrf
-
-        <div class="row">
-            <!-- Main Form -->
-            <div class="col-lg-8">
-                <!-- Payment Header -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="bi bi-cash me-2"></i>معلومات الدفعة</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label">العميل <span class="text-danger">*</span></label>
-                                <select class="form-select @error('customer_id') is-invalid @enderror" name="customer_id"
-                                    id="customer_id" required {{ $customer ? 'disabled' : '' }}>
-                                    <option value="">اختر العميل...</option>
-                                    @foreach($customers as $cust)
-                                        <option value="{{ $cust->id }}" {{ ($customer?->id ?? old('customer_id')) == $cust->id ? 'selected' : '' }}>
-                                            {{ $cust->code }} - {{ $cust->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @if($customer)
-                                    <input type="hidden" name="customer_id" value="{{ $customer->id }}">
-                                @endif
-                                @error('customer_id')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">تاريخ الدفع <span class="text-danger">*</span></label>
-                                <input type="date" class="form-control @error('payment_date') is-invalid @enderror"
-                                    name="payment_date" value="{{ old('payment_date', date('Y-m-d')) }}" required>
-                                @error('payment_date')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-4">
-                                <label class="form-label">المبلغ <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control @error('amount') is-invalid @enderror"
-                                        name="amount" id="payment_amount" step="0.01" min="0.01"
-                                        value="{{ old('amount', $invoice?->balance_due) }}" required>
-                                    <span class="input-group-text">ج.م</span>
-                                </div>
-                                @error('amount')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-4">
-                                <label class="form-label">طريقة الدفع <span class="text-danger">*</span></label>
-                                <select class="form-select @error('payment_method') is-invalid @enderror"
-                                    name="payment_method" required>
-                                    <option value="cash" {{ old('payment_method') == 'cash' ? 'selected' : '' }}>نقداً
-                                    </option>
-                                    <option value="bank_transfer" {{ old('payment_method') == 'bank_transfer' ? 'selected' : '' }}>تحويل بنكي</option>
-                                    <option value="check" {{ old('payment_method') == 'check' ? 'selected' : '' }}>شيك
-                                    </option>
-                                    <option value="credit_card" {{ old('payment_method') == 'credit_card' ? 'selected' : '' }}>بطاقة ائتمان</option>
-                                </select>
-                                @error('payment_method')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-4">
-                                <label class="form-label">حساب الاستلام <span class="text-danger">*</span></label>
-                                <select class="form-select @error('payment_account_id') is-invalid @enderror"
-                                    name="payment_account_id" required>
-                                    <option value="">اختر الحساب...</option>
-                                    @foreach($paymentAccounts as $account)
-                                        <option value="{{ $account->id }}" {{ old('payment_account_id') == $account->id ? 'selected' : '' }}>
-                                            {{ $account->code }} - {{ $account->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('payment_account_id')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">رقم المرجع</label>
-                                <input type="text" class="form-control" name="reference" value="{{ old('reference') }}"
-                                    placeholder="رقم الشيك / رقم التحويل">
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">ملاحظات</label>
-                                <input type="text" class="form-control" name="notes" value="{{ old('notes') }}">
-                            </div>
-                        </div>
-                    </div>
+    <div class="container p-0" style="max-width: 900px;">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="icon-box bg-gradient-green shadow-neon-green rounded-circle text-white">
+                    <i class="bi bi-wallet2 fs-4"></i>
                 </div>
-
-                <!-- Invoice Allocation -->
-                <div class="card mb-4">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="bi bi-receipt me-2"></i>توزيع على الفواتير</h5>
-                        <small class="text-muted">اختياري - يمكن توزيع المبلغ على أكثر من فاتورة</small>
-                    </div>
-                    <div class="card-body p-0">
-                        @if($pendingInvoices->count() > 0)
-                            <div class="table-responsive">
-                                <table class="table table-bordered mb-0">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th style="width: 40%;">الفاتورة</th>
-                                            <th>تاريخ الاستحقاق</th>
-                                            <th>المتبقي</th>
-                                            <th>المبلغ المخصص</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="invoices-body">
-                                        @foreach($pendingInvoices as $index => $inv)
-                                            <tr class="{{ $inv->isOverdue() ? 'table-danger' : '' }}">
-                                                <td>
-                                                    <strong>{{ $inv->invoice_number }}</strong>
-                                                    @if($inv->isOverdue())
-                                                        <br>
-                                                        <small class="text-danger">متأخرة {{ $inv->getDaysOverdue() }} يوم</small>
-                                                    @endif
-                                                    <input type="hidden" name="allocations[{{ $index }}][invoice_id]"
-                                                        value="{{ $inv->id }}">
-                                                </td>
-                                                <td>{{ $inv->due_date?->format('Y-m-d') }}</td>
-                                                <td class="text-danger">{{ number_format($inv->balance_due, 2) }} ج.م</td>
-                                                <td>
-                                                    <input type="number" class="form-control allocation-amount"
-                                                        name="allocations[{{ $index }}][amount]" step="0.01" min="0"
-                                                        max="{{ $inv->balance_due }}" data-balance="{{ $inv->balance_due }}"
-                                                        value="{{ $invoice && $invoice->id == $inv->id ? $inv->balance_due : 0 }}">
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                    <tfoot class="table-light">
-                                        <tr>
-                                            <td colspan="3" class="text-start"><strong>إجمالي التوزيع</strong></td>
-                                            <td><strong id="total-allocation">0.00</strong> ج.م</td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
-                        @else
-                            <div class="text-center text-muted py-4">
-                                @if($customer)
-                                    <i class="bi bi-check-circle fs-1 d-block mb-2 text-success"></i>
-                                    لا توجد فواتير معلقة لهذا العميل
-                                @else
-                                    <i class="bi bi-info-circle fs-1 d-block mb-2"></i>
-                                    اختر العميل أولاً لعرض الفواتير المعلقة
-                                @endif
-                            </div>
-                        @endif
-                    </div>
+                <div>
+                    <h2 class="fw-bold text-white mb-0">تسجيل تحصيل جديد</h2>
+                    <p class="text-gray-400 mb-0 x-small">إثبات استلام نقدية أو شيك من عميل</p>
                 </div>
             </div>
-
-            <!-- Sidebar -->
-            <div class="col-lg-4">
-                @if($customer)
-                    <!-- Customer Info -->
-                    <div class="card mb-4">
-                        <div class="card-header bg-info text-white">
-                            <h6 class="mb-0"><i class="bi bi-person me-2"></i>معلومات العميل</h6>
-                        </div>
-                        <div class="card-body">
-                            <h6>{{ $customer->name }}</h6>
-                            <p class="mb-1 text-muted">{{ $customer->code }}</p>
-                            @if($customer->phone)
-                                <p class="mb-1"><i class="bi bi-phone me-1"></i>{{ $customer->phone }}</p>
-                            @endif
-                            <hr>
-                            <div class="d-flex justify-content-between">
-                                <span>الرصيد الحالي:</span>
-                                <strong class="{{ ($customer->balance ?? 0) > 0 ? 'text-danger' : 'text-success' }}">
-                                    {{ number_format($customer->balance ?? 0, 2) }} ج.م
-                                </strong>
-                            </div>
-                        </div>
-                    </div>
-                @endif
-
-                <!-- Actions -->
-                <div class="card">
-                    <div class="card-header">
-                        <h6 class="mb-0"><i class="bi bi-gear me-2"></i>إجراءات</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="bi bi-save me-2"></i>تسجيل الدفعة
-                            </button>
-                            <a href="{{ route('customer-payments.index') }}" class="btn btn-secondary">
-                                <i class="bi bi-x me-2"></i>إلغاء
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <a href="{{ route('customer-payments.index') }}" class="btn btn-glass-outline px-4 fw-bold rounded-pill">
+                <i class="bi bi-arrow-right me-2"></i> السجل
+            </a>
         </div>
-    </form>
+
+        <div class="glass-panel p-5 position-relative overflow-hidden">
+            <div class="absolute-glow top-0 start-0 bg-green-500/10"></div>
+
+            <form action="{{ route('customer-payments.store') }}" method="POST">
+                @csrf
+
+                <div class="row g-4 position-relative z-1">
+                    <!-- Customer Selection -->
+                    <div class="col-md-12">
+                        <label class="section-label mb-2 text-green-400">العميل <span class="text-danger">*</span></label>
+                        <select name="customer_id" class="form-select glass-select ps-4 py-3" required autofocus>
+                            <option value="" class="text-gray-500">-- اختر العميل --</option>
+                            @foreach($customers as $customer)
+                                <option value="{{ $customer->id }}" {{ old('customer_id') == $customer->id ? 'selected' : '' }}
+                                    class="bg-gray-900 text-white">
+                                    {{ $customer->name }} • الرصيد: {{ number_format($customer->balance, 2) }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('customer_id') <div class="text-danger x-small mt-1">{{ $message }}</div> @enderror
+                    </div>
+
+                    <div class="col-12">
+                        <hr class="border-white/10 my-2">
+                    </div>
+
+                    <!-- Amount & Date -->
+                    <div class="col-md-6">
+                        <label class="section-label mb-2">المبلغ المحصل <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text glass-input border-end-0 text-success fw-bold">EGP</span>
+                            <input type="number" step="0.01" name="amount"
+                                class="form-control glass-input border-start-0 ps-0 fw-bold fs-5 text-white"
+                                value="{{ old('amount') }}" required placeholder="0.00">
+                        </div>
+                        @error('amount') <div class="text-danger x-small mt-1">{{ $message }}</div> @enderror
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="section-label mb-2">تاريخ التحصيل <span class="text-danger">*</span></label>
+                        <input type="date" name="payment_date" class="form-control glass-input py-3"
+                            value="{{ old('payment_date', date('Y-m-d')) }}" required>
+                        @error('payment_date') <div class="text-danger x-small mt-1">{{ $message }}</div> @enderror
+                    </div>
+
+                    <!-- Payment Method -->
+                    <div class="col-md-6">
+                        <label class="section-label mb-2">طريقة الدفع <span class="text-danger">*</span></label>
+                        <select name="payment_method" class="form-select glass-select py-3" required>
+                            <option value="cash" class="bg-gray-900">نقدي (Cash)</option>
+                            <option value="bank_transfer" class="bg-gray-900">تحويل بنكي</option>
+                            <option value="check" class="bg-gray-900">شيك</option>
+                            <option value="card" class="bg-gray-900">بطاقة ائتمان</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="section-label mb-2">الخزنة / الحساب <span class="text-danger">*</span></label>
+                        <select name="payment_account_id" class="form-select glass-select py-3" required>
+                            @foreach($paymentAccounts as $account)
+                                <option value="{{ $account->id }}" class="bg-gray-900">{{ $account->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Reference & Notes -->
+                    <div class="col-md-12">
+                        <label class="section-label mb-2">رقم مرجعي</label>
+                        <input type="text" name="reference_number" class="form-control glass-input py-3"
+                            placeholder="رقم الشيك / التحويل / الإيصال اليدوي" value="{{ old('reference_number') }}">
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="section-label mb-2">ملاحظات</label>
+                        <textarea name="notes" class="form-control glass-textarea" rows="3"
+                            placeholder="أي ملاحظات إضافية...">{{ old('notes') }}</textarea>
+                    </div>
+
+                    <div class="col-12 mt-4 pt-3 border-top border-white/10">
+                        <button type="submit"
+                            class="btn btn-action-success w-100 py-3 fw-bold shadow-neon-green hover-scale">
+                            <i class="bi bi-check-circle-fill me-2"></i> تأكيد وحفظ التحصيل
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <style>
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+        }
+
+        .glass-select,
+        .glass-input,
+        .glass-textarea {
+            background: rgba(15, 23, 42, 0.6) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: white !important;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .glass-select:focus,
+        .glass-input:focus,
+        .glass-textarea:focus {
+            background: rgba(15, 23, 42, 0.9) !important;
+            border-color: #22c55e !important;
+            /* Green for payments */
+            box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
+        }
+
+        .section-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #94a3b8;
+        }
+
+        .btn-action-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border: none;
+            color: white;
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+
+        .btn-action-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .shadow-neon-green {
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.3);
+        }
+
+        .bg-gradient-green {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .icon-box {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-glass-outline {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .absolute-glow {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            filter: blur(40px);
+            pointer-events: none;
+        }
+    </style>
 @endsection
-
-@push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Calculate total allocation
-            function calculateTotalAllocation() {
-                let total = 0;
-                document.querySelectorAll('.allocation-amount').forEach(input => {
-                    total += parseFloat(input.value) || 0;
-                });
-                document.getElementById('total-allocation').textContent = total.toFixed(2);
-            }
-
-            // Listen for allocation changes
-            document.querySelectorAll('.allocation-amount').forEach(input => {
-                input.addEventListener('input', calculateTotalAllocation);
-            });
-
-            // Initial calculation
-            calculateTotalAllocation();
-
-            // Customer change - reload page
-            const customerSelect = document.getElementById('customer_id');
-            if (customerSelect && !customerSelect.disabled) {
-                customerSelect.addEventListener('change', function () {
-                    if (this.value) {
-                        window.location.href = '{{ route("customer-payments.create") }}?customer_id=' + this.value;
-                    }
-                });
-            }
-        });
-    </script>
-@endpush

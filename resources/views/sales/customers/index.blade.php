@@ -1,127 +1,305 @@
 @extends('layouts.app')
 
-@section('title', 'العملاء - Twinx ERP')
-@section('page-title', 'إدارة العملاء')
-
-@section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">الرئيسية</a></li>
-    <li class="breadcrumb-item active">العملاء</li>
-@endsection
+@section('title', 'العملاء')
 
 @section('content')
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0"><i class="bi bi-people me-2"></i>العملاء</h5>
-        <div class="d-flex gap-2">
-            <!-- Export Dropdown -->
-            <div class="dropdown">
-                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                    <i class="bi bi-download me-1"></i>تصدير
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="{{ route('export.customers.excel') }}"><i class="bi bi-file-earmark-excel text-success me-2"></i>تصدير Excel</a></li>
-                    <li><a class="dropdown-item" href="{{ route('export.customers.pdf') }}" target="_blank"><i class="bi bi-file-earmark-pdf text-danger me-2"></i>تصدير PDF</a></li>
-                </ul>
-            </div>
-            <a href="{{ route('customers.create') }}" class="btn btn-primary">
-                <i class="bi bi-person-plus me-1"></i>عميل جديد
-            </a>
-        </div>
-    </div>
-    <div class="card-body">
-        <!-- Search -->
-        <form action="{{ route('customers.index') }}" method="GET" class="row g-3 mb-4">
-            <div class="col-md-6">
-                <input type="text" class="form-control" name="search" 
-                       placeholder="بحث بالاسم، الكود، أو البريد..." value="{{ request('search') }}">
-            </div>
-            <div class="col-md-2">
-                <div class="form-check form-switch mt-2">
-                    <input type="checkbox" class="form-check-input" name="active_only" value="1" 
-                           id="active_only" {{ request('active_only') ? 'checked' : '' }}>
-                    <label class="form-check-label" for="active_only">النشطين فقط</label>
+    <div class="container-fluid p-0">
+        <!-- Header Section -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-5 gap-4">
+            <div class="d-flex align-items-center gap-4">
+                <div class="icon-box bg-gradient-indigo shadow-neon-indigo">
+                    <i class="bi bi-people-fill fs-3 text-white"></i>
+                </div>
+                <div>
+                    <h2 class="fw-bold text-white mb-1 tracking-wide">إدارة العملاء</h2>
+                    <p class="mb-0 text-gray-400 small">قاعدة بيانات المتسوقين والشركات</p>
                 </div>
             </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-secondary w-100">
-                    <i class="bi bi-search me-1"></i>بحث
-                </button>
-            </div>
-        </form>
-        
-        <!-- Table -->
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th style="width: 80px;">الكود</th>
-                        <th>اسم العميل</th>
-                        <th>الهاتف</th>
-                        <th>المدينة</th>
-                        <th>حد الائتمان</th>
-                        <th>الحالة</th>
-                        <th style="width: 150px;"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($customers as $customer)
-                        <tr>
-                            <td><code>{{ $customer->code }}</code></td>
-                            <td>
-                                <strong>{{ $customer->name }}</strong>
-                                @if($customer->email)
-                                    <br><small class="text-muted">{{ $customer->email }}</small>
-                                @endif
-                            </td>
-                            <td>{{ $customer->mobile ?: $customer->phone ?: '-' }}</td>
-                            <td>{{ $customer->billing_city ?: '-' }}</td>
-                            <td class="money">{{ number_format($customer->credit_limit, 2) }}</td>
-                            <td>
-                                @if($customer->is_active)
-                                    <span class="badge bg-success">نشط</span>
-                                @else
-                                    <span class="badge bg-danger">معطل</span>
-                                @endif
-                            </td>
-                            <td>
-                                <div class="btn-group btn-group-sm">
-                                    <a href="{{ route('customers.show', $customer) }}" class="btn btn-outline-info" title="عرض">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                    <a href="{{ route('customers.edit', $customer) }}" class="btn btn-outline-primary" title="تعديل">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <form action="{{ route('customers.destroy', $customer) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-outline-danger" title="حذف" 
-                                                data-confirm="هل أنت متأكد من حذف هذا العميل؟">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="text-center py-5 text-muted">
-                                <i class="bi bi-people fs-1 d-block mb-2"></i>
-                                لا يوجد عملاء
-                                <br>
-                                <a href="{{ route('customers.create') }}" class="btn btn-primary btn-sm mt-3">
-                                    <i class="bi bi-plus-circle me-1"></i>إضافة عميل
-                                </a>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+            <a href="{{ route('customers.create') }}"
+                class="btn btn-action-indigo d-flex align-items-center gap-2 shadow-lg">
+                <i class="bi bi-person-plus-fill"></i>
+                <span class="fw-bold">إضافة عميل جديد</span>
+            </a>
         </div>
-        
-        <!-- Pagination -->
-        <div class="d-flex justify-content-center">
-            {{ $customers->links() }}
+
+        <!-- Filters Section (Glass) -->
+        <div class="bg-slate-900 bg-opacity-50 border border-white-5 rounded-4 p-4 mb-5">
+            <form action="{{ route('customers.index') }}" method="GET" class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label text-indigo-400 x-small fw-bold text-uppercase ps-1">بحث</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark-input border-end-0 text-gray-500"><i
+                                class="bi bi-search"></i></span>
+                        <input type="text" name="search"
+                            class="form-control form-control-dark border-start-0 ps-0 text-white placeholder-gray-600 focus-ring-indigo"
+                            value="{{ request('search') }}" placeholder="اسم العميل، الهاتف، أو العنوان...">
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label text-indigo-400 x-small fw-bold text-uppercase ps-1">الحالة</label>
+                    <select name="active_only"
+                        class="form-select form-select-dark text-white cursor-pointer hover:bg-white-5">
+                        <option value="0">-- الكل --</option>
+                        <option value="1" {{ request('active_only') ? 'selected' : '' }}>نشط فقط</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-indigo-glass w-100 fw-bold">
+                        <i class="bi bi-funnel"></i> تصفية
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Customers Table -->
+        <div class="glass-panel overflow-hidden border-top-gradient-indigo">
+            <div class="table-responsive">
+                <table class="table table-dark-custom align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">العميل</th>
+                            <th>معلومات الاتصال</th>
+                            <th>النوع</th>
+                            <th>المدينة</th>
+                            <th>حد الائتمان</th>
+                            <th class="pe-4 text-end">إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($customers as $customer)
+                            <tr class="table-row-hover position-relative group-hover-actions">
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="avatar-xs bg-indigo-500 rounded-circle text-white d-flex align-items-center justify-content-center fw-bold"
+                                            style="width: 40px; height: 40px;">
+                                            {{ strtoupper(substr($customer->name, 0, 1)) }}
+                                        </div>
+                                        <div>
+                                            <h6 class="text-white mb-0 fw-bold">{{ $customer->name }}</h6>
+                                            @if($customer->is_blocked)
+                                                <span class="badge bg-red-500 bg-opacity-20 text-red-400 x-small px-2">موقوف</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-column gap-1">
+                                        @if($customer->phone)
+                                            <span class="x-small text-gray-400"><i
+                                                    class="bi bi-telephone text-indigo-400 me-2"></i>{{ $customer->phone }}</span>
+                                        @endif
+                                        @if($customer->mobile)
+                                            <span class="x-small text-gray-400"><i
+                                                    class="bi bi-phone text-indigo-400 me-2"></i>{{ $customer->mobile }}</span>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td>
+                                    @php
+                                        $typeLabels = [
+                                            'individual' => 'فرد',
+                                            'company' => 'شركة',
+                                            'distributor' => 'موزع',
+                                            'wholesale' => 'جملة',
+                                            'half_wholesale' => 'نص جملة',
+                                            'quarter_wholesale' => 'ربع جملة',
+                                            'technician' => 'فني',
+                                            'employee' => 'موظف',
+                                            'vip' => 'VIP'
+                                        ];
+                                        $label = $typeLabels[$customer->type] ?? $customer->type;
+                                        $badgeClass = match ($customer->type) {
+                                            'company' => 'bg-blue-500 text-blue-400 border-blue-500',
+                                            'distributor' => 'bg-purple-500 text-purple-400 border-purple-500',
+                                            'wholesale' => 'bg-orange-500 text-orange-400 border-orange-500',
+                                            'vip' => 'bg-amber-500 text-amber-400 border-amber-500',
+                                            default => 'bg-gray-500 text-gray-400 border-gray-500'
+                                        };
+                                    @endphp
+                                    <span
+                                        class="badge {{ $badgeClass }} bg-opacity-10 border border-opacity-20">{{ $label }}</span>
+                                </td>
+                                <td class="text-gray-400">{{ $customer->billing_city ?? '-' }}</td>
+                                <td>
+                                    <span class="fw-bold text-white">{{ number_format($customer->credit_limit, 2) }}</span>
+                                    <span class="x-small text-gray-500">EGP</span>
+                                </td>
+                                <td class="pe-4 text-end">
+                                    <div class="d-flex justify-content-end gap-2 opacity-0 group-hover-visible transition-all">
+                                        <a href="{{ route('customers.show', $customer->id) }}" class="btn-icon-glass"
+                                            title="ملف العميل">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{{ route('customers.statement', $customer->id) }}" class="btn-icon-glass"
+                                            title="كشف حساب">
+                                            <i class="bi bi-file-spreadsheet"></i>
+                                        </a>
+                                        <a href="{{ route('customer-payments.create', ['customer_id' => $customer->id]) }}"
+                                            class="btn-icon-glass text-success hover-success" title="تحصيل دفعة">
+                                            <i class="bi bi-cash-stack"></i>
+                                        </a>
+                                        <a href="{{ route('customers.edit', $customer->id) }}" class="btn-icon-glass"
+                                            title="تعديل">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <form action="{{ route('customers.destroy', $customer->id) }}" method="POST"
+                                            class="d-inline" onsubmit="return confirm('هل أنت متأكد من حذف هذا العميل؟');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn-icon-glass text-danger hover-danger" title="حذف">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="text-center py-5">
+                                    <div class="d-flex flex-column align-items-center justify-content-center opacity-50">
+                                        <i class="bi bi-people fs-1 text-gray-500 mb-3"></i>
+                                        <h5 class="text-gray-400">لا يوجد عملاء</h5>
+                                        <p class="text-gray-600 small">ابدأ بإضافة عملاء لقاعدة البيانات</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            @if($customers->hasPages())
+                <div class="p-4 border-top border-white-5">
+                    {{ $customers->links('partials.pagination') }}
+                </div>
+            @endif
         </div>
     </div>
-</div>
+
+    <style>
+        /* Indigo Theme */
+        .text-indigo-400 {
+            color: #818cf8 !important;
+        }
+
+        .bg-indigo-500 {
+            background: #6366f1 !important;
+        }
+
+        .bg-gradient-indigo {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        }
+
+        .shadow-neon-indigo {
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-action-indigo {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            border: none;
+            color: white;
+            padding: 10px 24px;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .btn-action-indigo:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-indigo-glass {
+            background: rgba(99, 102, 241, 0.15);
+            color: #818cf8;
+            border: 1px solid rgba(129, 140, 248, 0.2);
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-indigo-glass:hover {
+            background: rgba(99, 102, 241, 0.25);
+            color: white;
+            border-color: #818cf8;
+        }
+
+        .focus-ring-indigo:focus {
+            border-color: #818cf8 !important;
+            box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.1) !important;
+        }
+
+        .border-top-gradient-indigo {
+            border-top: 4px solid;
+            border-image: linear-gradient(to right, #6366f1, #818cf8) 1;
+        }
+
+        /* Common Glass Styles */
+        .icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            backdrop-filter: blur(12px);
+        }
+
+        .form-control-dark,
+        .form-select-dark {
+            background: rgba(15, 23, 42, 0.6) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: white !important;
+        }
+
+        .table-dark-custom {
+            --bs-table-bg: transparent;
+            --bs-table-border-color: rgba(255, 255, 255, 0.05);
+            color: #e2e8f0;
+        }
+
+        .table-dark-custom th {
+            background: rgba(255, 255, 255, 0.05);
+            color: #94a3b8;
+            font-weight: 600;
+            padding: 1rem;
+        }
+
+        .table-dark-custom td {
+            padding: 1rem;
+        }
+
+        .group-hover-actions:hover .group-hover-visible {
+            opacity: 1 !important;
+        }
+
+        .btn-icon-glass {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #cbd5e1;
+            transition: 0.2s;
+        }
+
+        .btn-icon-glass:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .hover-danger:hover {
+            background: rgba(239, 68, 68, 0.2) !important;
+            color: #ef4444 !important;
+        }
+    </style>
 @endsection

@@ -1,352 +1,331 @@
 @extends('layouts.app')
 
-@section('title', $salesOrder->so_number . ' - Twinx ERP')
-@section('page-title', 'تفاصيل أمر البيع')
-
-@section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">الرئيسية</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('sales-orders.index') }}">أوامر البيع</a></li>
-    <li class="breadcrumb-item active">{{ $salesOrder->so_number }}</li>
-@endsection
+@section('title', 'أمر بيع ' . $salesOrder->so_number)
 
 @section('content')
-    <div class="row">
-        <!-- Main Content -->
-        <div class="col-lg-8">
-            <!-- Order Header Card -->
-            <div class="card mb-4">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="bi bi-cart me-2"></i>
-                        {{ $salesOrder->so_number }}
-                    </h5>
-                    @php
-                        $statusClass = match ($salesOrder->status->value) {
-                            'draft' => 'secondary',
-                            'confirmed' => 'primary',
-                            'processing' => 'info',
-                            'partial' => 'warning',
-                            'delivered' => 'success',
-                            'invoiced' => 'success',
-                            'cancelled' => 'danger',
-                            default => 'secondary'
-                        };
-                    @endphp
-                    <span class="badge bg-{{ $statusClass }} fs-6">
-                        {{ $salesOrder->status->label() }}
-                    </span>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <table class="table table-sm table-borderless">
-                                <tr>
-                                    <td class="text-muted" style="width: 40%;">العميل</td>
-                                    <td>
-                                        <a href="{{ route('customers.show', $salesOrder->customer_id) }}">
-                                            <strong>{{ $salesOrder->customer?->name ?? '-' }}</strong>
-                                        </a>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="text-muted">كود العميل</td>
-                                    <td>{{ $salesOrder->customer?->code ?? '-' }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="text-muted">المستودع</td>
-                                    <td>{{ $salesOrder->warehouse?->name ?? '-' }}</td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div class="col-md-6">
-                            <table class="table table-sm table-borderless">
-                                <tr>
-                                    <td class="text-muted" style="width: 40%;">تاريخ الأمر</td>
-                                    <td>{{ $salesOrder->order_date->format('Y-m-d') }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="text-muted">تاريخ التسليم المتوقع</td>
-                                    <td>{{ $salesOrder->expected_date?->format('Y-m-d') ?? '-' }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="text-muted">طريقة الشحن</td>
-                                    <td>{{ $salesOrder->shipping_method ?? '-' }}</td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
+    <div class="container-fluid p-0">
 
-                    @if($salesOrder->shipping_address)
-                        <hr>
-                        <div class="row">
-                            <div class="col-12">
-                                <strong class="text-muted">عنوان الشحن:</strong>
-                                <p class="mb-0">{{ $salesOrder->shipping_address }}</p>
-                            </div>
-                        </div>
-                    @endif
+        <!-- Header with Actions -->
+        <div class="d-flex justify-content-between align-items-start mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="icon-box-lg bg-gradient-to-br from-blue-600 to-indigo-700 rounded-circle shadow-lg text-white">
+                    <i class="bi bi-cart-check fs-2"></i>
+                </div>
+                <div>
+                    <div class="d-flex align-items-center gap-3 mb-1">
+                        <h2 class="fw-bold text-white mb-0">{{ $salesOrder->so_number }}</h2>
+                        <span
+                            class="badge {{ $salesOrder->status->badgeClass() }} border border-white/20 fs-6 px-3 py-2 rounded-pill shadow-sm">
+                            {{ $salesOrder->status->label() }}
+                        </span>
+                    </div>
+                    <div class="d-flex gap-3 text-gray-400 small">
+                        <span><i class="bi bi-calendar me-1"></i> تاريخ الطلب: <span
+                                class="text-white">{{ $salesOrder->order_date->format('Y-m-d') }}</span></span>
+                        <span class="text-info"><i class="bi bi-clock-history me-1"></i> التسليم المتوقع: <span
+                                class="text-white fw-bold">{{ $salesOrder->expected_date ? $salesOrder->expected_date->format('Y-m-d') : 'غير محدد' }}</span></span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Order Lines -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i>أصناف الأمر</h5>
+            <div class="d-flex gap-2">
+                <a href="{{ route('sales-orders.index') }}" class="btn btn-glass-outline rounded-pill">
+                    <i class="bi bi-arrow-right me-2"></i> القائمة
+                </a>
+
+                <div class="btn-group shadow-lg rounded-pill overflow-hidden">
+
+                    {{-- Actions for DRAFT status --}}
+                    @if($salesOrder->status === \Modules\Sales\Enums\SalesOrderStatus::DRAFT)
+                        <a href="{{ route('sales-orders.edit', $salesOrder->id) }}"
+                            class="btn btn-dark border-start border-white/10 text-warning hover-bg-warning-dark">
+                            <i class="bi bi-pencil me-2"></i> تعديل
+                        </a>
+
+                        <form action="{{ route('sales-orders.confirm', $salesOrder->id) }}" method="POST" class="d-inline"
+                            onsubmit="return confirm('هل أنت متأكد من تأكيد أمر البيع؟ لن يمكنك التعديل بعد ذلك.')">
+                            @csrf
+                            <button type="submit" class="btn btn-success fw-bold px-4 hover-scale">
+                                <i class="bi bi-check-circle-fill me-2"></i> تأكيد الأمر
+                            </button>
+                        </form>
+                    @endif
+
+                    {{-- Actions for CONFIRMED status --}}
+                    @if($salesOrder->status === \Modules\Sales\Enums\SalesOrderStatus::CONFIRMED)
+                        <form action="{{ route('sales-orders.deliver', $salesOrder->id) }}" method="POST" class="d-inline"
+                            onsubmit="return confirm('تأكيد صرف المخزون؟')">
+                            @csrf
+                            <button type="submit" class="btn btn-warning fw-bold px-4 hover-scale text-black">
+                                <i class="bi bi-box-seam me-2"></i> إنشاء إذن صرف
+                            </button>
+                        </form>
+                    @endif
+
+                    {{-- Actions for Invoicing (Confirmed, Partial, Delivered) --}}
+                    @if(in_array($salesOrder->status, [\Modules\Sales\Enums\SalesOrderStatus::CONFIRMED, \Modules\Sales\Enums\SalesOrderStatus::PARTIAL, \Modules\Sales\Enums\SalesOrderStatus::DELIVERED]))
+                        <form action="{{ route('sales-orders.invoice', $salesOrder->id) }}" method="POST" class="d-inline"
+                            onsubmit="return confirm('إنشاء فاتورة مبيعات؟')">
+                            @csrf
+                            <button type="submit" class="btn btn-primary fw-bold px-4 hover-scale">
+                                <i class="bi bi-receipt me-2"></i> إصدار فاتورة
+                            </button>
+                        </form>
+                    @endif
+
+                    <a href="{{ route('sales-orders.print', $salesOrder->id) }}" target="_blank"
+                        class="btn btn-dark border-start border-white/10 text-info hover-bg-info-dark">
+                        <i class="bi bi-printer-fill me-2"></i> طباعة
+                    </a>
                 </div>
-                <div class="card-body p-0">
+
+                {{-- Dropdown for Secondary Actions --}}
+                <div class="dropdown">
+                    <button class="btn btn-glass-outline rounded-pill dropdown-toggle" type="button"
+                        data-bs-toggle="dropdown">
+                        <i class="bi bi-gear-fill me-2"></i> إجراءات
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-dark shadow-2xl border border-white/10">
+                        <li>
+                            <a class="dropdown-item" href="#"><i class="bi bi-envelope me-2"></i> إرسال بالبريد</a>
+                        </li>
+
+                        @if($salesOrder->status === \Modules\Sales\Enums\SalesOrderStatus::DRAFT)
+                            <li>
+                                <hr class="dropdown-divider border-white/10">
+                            </li>
+                            <li>
+                                <form action="{{ route('sales-orders.cancel', $salesOrder->id) }}" method="POST"
+                                    onsubmit="return confirm('هل أنت متأكد من إلغاء الأمر؟')">
+                                    @csrf
+                                    <button class="dropdown-item text-danger"><i class="bi bi-x-circle me-2"></i> إلغاء
+                                        الأمر</button>
+                                </form>
+                            </li>
+                            <li>
+                                <form action="{{ route('sales-orders.destroy', $salesOrder->id) }}" method="POST"
+                                    onsubmit="return confirm('حذف نهائي؟')">
+                                    @csrf @method('DELETE')
+                                    <button class="dropdown-item text-danger"><i class="bi bi-trash me-2"></i> حذف</button>
+                                </form>
+                            </li>
+                        @endif
+
+                        @if($salesOrder->canCancel() && $salesOrder->status !== \Modules\Sales\Enums\SalesOrderStatus::DRAFT)
+                            <li>
+                                <hr class="dropdown-divider border-white/10">
+                            </li>
+                            <li>
+                                <form action="{{ route('sales-orders.cancel', $salesOrder->id) }}" method="POST"
+                                    onsubmit="return confirm('هل أنت متأكد من إلغاء الأمر؟')">
+                                    @csrf
+                                    <button class="dropdown-item text-danger"><i class="bi bi-x-circle me-2"></i> إلغاء
+                                        الأمر</button>
+                                </form>
+                            </li>
+                        @endif
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Main Content -->
+            <div class="col-lg-8">
+                <!-- Items Table -->
+                <div class="glass-panel p-0 rounded-4 overflow-hidden border border-white/10 shadow-lg mb-4">
+                    <div class="bg-white/5 p-4 border-bottom border-white/10">
+                        <h5 class="fw-bold text-white mb-0"><i class="bi bi-list-check me-2 text-info"></i> تفاصيل الطلب
+                        </h5>
+                    </div>
                     <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
+                        <table class="table table-borderless align-middle mb-0">
+                            <thead class="bg-gray-900/50 text-gray-400 text-uppercase small">
                                 <tr>
-                                    <th>#</th>
-                                    <th>المنتج</th>
-                                    <th>الكمية</th>
-                                    <th>تم التسليم</th>
-                                    <th>سعر الوحدة</th>
-                                    <th>خصم</th>
-                                    <th>الإجمالي</th>
+                                    <th class="ps-4 py-3">المنتج</th>
+                                    <th class="text-center py-3">الكمية</th>
+                                    <th class="text-center py-3">تم التسليم</th>
+                                    <th class="text-center py-3">السعر</th>
+                                    <th class="text-center py-3">الخصم</th>
+                                    <th class="text-end pe-4 py-3">الإجمالي</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($salesOrder->lines as $index => $line)
-                                    <tr>
-                                        <td>{{ $index + 1 }}</td>
-                                        <td>
-                                            <strong>{{ $line->product?->name ?? '-' }}</strong>
-                                            <br>
-                                            <small class="text-muted">{{ $line->product?->sku ?? '' }}</small>
+                                @foreach($salesOrder->lines as $line)
+                                    <tr class="hover:bg-white/5 border-bottom border-white/5">
+                                        <td class="ps-4 py-3">
+                                            <div class="fw-bold text-white">{{ $line->description }}</div>
+                                            <small class="text-gray-500">{{ $line->product->code ?? '-' }}</small>
                                         </td>
-                                        <td>{{ number_format($line->quantity, 2) }}
-                                            {{ $line->product?->unit?->abbreviation ?? '' }}</td>
-                                        <td>
-                                            @if($line->delivered_quantity > 0)
-                                                <span class="text-success">{{ number_format($line->delivered_quantity, 2) }}</span>
-                                            @else
-                                                <span class="text-muted">0</span>
-                                            @endif
+                                        <td class="text-center py-3">
+                                            <span class="badge bg-white/10 text-white border border-white/10 rounded-pill px-3">
+                                                {{ $line->quantity + 0 }} {{ $line->unit->name ?? '' }}
+                                            </span>
                                         </td>
-                                        <td>{{ number_format($line->unit_price, 2) }}</td>
-                                        <td>
-                                            @if($line->discount_percent > 0)
-                                                {{ $line->discount_percent }}%
-                                                <br>
-                                                <small class="text-danger">-{{ number_format($line->discount_amount, 2) }}</small>
-                                            @else
-                                                -
-                                            @endif
+                                        <td class="text-center py-3">
+                                            <span
+                                                class="badge {{ $line->delivered_quantity >= $line->quantity ? 'bg-success/20 text-success' : 'bg-warning/20 text-warning' }} border border-white/10 rounded-pill px-3">
+                                                {{ $line->delivered_quantity + 0 }}
+                                            </span>
                                         </td>
-                                        <td><strong>{{ number_format($line->line_total, 2) }}</strong></td>
+                                        <td class="text-center py-3 text-gray-300">{{ number_format($line->unit_price, 2) }}
+                                        </td>
+                                        <td class="text-center py-3 text-gray-300">{{ $line->discount_percent + 0 }}%</td>
+                                        <td class="text-end pe-4 py-3 fw-bold text-white">
+                                            {{ number_format($line->line_total, 2) }}
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
-                            <tfoot class="table-light">
+                            <tfoot class="bg-gray-900/50">
                                 <tr>
-                                    <td colspan="6" class="text-start">الإجمالي الفرعي</td>
-                                    <td><strong>{{ number_format($salesOrder->subtotal, 2) }}</strong></td>
+                                    <td colspan="4"></td>
+                                    <td class="text-end py-3 text-gray-400 small text-uppercase">المجموع الفرعي</td>
+                                    <td class="text-end pe-4 py-3 fw-bold text-white">
+                                        {{ number_format($salesOrder->subtotal, 2) }}
+                                    </td>
                                 </tr>
                                 @if($salesOrder->discount_amount > 0)
                                     <tr>
-                                        <td colspan="6" class="text-start text-danger">الخصم</td>
-                                        <td class="text-danger">
-                                            <strong>-{{ number_format($salesOrder->discount_amount, 2) }}</strong></td>
+                                        <td colspan="4"></td>
+                                        <td class="text-end py-2 text-warning small">خصم إضافي</td>
+                                        <td class="text-end pe-4 py-2 text-warning">
+                                            -{{ number_format($salesOrder->discount_amount, 2) }}</td>
                                     </tr>
                                 @endif
-                                @if($salesOrder->tax_amount > 0)
-                                    <tr>
-                                        <td colspan="6" class="text-start">الضريبة</td>
-                                        <td><strong>{{ number_format($salesOrder->tax_amount, 2) }}</strong></td>
-                                    </tr>
-                                @endif
-                                <tr class="fs-5">
-                                    <td colspan="6" class="text-start"><strong>الإجمالي النهائي</strong></td>
-                                    <td class="text-primary"><strong>{{ number_format($salesOrder->total, 2) }} ج.م</strong>
+                                <tr>
+                                    <td colspan="4"></td>
+                                    <td class="text-end py-2 text-gray-400 small">الضريبة</td>
+                                    <td class="text-end pe-4 py-2 text-gray-300">
+                                        {{ number_format($salesOrder->tax_amount, 2) }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="4"></td>
+                                    <td class="text-end py-4 text-white fs-5 fw-bold">الإجمالي النهائي</td>
+                                    <td class="text-end pe-4 py-4 text-success fs-4 fw-bold text-glow">
+                                        {{ number_format($salesOrder->total, 2) }}
                                     </td>
                                 </tr>
                             </tfoot>
                         </table>
                     </div>
                 </div>
-            </div>
 
-            <!-- Notes -->
-            @if($salesOrder->notes || $salesOrder->customer_notes)
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="bi bi-chat-text me-2"></i>ملاحظات</h5>
-                    </div>
-                    <div class="card-body">
-                        @if($salesOrder->notes)
-                            <div class="mb-3">
-                                <strong class="text-muted">ملاحظات داخلية:</strong>
-                                <p class="mb-0">{{ $salesOrder->notes }}</p>
-                            </div>
-                        @endif
-                        @if($salesOrder->customer_notes)
-                            <div>
-                                <strong class="text-muted">ملاحظات للعميل:</strong>
-                                <p class="mb-0">{{ $salesOrder->customer_notes }}</p>
-                            </div>
-                        @endif
-                    </div>
-                </div>
-            @endif
-
-            <!-- Related Documents -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-link-45deg me-2"></i>المستندات المرتبطة</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6 class="text-muted mb-3">أوامر التسليم</h6>
-                            @forelse($salesOrder->deliveryOrders as $do)
-                                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
-                                    <div>
-                                        <strong>{{ $do->do_number }}</strong>
-                                        <br>
-                                        <small class="text-muted">{{ $do->delivery_date?->format('Y-m-d') ?? '-' }}</small>
-                                    </div>
-                                    <span class="badge bg-{{ $do->status === 'shipped' ? 'success' : 'warning' }}">
-                                        {{ $do->status === 'shipped' ? 'تم الشحن' : 'قيد التجهيز' }}
-                                    </span>
-                                </div>
-                            @empty
-                                <p class="text-muted mb-0">لا توجد أوامر تسليم</p>
-                            @endforelse
+                <!-- Notes & Terms -->
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="glass-panel p-4 rounded-4 h-100 border border-white/10">
+                            <h6 class="text-gray-400 fw-bold mb-3 small text-uppercase"><i
+                                    class="bi bi-chat-left-text me-2"></i> ملاحظات</h6>
+                            <p class="text-white mb-0 small opacity-75">{{ $salesOrder->notes ?: 'لا توجد ملاحظات' }}</p>
                         </div>
-                        <div class="col-md-6">
-                            <h6 class="text-muted mb-3">الفواتير</h6>
-                            @forelse($salesOrder->invoices as $invoice)
-                                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
-                                    <div>
-                                        <strong>{{ $invoice->invoice_number }}</strong>
-                                        <br>
-                                        <small class="text-muted">{{ number_format($invoice->total, 2) }} ج.م</small>
-                                    </div>
-                                    <span
-                                        class="badge bg-{{ $invoice->status === 'paid' ? 'success' : ($invoice->status === 'partial' ? 'warning' : 'danger') }}">
-                                        {{ $invoice->status === 'paid' ? 'مدفوعة' : ($invoice->status === 'partial' ? 'جزئي' : 'معلقة') }}
-                                    </span>
-                                </div>
-                            @empty
-                                <p class="text-muted mb-0">لا توجد فواتير</p>
-                            @endforelse
+                    </div>
+                    <div class="col-md-6">
+                        <div class="glass-panel p-4 rounded-4 h-100 border border-white/10">
+                            <h6 class="text-gray-400 fw-bold mb-3 small text-uppercase"><i class="bi bi-truck me-2"></i>
+                                معلومات الشحن</h6>
+                            <p class="text-white mb-2 small"><strong>العنوان:</strong>
+                                {{ $salesOrder->shipping_address ?: 'نفس عنوان العميل' }}</p>
+                            <p class="text-white mb-0 small"><strong>الطريقة:</strong>
+                                {{ $salesOrder->shipping_method ?: 'استلام من المخزن' }}</p>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Sidebar -->
-        <div class="col-lg-4">
-            <!-- Actions Card -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h6 class="mb-0"><i class="bi bi-gear me-2"></i>الإجراءات</h6>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        @if($salesOrder->canEdit())
-                            <a href="{{ route('sales-orders.edit', $salesOrder) }}" class="btn btn-warning">
-                                <i class="bi bi-pencil me-2"></i>تعديل
-                            </a>
-                        @endif
+            <!-- Sidebar Info -->
+            <div class="col-lg-4">
+                <!-- Customer Card -->
+                <div
+                    class="glass-panel p-4 rounded-4 border border-white/10 shadow-lg mb-4 position-relative overflow-hidden">
+                    <div class="absolute-glow top-0 end-0 bg-blue-500/10"></div>
+                    <h5 class="fw-bold text-white mb-4 border-bottom border-white/10 pb-3">معلومات العميل</h5>
 
-                        @if($salesOrder->status->value === 'draft')
-                            <form action="{{ route('sales-orders.confirm', $salesOrder) }}" method="POST">
-                                @csrf
-                                <button type="submit" class="btn btn-success w-100">
-                                    <i class="bi bi-check-lg me-2"></i>تأكيد الأمر
-                                </button>
-                            </form>
-                        @endif
-
-                        @if($salesOrder->canDeliver())
-                        <a href="{{ route('deliveries.create', ['sales_order_id' => $salesOrder->id]) }}" class="btn btn-info">
-                            <i class="bi bi-truck me-2"></i>إنشاء أمر تسليم
-                        </a>
-                    @endif
-
-                        @if($salesOrder->canInvoice())
-                            <a href="#" class="btn btn-primary">
-                                <i class="bi bi-receipt me-2"></i>إنشاء فاتورة
-                            </a>
-                        @endif
-
-                        @if($salesOrder->canCancel())
-                            <form action="{{ route('sales-orders.cancel', $salesOrder) }}" method="POST"
-                                onsubmit="return confirm('هل أنت متأكد من إلغاء هذا الأمر؟')">
-                                @csrf
-                                <button type="submit" class="btn btn-danger w-100">
-                                    <i class="bi bi-x-lg me-2"></i>إلغاء الأمر
-                                </button>
-                            </form>
-                        @endif
-
-                        <a href="{{ route('sales-orders.index') }}" class="btn btn-secondary">
-                            <i class="bi bi-arrow-right me-2"></i>العودة للقائمة
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Delivery Progress -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h6 class="mb-0"><i class="bi bi-truck me-2"></i>نسبة التسليم</h6>
-                </div>
-                <div class="card-body">
-                    @php $deliveryPercentage = $salesOrder->getDeliveredPercentage(); @endphp
-                    <div class="progress mb-2" style="height: 25px;">
-                        <div class="progress-bar bg-success" style="width: {{ $deliveryPercentage }}%">
-                            {{ $deliveryPercentage }}%
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <div class="avatar-circle bg-gradient-to-br from-gray-700 to-gray-800 text-white rounded-circle d-flex align-items-center justify-content-center shadow-lg"
+                            style="width: 50px; height: 50px;">
+                            <span class="fs-5 fw-bold">{{ substr($salesOrder->customer->name, 0, 1) }}</span>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold text-white mb-0">{{ $salesOrder->customer->name }}</h5>
+                            <small class="text-gray-400">{{ $salesOrder->customer->phone ?? 'لا يوجد هاتف' }}</small>
                         </div>
                     </div>
-                    <small class="text-muted">
-                        @if($deliveryPercentage == 0)
-                            لم يتم التسليم بعد
-                        @elseif($deliveryPercentage < 100)
-                            تسليم جزئي
-                        @else
-                            تم التسليم بالكامل
-                        @endif
-                    </small>
-                </div>
-            </div>
 
-            <!-- Order Summary -->
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h6 class="mb-0"><i class="bi bi-calculator me-2"></i>ملخص الأمر</h6>
-                </div>
-                <div class="card-body">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>عدد الأصناف:</span>
-                        <strong>{{ $salesOrder->lines->count() }}</strong>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>إجمالي الكميات:</span>
-                        <strong>{{ number_format($salesOrder->lines->sum('quantity'), 2) }}</strong>
-                    </div>
-                    <hr>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>الإجمالي الفرعي:</span>
-                        <strong>{{ number_format($salesOrder->subtotal, 2) }}</strong>
-                    </div>
-                    @if($salesOrder->discount_amount > 0)
-                        <div class="d-flex justify-content-between mb-2 text-danger">
-                            <span>الخصم:</span>
-                            <strong>-{{ number_format($salesOrder->discount_amount, 2) }}</strong>
+                    <div class="vstack gap-3 text-gray-300 small">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-gray-500">العنوان:</span>
+                            <span class="text-end">{{ $salesOrder->customer->address ?? '-' }}</span>
                         </div>
-                    @endif
-                    <hr>
-                    <div class="d-flex justify-content-between fs-5">
-                        <span><strong>الإجمالي:</strong></span>
-                        <strong class="text-primary">{{ number_format($salesOrder->total, 2) }} ج.م</strong>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-gray-500">النوع:</span>
+                            <span
+                                class="badge bg-white/5 border border-white/10">{{ $salesOrder->customer->type_label }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Meta Info -->
+                <div class="glass-panel p-4 rounded-4 border border-white/10 shadow-lg">
+                    <h5 class="fw-bold text-white mb-4 border-bottom border-white/10 pb-3">معلومات النظام</h5>
+                    <div class="vstack gap-3 small">
+                        <div class="d-flex justify-content-between text-gray-400">
+                            <span>المخزن:</span>
+                            <span class="text-white">{{ $salesOrder->warehouse->name ?? '-' }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between text-gray-400">
+                            <span>المرجع (عرض سعر):</span>
+                            <span
+                                class="text-white">{{ $salesOrder->quotation_id ? 'QT-' . $salesOrder->quotation_id : '-' }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between text-gray-400">
+                            <span>تاريخ الإنشاء:</span>
+                            <span class="text-white">{{ $salesOrder->created_at->format('Y-m-d H:i') }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <style>
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(20px);
+        }
+
+        .icon-box-lg {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .text-glow {
+            text-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+        }
+
+        .btn-glass-outline {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .btn-glass-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .hover-bg-warning-dark:hover {
+            background-color: #78350f !important;
+            color: #fbbf24 !important;
+        }
+
+        .hover-bg-info-dark:hover {
+            background-color: #0c4a6e !important;
+            color: #38bdf8 !important;
+        }
+    </style>
 @endsection

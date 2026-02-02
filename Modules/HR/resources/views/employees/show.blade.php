@@ -54,7 +54,8 @@
                         <div
                             class="info-item d-flex justify-content-between py-2 border-bottom border-white border-opacity-5">
                             <span class="text-secondary small fw-bold">تاريخ التعيين:</span>
-                            <span class="text-white small">{{ $employee->date_of_joining->format('Y-m-d') }}</span>
+                            <span
+                                class="text-white small">{{ $employee->date_of_joining ? $employee->date_of_joining->format('Y-m-d') : '---' }}</span>
                         </div>
                         <div class="info-item d-flex justify-content-between py-2">
                             <span class="text-secondary small fw-bold">الراتب الأساسي:</span>
@@ -188,25 +189,26 @@
             font-size: 0.725rem !important;
         }
 
-        /* Deep Glass Theme for High Visibility */
         .glass-card-deep {
-            background: rgba(13, 22, 45, 0.85);
-            /* Deep dark blue background */
+            background: rgba(10, 15, 30, 0.98) !important;
             backdrop-filter: blur(25px) saturate(160%);
             -webkit-backdrop-filter: blur(25px) saturate(160%);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.7);
+        }
+
+        .text-secondary {
+            color: #cbd5e0 !important;
+            opacity: 1 !important;
         }
 
         .nav-pills .nav-link {
-            color: rgba(255, 255, 255, 0.6) !important;
-            transition: all 0.3s;
+            color: #cbd5e0 !important;
         }
 
         .nav-pills .nav-link.active {
-            background: rgba(13, 110, 253, 0.8) !important;
+            background: #0d6efd !important;
             color: #fff !important;
-            box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
         }
 
         .btn-icon-box {

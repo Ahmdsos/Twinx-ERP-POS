@@ -113,16 +113,37 @@
         }
 
         .glass-card-deep {
-            background: rgba(13, 22, 45, 0.85);
+            background: rgba(10, 15, 30, 0.98) !important;
             backdrop-filter: blur(25px);
             -webkit-backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.7);
+        }
+
+        .text-secondary {
+            color: #cbd5e0 !important;
+            /* Brighter gray */
+            opacity: 1 !important;
+        }
+
+        .form-label.text-secondary {
+            color: #90cdf4 !important;
+            /* Brighter blue for labels */
         }
 
         .form-control,
         .form-select {
             padding: 0.75rem 1rem;
-            color: white !important;
+            color: #ffffff !important;
+            background-color: rgba(0, 0, 0, 0.3) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            background-color: rgba(0, 0, 0, 0.5) !important;
+            border-color: #0d6efd !important;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
         }
 
         .btn-icon-box {

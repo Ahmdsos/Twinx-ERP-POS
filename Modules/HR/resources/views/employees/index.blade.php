@@ -206,46 +206,40 @@
     </div>
 
     <style>
-        .fw-black {
-            font-weight: 900 !important;
-        }
-
-        .x-small {
-            font-size: 0.725rem !important;
-        }
-
+        .fw-black { font-weight: 900 !important; }
+        .x-small { font-size: 0.725rem !important; }
+        
         .glass-card {
-            background: rgba(18, 18, 18, 0.5);
-            /* Stronger dark background for contrast */
+            background: rgba(10, 15, 30, 0.95) !important;
             backdrop-filter: blur(20px) saturate(180%);
             -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+        }
+
+        .text-secondary {
+            color: #cbd5e0 !important; /* Brighter gray */
+            opacity: 1 !important;
         }
 
         .btn-icon-box {
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid transparent;
-            transition: all 0.2s;
+            width: 36px; height: 36px;
+            display: flex; align-items: center; justify-content: center;
+            border: 1px solid transparent; transition: all 0.2s;
         }
 
-        .btn-icon-box:hover {
-            transform: translateY(-2px);
-            border-color: currentColor;
+        .btn-icon-box:hover { transform: translateY(-2px); border-color: currentColor; }
+        .table-hover tbody tr:hover { background-color: rgba(255, 255, 255, 0.05); }
+
+        .form-control, .form-select {
+            background-color: rgba(0, 0, 0, 0.3) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            color: #ffffff !important;
         }
 
-        .table-hover tbody tr:hover {
-            background-color: rgba(255, 255, 255, 0.05);
-        }
-
-        .form-control:focus,
-        .form-select:focus {
-            background-color: rgba(255, 255, 255, 0.1) !important;
-            border-color: #0d6efd !important;
-            color: white !important;
+        .table thead th {
+            color: #90cdf4 !important;
+            font-weight: 800 !important;
         }
     </style>
 @endsection

@@ -32,6 +32,28 @@ class Payroll extends Model implements AccountableContract
         'journal_entry_id',
     ];
 
+    const STATUS_DRAFT = 'draft';
+    const STATUS_PROCESSED = 'processed';
+    const STATUS_POSTED = 'posted';
+
+    public static function getStatusLabels(): array
+    {
+        return [
+            self::STATUS_DRAFT => 'مسودة',
+            self::STATUS_PROCESSED => 'معتمد',
+            self::STATUS_POSTED => 'مرحل للحسابات',
+        ];
+    }
+
+    public static function getStatusColors(): array
+    {
+        return [
+            self::STATUS_DRAFT => 'warning',
+            self::STATUS_PROCESSED => 'success',
+            self::STATUS_POSTED => 'info',
+        ];
+    }
+
     /**
      * Legacy support for total_net.
      */

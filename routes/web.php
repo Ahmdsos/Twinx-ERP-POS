@@ -98,9 +98,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/shift/close', [POSController::class, 'closeShift'])->name('shift.close');
         Route::get('/shift/status', [POSController::class, 'shiftStatus'])->name('shift.status');
         Route::get('/shift/{shift}/report', [POSController::class, 'shiftReport'])->name('shift.report');
-        Route::get('/shift/report', [POSController::class, 'shiftReportQuick'])->name('shift.report.quick');
+        Route::get('/shift/stats', [POSController::class, 'getShiftStats'])->name('shift.stats');
         Route::get('/recent-transactions', [POSController::class, 'recentTransactions'])->name('recent');
         Route::post('/sales-return', [POSController::class, 'salesReturn'])->name('return');
+        Route::get('/invoice/search', [POSController::class, 'searchInvoice'])->name('invoice.search');
+        Route::post('/pin/validate', [POSController::class, 'validateRefundPin'])->name('pin.validate');
     });
 
     // ==========================================

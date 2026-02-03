@@ -11,14 +11,14 @@
                     class="btn btn-link text-secondary text-decoration-none p-0 mb-2 d-inline-flex align-items-center gap-2">
                     <i class="bi bi-arrow-right"></i> والعودة لأسطول التوصيل
                 </a>
-                <h3 class="fw-black text-white mb-0">تعديل ملف السائق: {{ $driver->employee->full_name }}</h3>
+                <h3 class="fw-black text-white mb-0">تعديل ملف السائق: {{ $driver->employee->full_name ?? 'موظف غير متوفر' }}</h3>
                 <p class="text-secondary small opacity-75 mt-1">تحديث بيانات الرخصة، المركبة، وحالة العمل الميداني.</p>
             </div>
         </div>
 
         <div class="row justify-content-center">
             <div class="col-lg-8">
-                <form action="{{ route('hr.delivery.update', $driver->id) }}" method="POST">
+                <form action="{{ route('hr.delivery.update', $driver) }}" method="POST">
                     @csrf
                     @method('PUT')
                     <div class="glass-card rounded-4 p-4 mb-4 border-white border-opacity-10">
@@ -28,9 +28,9 @@
                                 <i class="bi bi-person-vcard fs-4"></i>
                             </div>
                             <div>
-                                <h6 class="text-white fw-bold mb-0">{{ $driver->employee->full_name }}</h6>
-                                <div class="text-secondary small">{{ $driver->employee->position ?? 'موظف' }} | كود:
-                                    {{ $driver->employee->employee_code }}</div>
+                                <h6 class="text-white fw-bold mb-0">{{ $driver->employee->full_name ?? 'بيانات غير متوفرة' }}</h6>
+                                <div class="text-secondary small">{{ $driver->employee->position ?? '---' }} | كود:
+                                    {{ $driver->employee->employee_code ?? '---' }}</div>
                             </div>
                         </div>
 

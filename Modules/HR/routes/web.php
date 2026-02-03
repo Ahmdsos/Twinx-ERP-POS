@@ -25,7 +25,9 @@ Route::prefix('hr')->name('hr.')->middleware(['auth', 'verified'])->group(functi
     Route::put('payroll/items/{item}', [PayrollController::class, 'updateItem'])->name('payroll.items.update');
 
     // Delivery
-    Route::resource('delivery', DeliveryController::class);
+    Route::resource('delivery', DeliveryController::class)->parameters([
+        'delivery' => 'driver'
+    ]);
     Route::post('delivery/{driver}/status', [DeliveryController::class, 'updateStatus'])->name('delivery.status');
 
     // Documents

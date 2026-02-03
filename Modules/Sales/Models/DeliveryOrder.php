@@ -23,6 +23,7 @@ class DeliveryOrder extends Model
     protected $fillable = [
         'do_number',
         'sales_order_id',
+        'sales_invoice_id',
         'customer_id',
         'warehouse_id',
         'delivery_date',
@@ -69,6 +70,11 @@ class DeliveryOrder extends Model
     public function salesOrder(): BelongsTo
     {
         return $this->belongsTo(SalesOrder::class);
+    }
+
+    public function salesInvoice(): BelongsTo
+    {
+        return $this->belongsTo(SalesInvoice::class);
     }
 
     public function customer(): BelongsTo

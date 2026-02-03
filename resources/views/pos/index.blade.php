@@ -1,10 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'نقطة البيع (POS)')
+@section('title', 'نقطة البيع (POS) | Midnight Pro')
 
 @section('content')
-    <div x-data="posSystem()" x-init="init()" class="h-100 d-flex flex-column" @keydown.window="handleGlobalKeys($event)">
-
+    <div x-data="posSystem()" x-init="init()" class="pos-wrapper" @keydown.window="handleGlobalKeys($event)">
         <!-- Audio Effects -->
         <audio id="beep-sound" src="{{ asset('assets/sounds/beep.mp3') }}"></audio>
         <audio id="success-sound" src="{{ asset('assets/sounds/success.mp3') }}"></audio>
@@ -12,8 +11,8 @@
         <div class="row g-0 flex-grow-1 h-100 overflow-hidden">
 
             <!-- ====================
-                                                                                                     LEFT PANEL: CART 
-                                                                                                     ==================== -->
+                                                                                                                                         LEFT PANEL: CART 
+                                                                                                                                         ==================== -->
             <div class="col-md-5 col-lg-4 d-flex flex-column border-end border-secondary bg-dark h-100 position-relative">
 
                 <!-- Customer & Shift Info -->
@@ -57,6 +56,31 @@
 
                         <button class="btn btn-outline-secondary" type="button" @click="showAddCustomerModal"><i
                                 class="bi bi-plus-lg"></i></button>
+                    </div>
+
+                    <!-- Delivery Toggle -->
+                    <div class="mt-2 d-flex align-items-center gap-2">
+                        <div class="form-check form-switch flex-grow-1">
+                            <input class="form-check-input" type="checkbox" id="deliverySwitch" x-model="isDelivery">
+                            <label class="form-check-label text-white small" for="deliverySwitch">
+                                <i class="bi bi-truck me-1"></i> توصيل (Delivery)
+                            </label>
+                        </div>
+                        <template x-if="isDelivery">
+                            <div class="d-flex gap-2">
+                                <select class="form-select form-select-sm bg-dark text-white border-secondary w-auto"
+                                    x-model="driverId">
+                                    <option value="">اختار المندوب</option>
+                                    @foreach($drivers as $d)
+                                        <option value="{{ $d->id }}">{{ $d->name }}</option>
+                                    @endforeach
+                                </select>
+                                <input type="number"
+                                    class="form-control form-control-sm bg-dark text-white border-secondary"
+                                    style="width: 70px;" placeholder="رسوم" x-model.number="deliveryFee"
+                                    @input="calculateTotals()">
+                            </div>
+                        </template>
                     </div>
                 </div>
 
@@ -135,7 +159,12 @@
 
                     <div class="d-flex justify-content-between mb-3 border-top border-secondary pt-2">
                         <span class="fs-4 fw-bold text-white">الإجمالي:</span>
-                        <span class="fs-3 fw-bold text-primary font-monospace" x-text="formatMoney(total)"></span>
+                        <div class="text-end">
+                            <span class="fs-3 fw-bold text-primary font-monospace" x-text="formatMoney(total)"></span>
+                            <div x-show="isDelivery && deliveryFee > 0" class="small text-secondary">
+                                (شامل رسوم التوصيل: <span x-text="formatMoney(deliveryFee)"></span>)
+                            </div>
+                        </div>
                     </div>
 
                     <div class="d-flex gap-2">
@@ -157,8 +186,8 @@
             </div>
 
             <!-- ====================
-                                                                                                     RIGHT PANEL: PRODUCTS 
-                                                                                                     ==================== -->
+                                                                                                                                 RIGHT PANEL: PRODUCTS 
+                                                                                                                                 ==================== -->
             <div class="col-md-7 col-lg-8 d-flex flex-column h-100 bg-body-tertiary">
 
                 <!-- Search & Filter -->
@@ -256,8 +285,8 @@
         </div>
 
         <!-- ====================
-                                                                                                 MODALS
-                                                                                                 ==================== -->
+                                                                                                                             MODALS
+                                                                                                                             ==================== -->
 
         <!-- 1. Shift Management Modal -->
         <div class="modal fade" id="shiftModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
@@ -286,13 +315,44 @@
                         </div>
 
                         <!-- Close Shift View -->
-                        <div x-show="shiftId" class="text-center">
-                            <div class="alert alert-info border-info bg-info bg-opacity-10 text-white">
-                                <h4 class="alert-heading">الوردية #<span x-text="shiftId"></span> مفتوحة</h4>
-                                <p class="mb-0">لا يمكن عرض المبيعات الحية حالياً (نسخة تجريبية)</p>
+                        <div x-show="shiftId">
+                            <div class="card bg-dark border-secondary mb-3">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="text-secondary">عدد الفواتير:</span>
+                                        <span class="fw-bold" x-text="shiftStats.total_sales">0</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="text-secondary">مبيعات نقدية (Cash):</span>
+                                        <span class="fw-bold text-success"
+                                            x-text="formatMoney(shiftStats.total_cash)">0</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="text-secondary">مبيعات بطاقة (Card):</span>
+                                        <span class="fw-bold text-info" x-text="formatMoney(shiftStats.total_card)">0</span>
+                                    </div>
+                                    <hr class="border-secondary my-2">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-secondary">النقدية المتوقعة في الدرج:</span>
+                                        <span class="fw-bold fs-5 text-primary"
+                                            x-text="formatMoney(shiftStats.expected_cash)">0</span>
+                                    </div>
+                                </div>
                             </div>
-                            <button class="btn btn-danger w-100 py-2 fw-bold" @click="closeShift">
-                                <i class="bi bi-x-octagon me-1"></i> إغلاق الوردية
+
+                            <div class="mb-4">
+                                <label class="form-label text-white">النقدية الفعلية في الدرج عند الإغلاق</label>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text bg-secondary border-secondary text-white">ج.م</span>
+                                    <input type="number" class="form-control bg-dark border-secondary text-white"
+                                        x-model="closingCash" placeholder="0.00">
+                                </div>
+                                <small class="text-secondary mt-1 d-block text-center">سيتم حساب العجز أو الزيادة
+                                    آلياً</small>
+                            </div>
+
+                            <button class="btn btn-danger w-100 py-3 fw-bold shadow" @click="closeShift">
+                                <i class="bi bi-x-octagon me-1"></i> إغلاق الوردية وتصفية الحساب
                             </button>
                         </div>
                     </div>
@@ -411,8 +471,129 @@
                     <button type="button" class="btn btn-primary" @click="saveCustomer">حفظ</button>
                 </div>
             </div>
+            <!-- 4. Shortcuts Help Modal -->
+            <div class="modal fade" id="shortcutsModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content bg-dark border-secondary">
+                        <div class="modal-header border-secondary">
+                            <h5 class="modal-title text-white">
+                                <i class="bi bi-keyboard me-2"></i>
+                                اختصارات لوحة المفاتيح
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body p-0">
+                            <table class="table table-dark table-hover m-0">
+                                <tbody>
+                                    <tr>
+                                        <td><kbd>F1</kbd> or <kbd>H</kbd></td>
+                                        <td>إظهار هذه القائمة</td>
+                                    </tr>
+                                    <tr>
+                                        <td><kbd>F2</kbd></td>
+                                        <td>التركيز على محرك البحث</td>
+                                    </tr>
+                                    <tr>
+                                        <td><kbd>F9</kbd></td>
+                                        <td>إظهار نافذة الدفع</td>
+                                    </tr>
+                                    <tr>
+                                        <td><kbd>F10</kbd></td>
+                                        <td>تغيير العميل</td>
+                                    </tr>
+                                    <tr>
+                                        <td><kbd>F11</kbd></td>
+                                        <td>تفريغ السلة بالكامل</td>
+                                    </tr>
+                                    <tr>
+                                        <td><kbd>Esc</kbd></td>
+                                        <td>إغلاق النوافذ المفتوحة</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <!-- 5. Sales Return Modal -->
+    <div class="modal fade" id="returnModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content bg-dark border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title text-white">
+                        <i class="bi bi-arrow-return-left me-2"></i>
+                        مرتجع مبيعات (Sales Return)
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Search Invoice -->
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control bg-dark text-white border-secondary"
+                            placeholder="أدخل رقم الفاتورة (مثلاً POS-20240101-0001)" x-model="searchReturnQuery"
+                            @keyup.enter="searchReturnInvoice">
+                        <button class="btn btn-primary" @click="searchReturnInvoice">بحث</button>
+                    </div>
+
+                    <template x-if="returnInvoice">
+                        <div>
+                            <div class="alert alert-secondary border-secondary bg-dark text-white small mb-3">
+                                <div class="row">
+                                    <div class="col-md-6">فاتورة: <span x-text="returnInvoice.invoice_number"></span></div>
+                                    <div class="col-md-6">التاريخ: <span x-text="returnInvoice.invoice_date"></span></div>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-dark table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>المنتج</th>
+                                            <th>الكمية الأصلية</th>
+                                            <th>الكمية المرتجعة</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <template x-for="item in returnItems" :key="item.line_id">
+                                            <tr>
+                                                <td x-text="item.name"></td>
+                                                <td x-text="item.original_qty"></td>
+                                                <td style="width: 120px;">
+                                                    <input type="number"
+                                                        class="form-control form-control-sm bg-dark text-white border-secondary"
+                                                        x-model.number="item.quantity" :max="item.original_qty" min="0">
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-white small">سبب المرتجع</label>
+                                <input type="text" class="form-control bg-dark text-white border-secondary"
+                                    x-model="returnReason">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-danger small">الرقم السري للمرتجع (Refund PIN)</label>
+                                <input type="password" class="form-control bg-dark text-white border-danger"
+                                    x-model="refundPin" placeholder="****">
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-modal="modal"
+                        data-bs-dismiss="modal">إلغاء</button>
+                    <button type="button" class="btn btn-danger" @click="processReturn"
+                        :disabled="!returnInvoice || !refundPin">تأكيد المرتجع</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Scripts -->
@@ -440,6 +621,8 @@
                 customerId: '',
                 shiftId: {{ $activeShift?->id ?? 'null' }},
                 openingCash: '',
+                closingCash: '',
+                shiftStats: { total_sales: 0, total_cash: 0, total_card: 0, expected_cash: 0, total_amount: 0 },
 
                 // Cart Data
                 cart: [],
@@ -451,6 +634,18 @@
                 paymentMethod: 'cash',
                 amountPaid: 0,
                 notes: '',
+
+                // Delivery
+                isDelivery: false,
+                deliveryFee: 0,
+                driverId: '',
+
+                // Return Logic
+                searchReturnQuery: '',
+                returnInvoice: null,
+                returnItems: [],
+                returnReason: '',
+                refundPin: '',
 
                 // Customer Data
                 newCustomer: { name: '', phone: '' },
@@ -474,25 +669,25 @@
                         // Tax Calculation Base: Always use Original Price (Quantity * Price)
                         // Ignore discount for tax calculation as per business rule
                         let lineVal = (item.price * item.quantity);
-                        
+
                         if (this.isTaxInclusive) {
-                             // Back-calculate Tax: Gross * (Rate / (100 + Rate))
-                             return acc + (lineVal * (itemRate / (100 + itemRate)));
+                            // Back-calculate Tax: Gross * (Rate / (100 + Rate))
+                            return acc + (lineVal * (itemRate / (100 + itemRate)));
                         } else {
-                             // Regular Tax: Net * (Rate / 100)
-                             return acc + (lineVal * (itemRate / 100));
+                            // Regular Tax: Net * (Rate / 100)
+                            return acc + (lineVal * (itemRate / 100));
                         }
                     }, 0);
                 },
 
                 get total() {
+                    let baseTotal = 0;
                     if (this.isTaxInclusive) {
-                        // If inclusive, the Subtotal IS the Gross Total (before global discount)
-                        return Math.max(0, this.subtotal - this.globalDiscount);
+                        baseTotal = this.subtotal - this.globalDiscount;
                     } else {
-                        // If exclusive, Add Tax to Subtotal (Subtotal is Net-Discount, Tax is on Gross)
-                        return Math.max(0, this.subtotal + this.tax - this.globalDiscount);
+                        baseTotal = this.subtotal + this.tax - this.globalDiscount;
                     }
+                    return Math.max(0, baseTotal + (this.isDelivery ? this.deliveryFee : 0));
                 },
 
                 get change() {
@@ -597,22 +792,87 @@
                 },
 
                 closeShift() {
-                    if (!confirm('هل أنت متأكد من إغلاق الوردية؟')) return;
-                    axios.post('{{ route("pos.shift.close") }}') // Ensure this route exists
+                    if (!this.closingCash) {
+                        alert('من فضلك أدخل المبلغ الفعلي في الدرج');
+                        return;
+                    }
+                    if (!confirm('هل أنت متأكد من إغلاق الوردية وتصفية الحساب؟')) return;
+
+                    axios.post('{{ route("pos.shift.close") }}', { closing_cash: this.closingCash })
                         .then(res => {
-                            this.shiftId = null;
-                            bootstrap.Modal.getInstance(document.getElementById('shiftModal')).hide();
-                            alert('تم إغلاق الوردية ' + (res.data.diff ? 'مع عجز/زيادة: ' + res.data.diff : ''));
+                            alert('تم إغلاق الوردية بنجاح. الفرق: ' + this.formatMoney(res.data.diff));
                             location.reload();
                         })
-                        .catch(err => alert('خطأ في إغلاق الوردية'));
+                        .catch(err => alert('خطأ في إغلاق الوردية: ' + (err.response?.data?.message || err.message)));
                 },
 
-                // Placeholder for fetching shift stats
-                shiftStats: { total_sales: 0, cash_in_drawer: 0 },
                 fetchShiftDetails() {
-                    // Implement backend endpoint: route('pos.shift.details')
-                    // For now simulating or using basic info
+                    if (!this.shiftId) return;
+                    axios.get('{{ route("pos.shift.stats") }}')
+                        .then(res => {
+                            if (res.data.success) {
+                                this.shiftStats = res.data.shift;
+                                // Default closing cash to expected to save effort
+                                if (!this.closingCash) this.closingCash = this.shiftStats.expected_cash;
+                            }
+                        })
+                        .catch(err => console.error('Error fetching shift details:', err));
+                },
+
+                // Return Logic Methods
+                showReturnModal() {
+                    this.searchReturnQuery = '';
+                    this.returnInvoice = null;
+                    this.returnItems = [];
+                    this.returnReason = '';
+                    this.refundPin = '';
+                    new bootstrap.Modal(document.getElementById('returnModal')).show();
+                },
+
+                searchReturnInvoice() {
+                    if (!this.searchReturnQuery) return;
+                    axios.get('{{ route("pos.invoice.search") }}', { params: { q: this.searchReturnQuery } })
+                        .then(res => {
+                            if (res.data.success) {
+                                this.returnInvoice = res.data.invoice;
+                                this.returnItems = res.data.invoice.lines.map(line => ({
+                                    line_id: line.id,
+                                    name: line.product.name,
+                                    original_qty: line.quantity,
+                                    quantity: 0
+                                }));
+                            } else {
+                                alert('الفاتورة غير موجودة أو لا يمكن إرجاعها.');
+                                this.returnInvoice = null;
+                                this.returnItems = [];
+                            }
+                        })
+                        .catch(err => {
+                            alert('خطأ: ' + (err.response?.data?.message || 'الفاتورة غير موجودة'));
+                            this.returnInvoice = null;
+                            this.returnItems = [];
+                        });
+                },
+
+                processReturn() {
+                    const itemsToReturn = this.returnItems.filter(i => i.quantity > 0);
+                    if (itemsToReturn.length === 0) {
+                        alert('من فضلك حدد الكميات المرتجعة');
+                        return;
+                    }
+
+                    axios.post('{{ route("pos.return") }}', {
+                        invoice_id: this.returnInvoice.id,
+                        items: itemsToReturn,
+                        reason: this.returnReason,
+                        pin: this.refundPin
+                    })
+                        .then(res => {
+                            alert('تم إتمام المرجوع بنجاح');
+                            bootstrap.Modal.getInstance(document.getElementById('returnModal')).hide();
+                            location.reload();
+                        })
+                        .catch(err => alert('خطأ: ' + (err.response?.data?.message || 'فشل إتمام المرجوع')));
                 },
 
                 loadInitialProducts() {
@@ -804,6 +1064,9 @@
                         warehouse_id: this.warehouseId,
                         payment_method: this.paymentMethod,
                         amount_paid: this.amountPaid,
+                        is_delivery: this.isDelivery,
+                        driver_id: this.driverId,
+                        delivery_fee: this.deliveryFee,
                         discount: this.globalDiscount,
                         notes: this.notes
                     };
@@ -839,8 +1102,41 @@
                 },
 
                 handleGlobalKeys(e) {
-                    if (e.key === 'F2') { e.preventDefault(); document.getElementById('searchInput').focus(); }
-                    if (e.key === 'F9') { e.preventDefault(); if (this.cart.length > 0) this.showPaymentModal(); }
+                    // Help (F1 or H)
+                    if (e.key === 'F1' || (e.key === 'h' && document.activeElement.tagName !== 'INPUT')) {
+                        e.preventDefault();
+                        new bootstrap.Modal(document.getElementById('shortcutsModal')).show();
+                    }
+
+                    // Return (Alt+R)
+                    if (e.altKey && e.key === 'r') {
+                        e.preventDefault();
+                        this.showReturnModal();
+                    }
+
+                    // Search (F2)
+                    if (e.key === 'F2') {
+                        e.preventDefault();
+                        document.getElementById('searchInput').focus();
+                    }
+
+                    // Pay (F9)
+                    if (e.key === 'F9') {
+                        e.preventDefault();
+                        if (this.cart.length > 0) this.showPaymentModal();
+                    }
+
+                    // Customer Selection (F10)
+                    if (e.key === 'F10') {
+                        e.preventDefault();
+                        // Logic to focus customer select or open search
+                    }
+
+                    // Clear Cart (F11)
+                    if (e.key === 'F11') {
+                        e.preventDefault();
+                        this.clearCart();
+                    }
                 }
             }
         }
@@ -906,17 +1202,144 @@
             background: #111827;
         }
 
+        <style> :root {
+            --pos-bg: #0a0f1e;
+            --pos-panel: rgba(16, 23, 42, 0.8);
+            --pos-border: rgba(255, 255, 255, 0.1);
+            --pos-accent: #3b82f6;
+            --pos-success: #10b981;
+            --pos-danger: #ef4444;
+            --pos-text: #f8fafc;
+            --pos-text-muted: #94a3b8;
+            --glass: blur(12px) saturate(180%);
+        }
+
+        body {
+            background-color: var(--pos-bg) !important;
+            color: var(--pos-text);
+            font-family: 'Cairo', sans-serif;
+            overflow: hidden;
+        }
+
+        .bg-dark {
+            background-color: var(--pos-panel) !important;
+        }
+
+        .bg-darker {
+            background-color: rgba(0, 0, 0, 0.4) !important;
+        }
+
+        .h-100.d-flex.flex-column {
+            background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.05), transparent),
+                radial-gradient(circle at bottom left, rgba(16, 185, 129, 0.05), transparent);
+        }
+
+        /* Glassmorphism Containers */
+        .border-secondary {
+            border-color: var(--pos-border) !important;
+        }
+
+        .card.bg-dark {
+            background: rgba(30, 41, 59, 0.5) !important;
+            backdrop-filter: var(--glass);
+            -webkit-backdrop-filter: var(--glass);
+            border: 1px solid var(--pos-border);
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-hover:hover {
+            transform: translateY(-4px) scale(1.02);
+            border-color: var(--pos-accent) !important;
+            background: rgba(30, 41, 59, 0.8) !important;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5),
+                0 0 15px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Readability Optimization */
+        .text-white {
+            color: #ffffff !important;
+            opacity: 1 !important;
+        }
+
+        .text-secondary {
+            color: var(--pos-text-muted) !important;
+        }
+
+        .badge {
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* Inputs */
+        .form-control,
+        .form-select {
+            background-color: rgba(15, 23, 42, 0.6) !important;
+            border: 1px solid var(--pos-border) !important;
+            color: #ffffff !important;
+            border-radius: 8px;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--pos-accent) !important;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+        }
+
+        /* Cart Items */
+        .cart-item-anim {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Scrollbars */
+        .scrollbar-custom::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .scrollbar-custom::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
         .scrollbar-custom::-webkit-scrollbar-thumb {
-            background: #374151;
-            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
         }
 
         .scrollbar-custom::-webkit-scrollbar-thumb:hover {
-            background: #4b5563;
+            background: var(--pos-accent);
         }
 
-        .scrollbar-none::-webkit-scrollbar {
-            display: none;
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border: none;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border: none;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
+        }
+
+        .display-4 {
+            text-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+
+        [x-cloak] {
+            display: none !important;
         }
     </style>
 @endsection

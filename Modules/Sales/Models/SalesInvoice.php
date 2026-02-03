@@ -37,6 +37,13 @@ class SalesInvoice extends Model
         'notes',
         'terms',
         'journal_entry_id',
+        'is_delivery',
+        'delivery_fee',
+        'driver_id',
+        'delivery_status',
+        'shipping_address',
+        'warehouse_id',
+        'pos_shift_id',
     ];
 
     protected $casts = [

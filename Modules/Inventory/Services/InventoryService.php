@@ -134,8 +134,9 @@ class InventoryService
             // Update product stock
             $stock->updateFromMovement(-$quantity, -$costData['total_cost']);
 
-            // Create journal entry
-            if ($createJournal && $product->inventory_account_id && $product->sales_account_id) {
+            // Create journal entry if product has inventory account
+            // Truth: Inventory reduction always requires a COGS/Inventory journal
+            if ($createJournal && $product->inventory_account_id) {
                 $this->createInventoryJournalEntry($movement, $product, 'remove');
             }
 

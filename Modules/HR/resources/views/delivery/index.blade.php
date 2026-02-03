@@ -128,8 +128,8 @@
                                         <i class="bi bi-person-badge-fill"></i>
                                     </div>
                                     <div>
-                                        <div class="fw-bold">{{ $driver->employee->full_name }}</div>
-                                        <div class="text-secondary x-small opacity-50">كود: {{ $driver->employee->employee_code }}</div>
+                                        <div class="fw-bold">{{ $driver->employee->full_name ?? '---' }}</div>
+                                        <div class="text-secondary x-small opacity-50">كود: {{ $driver->employee->employee_code ?? '---' }}</div>
                                     </div>
                                 </div>
                             </td>
@@ -154,7 +154,7 @@
                                     <ul class="dropdown-menu dropdown-menu-end glass-card border-white border-opacity-10 shadow-lg">
                                         @foreach($statusMap as $val => $cfg)
                                             <li>
-                                                <form action="{{ route('hr.delivery.status', $driver->id) }}" method="POST">
+                                                <form action="{{ route('hr.delivery.status', $driver) }}" method="POST">
                                                     @csrf
                                                     <input type="hidden" name="status" value="{{ $val }}">
                                                     <button type="submit" class="dropdown-item text-{{ $cfg['class'] }} small d-flex align-items-center gap-2">
@@ -177,10 +177,10 @@
                             </td>
                             <td class="pe-4 text-end">
                                 <div class="d-flex justify-content-end gap-2">
-                                    <a href="{{ route('hr.delivery.edit', $driver->id) }}" class="btn btn-sm btn-icon btn-outline-info rounded-circle" title="تعديل">
+                                    <a href="{{ route('hr.delivery.edit', $driver) }}" class="btn btn-sm btn-icon btn-outline-info rounded-circle" title="تعديل">
                                         <i class="bi bi-pencil-fill"></i>
                                     </a>
-                                    <form action="{{ route('hr.delivery.destroy', $driver->id) }}" method="POST" class="d-inline" onsubmit="return confirm('هل أنت متأكد من حذف هذا السائق؟ لن يتم حذف الموظف.')">
+                                    <form action="{{ route('hr.delivery.destroy', $driver) }}" method="POST" class="d-inline" onsubmit="return confirm('هل أنت متأكد من حذف هذا السائق؟ لن يتم حذف الموظف.')">
                                         @csrf @method('DELETE')
                                         <button class="btn btn-sm btn-icon btn-outline-danger rounded-circle" title="حذف"><i class="bi bi-trash-fill"></i></button>
                                     </form>

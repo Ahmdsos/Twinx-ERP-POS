@@ -208,6 +208,26 @@
                                     <label class="form-check-label text-white" for="pos_allow_negative_stock">السماح بالبيع
                                         عند نفاد المخزون (بالسالب)</label>
                                 </div>
+
+                                <hr class="border-secondary my-4">
+                                <h5 class="text-primary fw-bold mb-3"><i class="bi bi-shield-lock me-2"></i> لوحة التحكم
+                                    الأمنية (Security Console)</h5>
+
+                                <div class="col-md-6">
+                                    <label class="form-label text-white-50">كلمة مرور العمليات الحساسة (PIN)</label>
+                                    <div class="input-group">
+                                        <input type="password" name="pos_refund_pin" id="pos_refund_pin"
+                                            class="form-control bg-transparent text-white"
+                                            value="{{ $settings['pos']['pos_refund_pin'] ?? '1234' }}">
+                                        <button class="btn btn-outline-secondary" type="button"
+                                            onclick="togglePinVisibility()">
+                                            <i class="bi bi-eye" id="pin-icon"></i>
+                                        </button>
+                                    </div>
+                                    <div class="form-text text-white-50 small">
+                                        تستخدم لتأكيد عمليات (المرتجع، حذف الأصناف، تعديل الأسعار).
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -330,6 +350,20 @@
                     document.getElementById('logo-preview').src = e.target.result;
                 }
                 reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function togglePinVisibility() {
+            const input = document.getElementById('pos_refund_pin');
+            const icon = document.getElementById('pin-icon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
             }
         }
     </script>

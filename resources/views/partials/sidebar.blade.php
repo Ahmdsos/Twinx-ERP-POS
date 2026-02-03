@@ -23,7 +23,7 @@
             </div>
             <i class="bi bi-chevron-down small transition-icon opacity-50"></i>
         </a>
-        <div class="collapse {{ request()->routeIs('pos.*', 'sales-invoices.*', 'customers.*', 'quotations.*', 'sales-orders.*', 'deliveries.*', 'customer-payments.*') ? 'show' : '' }}"
+        <div class="collapse {{ request()->routeIs('pos.*', 'sales-invoices.*', 'customers.*', 'quotations.*', 'sales-orders.*', 'deliveries.*', 'customer-payments.*', 'reports.mission-control') ? 'show' : '' }}"
             id="salesMenu">
             <ul class="nav flex-column ms-3 mt-1 border-s border-secondary border-opacity-10 ps-3"
                 style="border-right: 1px solid rgba(255,255,255,0.1);">
@@ -37,6 +37,12 @@
                 @endcan
 
                 @can('sales.manage')
+                    <li class="nav-item">
+                        <a class="nav-link py-2 fs-6 {{ request()->routeIs('reports.mission-control') ? 'text-white fw-bold' : '' }}"
+                            href="{{ route('reports.mission-control') }}">
+                            تحكم المهام اللوجستية 📡
+                        </a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link py-2 fs-6 {{ request()->routeIs('sales-invoices.*') ? 'text-white fw-bold' : '' }}"
                             href="{{ route('sales-invoices.index') }}">

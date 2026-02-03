@@ -11,6 +11,7 @@ enum DeliveryStatus: string
     case READY = 'ready';           // Ready to ship
     case SHIPPED = 'shipped';       // Out for delivery
     case DELIVERED = 'delivered';   // Completed
+    case RETURNED = 'returned';     // Failed/Returned
     case CANCELLED = 'cancelled';
 
     public function label(): string
@@ -20,6 +21,7 @@ enum DeliveryStatus: string
             self::READY => 'جاهز للشحن',
             self::SHIPPED => 'تم الشحن',
             self::DELIVERED => 'تم التسليم',
+            self::RETURNED => 'مرتجع/فشل',
             self::CANCELLED => 'ملغي',
         };
     }

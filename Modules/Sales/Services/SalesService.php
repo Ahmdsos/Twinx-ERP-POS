@@ -484,4 +484,112 @@ class SalesService
             return $so;
         });
     }
+    /**
+     * Settle Delivery Mission (Audit Finding #1 & #2)
+     * Handles the transition of human-led delivery to final Truth state.
+     */
+    public function settleDeliveryMission(DeliveryOrder $delivery, string $status, array $params = []): void
+    {
+        DB::transaction(function () use ($delivery, $status, $params) {
+            $newStatus = DeliveryStatus::from($status);
+
+            if ($newStatus === DeliveryStatus::DELIVERED) {
+                $this->handleDeliverySuccess($delivery, $params);
+            } elseif ($newStatus === DeliveryStatus::RETURNED) {
+                $this->handleDeliveryFailure($delivery, $params);
+            }
+
+            $delivery->update([
+                'status' => $newStatus,
+                'notes' => ($delivery->notes ? $delivery->notes . "\n" : "") . ($params['notes'] ?? ""),
+                'delivered_at' => ($newStatus === DeliveryStatus::DELIVERED) ? now() : null,
+            ]);
+
+            if ($delivery->salesOrder) {
+                $delivery->salesOrder->updateDeliveryStatus();
+            }
+        });
+    }
+
+    /**
+     * Success Flow: Transfer Pending -> Cash/Bank
+     */
+    protected function handleDeliverySuccess(DeliveryOrder $delivery, array $params): void
+    {
+        $pendingAccount = Account::where('code', '1202')->first();
+        $cashAccount = Account::where('code', \App\Models\Setting::getValue('acc_cash', '1101'))->first();
+
+        if (!$pendingAccount || !$cashAccount)
+            return;
+
+        $deliveryFee = $delivery->salesOrder->delivery_fee ?? $delivery->salesInvoice->delivery_fee ?? 0;
+
+        if ($deliveryFee <= 0)
+            return;
+
+        // Transfer delivery fee from Pending to Cash
+        $lines = [
+            ['account_id' => $pendingAccount->id, 'debit' => 0, 'credit' => (float) $deliveryFee],
+            ['account_id' => $cashAccount->id, 'debit' => (float) $deliveryFee, 'credit' => 0],
+        ];
+
+        $entry = $this->journalService->create([
+            'entry_date' => now(),
+            'reference' => 'SETTLE-' . $delivery->do_number,
+            'description' => "Delivery Settlement (Success): " . $delivery->do_number,
+            'source_type' => DeliveryOrder::class,
+            'source_id' => $delivery->id,
+        ], $lines);
+
+        $this->journalService->post($entry);
+    }
+
+    /**
+     * Failure Flow: Restore Stock & Reverse Revenue
+     */
+    protected function handleDeliveryFailure(DeliveryOrder $delivery, array $params): void
+    {
+        $delivery->load('lines.product');
+
+        // 1. Restore Stock (Safe Stock Reversal - Audit Finding #2)
+        foreach ($delivery->lines as $line) {
+            $unitCost = $line->product->average_cost ?? $line->product->purchase_price ?? 0;
+            $this->inventoryService->addStock(
+                $line->product,
+                $delivery->warehouse,
+                $line->quantity,
+                (float) $unitCost,
+                MovementType::ADJUSTMENT_IN,
+                'FAIL-' . $delivery->do_number,
+                'Failed Delivery Return'
+            );
+        }
+
+        // 2. Accounting Truth: Reverse Pending Fee (Audit Finding #1)
+        $pendingAccount = Account::where('code', '1202')->first();
+        $shippingRevenueAccount = Account::where('code', \App\Models\Setting::getValue('acc_shipping_revenue', '4201'))->first();
+
+        if (!$pendingAccount || !$shippingRevenueAccount)
+            return;
+
+        $deliveryFee = $delivery->salesOrder->delivery_fee ?? $delivery->salesInvoice->delivery_fee ?? 0;
+
+        if ($deliveryFee <= 0)
+            return;
+
+        $lines = [
+            ['account_id' => $pendingAccount->id, 'debit' => 0, 'credit' => (float) $deliveryFee],
+            ['account_id' => $shippingRevenueAccount->id, 'debit' => (float) $deliveryFee, 'credit' => 0],
+        ];
+
+        $entry = $this->journalService->create([
+            'entry_date' => now(),
+            'reference' => 'FAIL-' . $delivery->do_number,
+            'description' => "Delivery Settlement (Failure): " . $delivery->do_number,
+            'source_type' => DeliveryOrder::class,
+            'source_id' => $delivery->id,
+        ], $lines);
+
+        $this->journalService->post($entry);
+    }
 }

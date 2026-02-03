@@ -63,8 +63,10 @@ class InventoryService
                 'created_by' => auth()->id(),
             ]);
 
-            // Update product stock
-            $stock = ProductStock::getOrCreate($product->id, $warehouse->id);
+            // Update product stock with explicit row lock for concurrency safety
+            $stockRecord = ProductStock::getOrCreate($product->id, $warehouse->id);
+            $stock = ProductStock::where('id', $stockRecord->id)->lockForUpdate()->first();
+
             $stock->updateFromMovement($quantity, $totalCost);
 
             // Create journal entry if product has inventory account
@@ -94,8 +96,9 @@ class InventoryService
         $costingMethod = config('erp.inventory.costing_method', 'fifo');
 
         return DB::transaction(function () use ($product, $warehouse, $quantity, $type, $reference, $notes, $sourceType, $sourceId, $costingMethod, $createJournal) {
-            // Get stock record
-            $stock = ProductStock::getOrCreate($product->id, $warehouse->id);
+            // Get stock record with explicit row lock to prevent race conditions (Audit Finding #6)
+            $stockRecord = ProductStock::getOrCreate($product->id, $warehouse->id);
+            $stock = ProductStock::where('id', $stockRecord->id)->lockForUpdate()->first();
 
             // Check available quantity
             if (!config('erp.inventory.allow_negative_stock', false)) {

@@ -39,4 +39,41 @@ class DeliveryDriver extends Model
     {
         return $this->hasMany(\Modules\Sales\Models\DeliveryOrder::class, 'driver_id');
     }
+
+    /**
+     * Get currently active shipments (Shipped or Ready)
+     */
+    public function activeShipments(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->shipments()->whereIn('status', [
+            \Modules\Sales\Enums\DeliveryStatus::SHIPPED,
+            \Modules\Sales\Enums\DeliveryStatus::READY
+        ]);
+    }
+
+    /**
+     * Calculate Success Rate percentage
+     */
+    public function getSuccessRateAttribute(): float
+    {
+        $total = $this->shipments()->whereIn('status', [
+            \Modules\Sales\Enums\DeliveryStatus::DELIVERED,
+            \Modules\Sales\Enums\DeliveryStatus::RETURNED
+        ])->count();
+
+        if ($total === 0)
+            return 0;
+
+        $success = $this->shipments()->where('status', \Modules\Sales\Enums\DeliveryStatus::DELIVERED)->count();
+
+        return round(($success / $total) * 100, 1);
+    }
+
+    /**
+     * Check if driver is currently in the field
+     */
+    public function getIsInFieldAttribute(): bool
+    {
+        return $this->activeShipments()->exists();
+    }
 }

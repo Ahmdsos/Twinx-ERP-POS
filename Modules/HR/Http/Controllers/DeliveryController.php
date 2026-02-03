@@ -124,6 +124,30 @@ class DeliveryController extends Controller
     }
 
     /**
+     * Display the specified delivery driver.
+     */
+    public function show(DeliveryDriver $driver)
+    {
+        $driver->load([
+            'employee',
+            'shipments' => function ($q) {
+                $q->with(['customer', 'salesOrder', 'salesInvoice'])->orderBy('created_at', 'desc')->limit(50);
+            }
+        ]);
+
+        $activeMissions = $driver->activeShipments()->with(['customer', 'salesOrder', 'salesInvoice'])->get();
+
+        $stats = [
+            'total_all_time' => $driver->shipments()->count(),
+            'success_rate' => $driver->success_rate,
+            'delivered_today' => $driver->shipments()->where('status', \Modules\Sales\Enums\DeliveryStatus::DELIVERED)->whereDate('updated_at', now())->count(),
+            'returned_today' => $driver->shipments()->where('status', \Modules\Sales\Enums\DeliveryStatus::RETURNED)->whereDate('updated_at', now())->count(),
+        ];
+
+        return view('hr::delivery.show', compact('driver', 'activeMissions', 'stats'));
+    }
+
+    /**
      * Remove the specified delivery driver from storage.
      */
     public function destroy(DeliveryDriver $driver)

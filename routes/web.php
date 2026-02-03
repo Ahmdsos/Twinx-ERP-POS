@@ -85,7 +85,9 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['can:sales.create'])->prefix('pos')->name('pos.')->group(function () {
         Route::get('/', [POSController::class, 'index'])->name('index');
         Route::get('/search', [POSController::class, 'searchProducts'])->name('search');
-        Route::get('/barcode', [POSController::class, 'findByBarcode'])->name('barcode');
+        Route::get('/products/search', [POSController::class, 'searchProducts'])->name('products.search');
+        Route::get('/customers/{id}/brief', [POSController::class, 'getCustomerBrief'])->name('customers.brief');
+        Route::post('/customers/quick-create', [POSController::class, 'quickCreateCustomer'])->name('customers.quick-create');
         Route::post('/checkout', [POSController::class, 'checkout'])->name('checkout');
         Route::get('/receipt/{invoice}', [POSController::class, 'receipt'])->name('receipt');
         Route::get('/summary', [POSController::class, 'dailySummary'])->name('summary');
@@ -190,6 +192,10 @@ Route::middleware(['auth'])->group(function () {
 
         // Purchases
         Route::get('/purchases/by-supplier', [App\Http\Controllers\ReportController::class, 'purchasesBySupplier'])->name('purchases.by-supplier');
+
+        // Mission Control (Phase 2)
+        Route::get('/mission-control', [App\Http\Controllers\MissionController::class, 'index'])->name('mission-control');
+        Route::post('/mission-control/settle/{delivery}', [App\Http\Controllers\MissionController::class, 'settle'])->name('mission.settle');
     });
 
     // ==========================================

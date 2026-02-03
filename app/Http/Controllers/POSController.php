@@ -76,25 +76,20 @@ class POSController extends Controller
         $categoryId = $request->get('category_id');
         $warehouseId = $request->get('warehouse_id'); // Get selected warehouse
 
-        $products = Product::query()
-            ->where('is_active', true)
-            ->where('is_sellable', true)
-            ->where(function ($q) use ($query) {
-                $q->where('name', 'like', "%{$query}%")
-                    ->orWhere('sku', 'like', "%{$query}%")
-                    ->orWhere('barcode', 'like', "%{$query}%");
+        $products = Product::with(['category', 'unit', 'stocks'])
+            ->when($query, function ($q) use ($query) {
+                $q->where(function ($sub) use ($query) {
+                    $sub->where('name', 'LIKE', "%{$query}%")
+                        ->orWhere('sku', 'LIKE', "%{$query}%")
+                        ->orWhere('barcode', 'LIKE', "%{$query}%")
+                        ->orWhere('description', 'LIKE', "%{$query}%");
+                });
             })
-            ->when($categoryId, fn($q) => $q->where('category_id', $categoryId))
-            ->with([
-                'category:id,name',
-                'unit:id,name,abbreviation',
-                'images',
-                'stock' => function ($q) use ($warehouseId) {
-                    if ($warehouseId) {
-                        $q->where('warehouse_id', $warehouseId);
-                    }
-                }
-            ])
+            ->when($categoryId, function ($q) use ($categoryId) {
+                $q->where('category_id', $categoryId);
+            })
+            ->active()
+            ->where('is_sellable', true) // Keep this explicit check
             ->when($warehouseId, function ($q) use ($warehouseId) {
                 // Filter by stock only if "Allow Negative Stock" is FALSE
                 $allowNegative = \App\Models\Setting::getValue('pos_allow_negative_stock', false);
@@ -129,7 +124,7 @@ class POSController extends Controller
                     : (float) $p->available_stock,
                 'category' => $p->category?->name,
                 'unit' => $p->unit?->abbreviation ?? 'PCS',
-                'image' => $p->primaryImageUrl,
+                'image' => $p->getPrimaryImageUrlAttribute(),
             ]);
 
         return response()->json($products);
@@ -163,32 +158,51 @@ class POSController extends Controller
             'tax_rate' => (float) $product->tax_rate,
             'stock' => $product->getTotalStock(),
             'unit' => $product->unit?->abbreviation ?? 'PCS',
-            'image' => $product->primaryImageUrl,
+            'image' => $product->getPrimaryImageUrlAttribute(),
         ]);
     }
 
     public function quickCreateCustomer(Request $request)
     {
-        $request->validate([
+        $data = $request->validate([
             'name' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'address' => 'nullable|string|max:500',
+            'mobile' => 'required|string|max:20',
         ]);
 
-        $customer = Customer::create([
-            'name' => $request->name,
-            'phone' => $request->phone ?? 'N/A',
-            'email' => $request->email,
-            'address' => $request->address,
+        $customer = \Modules\Sales\Models\Customer::create([
+            'name' => $data['name'],
+            'mobile' => $data['mobile'],
+            'phone' => $data['mobile'],
             'is_active' => true,
-            'created_by' => auth()->id() ?? 1,
         ]);
 
         return response()->json([
             'success' => true,
             'customer' => $customer,
             'message' => 'تم إضافة العميل بنجاح',
+        ]);
+    }
+
+    /**
+     * Get brief customer info for POS
+     */
+    public function getCustomerBrief(Request $request, $id)
+    {
+        $customer = \Modules\Sales\Models\Customer::findOrFail($id);
+
+        $lastInvoice = $customer->salesInvoices()
+            ->latest('invoice_date')
+            ->first();
+
+        return response()->json([
+            'id' => $customer->id,
+            'name' => $customer->name,
+            'mobile' => $customer->mobile,
+            'address' => $customer->shipping_address ?? $customer->billing_address,
+            'balance' => (float) $customer->balance,
+            'credit_limit' => (float) $customer->credit_limit,
+            'is_blocked' => (bool) $customer->is_blocked,
+            'last_invoice_date' => $lastInvoice ? $lastInvoice->invoice_date->format('Y-m-d') : 'لا يوجد',
         ]);
     }
 
@@ -204,17 +218,24 @@ class POSController extends Controller
             'items.*.price' => 'required|numeric|min:0',
             'items.*.discount' => 'nullable|numeric|min:0',
             'customer_id' => 'nullable|exists:customers,id',
-            'payment_method' => 'required|in:cash,card,credit,split',
-            'amount_paid' => 'required|numeric',
+            'payments' => 'required|array|min:1',
+            'payments.*.method' => 'required|in:cash,card,credit,bank',
+            'payments.*.amount' => 'required|numeric|min:0',
+            'payments.*.account_id' => 'nullable|exists:accounts,id',
             'discount' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string|max:500',
             'is_delivery' => 'nullable|boolean',
             'driver_id' => 'nullable|exists:hr_delivery_drivers,id',
+            'delivery_driver_id' => 'nullable|exists:hr_delivery_drivers,id',
             'delivery_fee' => 'nullable|numeric|min:0',
             'shipping_address' => 'nullable|string|max:500',
+            'delivery_address' => 'nullable|string|max:500',
             'warehouse_id' => 'nullable|exists:warehouses,id',
-            'payment_account_id' => 'nullable|exists:accounts,id',
         ]);
+
+        // Map frontend names to service names
+        $data['driver_id'] = $data['delivery_driver_id'] ?? $data['driver_id'] ?? null;
+        $data['shipping_address'] = $data['delivery_address'] ?? $data['shipping_address'] ?? null;
 
         try {
             $invoice = $this->posService->checkout($data);
@@ -391,9 +412,12 @@ class POSController extends Controller
      */
     public function searchInvoice(Request $request)
     {
-        $request->validate(['q' => 'required|string']);
+        $q = $request->get('invoice_number') ?? $request->get('q');
+        if (!$q) {
+            return response()->json(['success' => false, 'message' => 'رقم الفاتورة مطلوب'], 400);
+        }
 
-        $invoice = SalesInvoice::where('invoice_number', $request->q)
+        $invoice = SalesInvoice::where('invoice_number', $q)
             ->with('lines.product')
             ->first();
 
@@ -430,25 +454,31 @@ class POSController extends Controller
     {
         $data = $request->validate([
             'invoice_id' => 'required|exists:sales_invoices,id',
-            'items' => 'required|array',
-            'items.*.line_id' => 'required|exists:sales_invoice_lines,id',
-            'items.*.quantity' => 'required|numeric|min:0.01',
+            'items' => 'nullable|array',
+            'items.*.line_id' => 'required_with:items|exists:sales_invoice_lines,id',
+            'items.*.quantity' => 'required_with:items|numeric|min:0.01',
             'reason' => 'nullable|string|max:255',
-            'pin' => 'required|string'
         ]);
 
-        // Security Check
-        $storedPin = Setting::getValue('pos_refund_pin', '1234');
-        if ($data['pin'] !== $storedPin) {
-            return response()->json(['success' => false, 'message' => 'الرقم السري غير صحيح'], 403);
+        // If no items provided, assume full return
+        if (empty($data['items'])) {
+            $invoice = SalesInvoice::with('lines')->find($data['invoice_id']);
+            $data['items'] = $invoice->lines->map(fn($line) => [
+                'line_id' => $line->id,
+                'quantity' => $line->quantity
+            ])->toArray();
         }
 
         try {
-            $returnInvoice = $this->posService->salesReturn($data);
+            $salesReturn = $this->posService->salesReturn($data);
             return response()->json([
                 'success' => true,
-                'message' => 'تم استلام المرتجع بنجاح',
-                'return_invoice' => $returnInvoice
+                'message' => 'تم إتمام المرتجع بنجاح',
+                'return' => [
+                    'id' => $salesReturn->id,
+                    'number' => $salesReturn->return_number,
+                    'total' => $salesReturn->total_amount,
+                ]
             ]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);

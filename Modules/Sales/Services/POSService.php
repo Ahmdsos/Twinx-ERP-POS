@@ -44,6 +44,7 @@ class POSService
     {
         return DB::transaction(function () use ($data) {
             $activeShift = \App\Models\PosShift::getActiveShift();
+
             // 1. Process Items & Calculate Totals
             $items = $data['items'];
             $invoiceLinesData = [];
@@ -74,10 +75,11 @@ class POSService
             $deliveryFee = (float) ($data['delivery_fee'] ?? 0);
 
             // MATH TRUTH: Total = Net Subtotal + Total Tax - Global Discount + Delivery Fee
-            $total = $subtotal + $totalTax - $globalDiscount + $deliveryFee;
+            $total = (float) round($subtotal + $totalTax - $globalDiscount + $deliveryFee, 2);
 
-            $amountPaid = (float) $data['amount_paid'];
-            $balanceDue = max(0, $total - $amountPaid);
+            // Calculate total paid across all payment methods
+            $amountPaid = collect($data['payments'])->sum('amount');
+            $balanceDue = max(0, (float) round($total - $amountPaid, 2));
 
             // 2. Resolve Customer
             $customerId = $data['customer_id'] ?? $this->resolveWalkInCustomer()->id;
@@ -104,9 +106,11 @@ class POSService
                 'pos_shift_id' => $activeShift?->id,
             ]);
 
-            // Track stats in shift
+            // Track stats in shift - Split awareness
             if ($activeShift) {
-                $activeShift->incrementSales($invoice->paid_amount, $data['payment_method'] ?? 'cash');
+                foreach ($data['payments'] as $payment) {
+                    $activeShift->incrementSales($payment['amount'], $payment['method']);
+                }
             }
 
             // 4. Create Lines & Handle Stock
@@ -126,7 +130,6 @@ class POSService
                     'line_total' => $lineData['line_total'],
                 ]);
 
-                // Stock Reduction (Sale vs Return)
                 if ($lineData['quantity'] > 0) {
                     $this->inventoryService->removeStock(
                         $productHost,
@@ -138,8 +141,6 @@ class POSService
                         SalesInvoice::class,
                         $invoice->id
                     );
-                } else {
-                    // Handle return stock restoration via InventoryService if needed
                 }
             }
 
@@ -148,13 +149,15 @@ class POSService
                 $this->createDeliveryOrder($invoice, $data);
             }
 
-            // 6. Record Payment
-            if ($amountPaid > 0) {
-                $this->recordPayment($invoice, $data);
+            // 6. Record Payments (Split support)
+            foreach ($data['payments'] as $paymentData) {
+                if ($paymentData['amount'] > 0) {
+                    $this->recordPayment($invoice, $paymentData);
+                }
             }
 
-            // 7. Create Journal Entry
-            $this->createInvoiceJournalEntry($invoice, $data['payment_method']);
+            // 7. Create Journal Entry (Split support)
+            $this->createInvoiceJournalEntry($invoice, $data['payments']);
 
             return $invoice;
         });
@@ -241,89 +244,136 @@ class POSService
     /**
      * Record Cash/Card Payment
      */
-    protected function recordPayment(SalesInvoice $invoice, array $data): void
+    protected function recordPayment(SalesInvoice $invoice, array $paymentData): void
     {
-        $paymentAccountId = $data['payment_account_id'] ?? Setting::getValue('acc_cash_id', 1);
+        $method = $paymentData['method'];
+        $amount = (float) $paymentData['amount'];
+
+        // Skip credit or zero payments
+        if ($method === 'credit' || $amount <= 0)
+            return;
+
+        $defaultCashAccount = Setting::getValue('acc_cash_id', 1);
+        $defaultBankAccount = Setting::getValue('acc_bank_id', 2);
+
+        $paymentAccountId = $paymentData['account_id'] ??
+            (($method === 'card' || $method === 'bank') ? $defaultBankAccount : $defaultCashAccount);
 
         $payment = CustomerPayment::create([
             'customer_id' => $invoice->customer_id,
             'payment_account_id' => $paymentAccountId,
             'payment_date' => now(),
-            'amount' => $invoice->paid_amount,
-            'payment_method' => $data['payment_method'] ?? 'cash',
+            'amount' => $amount,
+            'payment_method' => $method,
             'reference' => 'POS-' . $invoice->invoice_number,
-            'receipt_number' => 'RCT-' . now()->format('YmdHis'),
-            'notes' => 'POS Payment for ' . $invoice->invoice_number,
-            'created_by' => auth()->id(),
+            'receipt_number' => 'RCT-' . now()->format('YmdHisv'), // Added milliseconds for uniqueness in split
+            'notes' => 'POS ' . ucfirst($method) . ' Payment for ' . $invoice->invoice_number,
+            'created_by' => auth()->id() ?? 1,
         ]);
 
         CustomerPaymentAllocation::create([
             'customer_payment_id' => $payment->id,
             'sales_invoice_id' => $invoice->id,
-            'amount' => min($invoice->paid_amount, $invoice->total),
+            'amount' => $amount,
         ]);
     }
 
     /**
-     * Handle POS Sales Return
+     * Handle POS Sales Return (Audit Finding #10)
+     * Transitioning from negative invoices to proper SalesReturn model
      */
-    public function salesReturn(array $data): SalesInvoice
+    public function salesReturn(array $data): \Modules\Sales\Models\SalesReturn
     {
         return DB::transaction(function () use ($data) {
-            $originalInvoice = SalesInvoice::findOrFail($data['invoice_id']);
-            $returnNumber = 'RET-' . now()->format('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+            $originalInvoice = SalesInvoice::with('lines')->findOrFail($data['invoice_id']);
 
-            $returnTotal = 0;
-            $returnLines = [];
+            // 1. Create Head of Return
+            $return = \Modules\Sales\Models\SalesReturn::create([
+                'return_number' => 'RET-' . now()->format('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT),
+                'sales_invoice_id' => $originalInvoice->id,
+                'customer_id' => $originalInvoice->customer_id,
+                'warehouse_id' => $originalInvoice->warehouse_id ?? 1,
+                'return_date' => now(),
+                'status' => \Modules\Sales\Enums\SalesReturnStatus::COMPLETED,
+                'reason' => $data['reason'] ?? 'Return from POS',
+                'created_by' => auth()->id() ?? 1,
+            ]);
+
+            $totalReturn = 0;
+            $totalTax = 0;
 
             foreach ($data['items'] as $item) {
                 $originalLine = SalesInvoiceLine::find($item['line_id']);
-                if (!$originalLine)
+                if (!$originalLine || $originalLine->sales_invoice_id !== $originalInvoice->id)
                     continue;
 
-                $lineTotal = $originalLine->unit_price * $item['quantity'];
-                $returnTotal += $lineTotal;
+                $unitPrice = (float) $originalLine->unit_price;
+                $quantity = (float) $item['quantity'];
+                $lineTotal = $unitPrice * $quantity;
+                $lineTax = $originalLine->tax_amount * ($quantity / $originalLine->quantity);
 
-                $returnLines[] = [
+                // 2. Create Return Line
+                \Modules\Sales\Models\SalesReturnLine::create([
+                    'sales_return_id' => $return->id,
                     'product_id' => $originalLine->product_id,
-                    'quantity' => $item['quantity'],
-                    'unit_price' => $originalLine->unit_price,
-                    'line_total' => $lineTotal,
-                ];
+                    'quantity' => $quantity,
+                    'unit_price' => $unitPrice,
+                    'tax_amount' => $lineTax,
+                    'line_total' => $lineTotal + $lineTax,
+                    'notes' => 'POS Return',
+                ]);
 
-                $this->restoreStock($originalLine->product_id, (float) $item['quantity'], $returnNumber);
+                $totalReturn += $lineTotal;
+                $totalTax += $lineTax;
+
+                // 3. Restore Stock with Lock
+                $this->restoreStock($originalLine->product_id, $quantity, $return->return_number);
             }
 
-            $returnInvoice = SalesInvoice::create([
-                'invoice_number' => $returnNumber,
-                'customer_id' => $originalInvoice->customer_id,
-                'invoice_date' => now(),
-                'due_date' => now(),
-                'subtotal' => -$returnTotal,
-                'discount_amount' => 0,
-                'tax_amount' => 0,
-                'total' => -$returnTotal,
-                'paid_amount' => -$returnTotal,
-                'balance_due' => 0,
-                'status' => 'refunded',
-                'notes' => 'مرتجع من فاتورة: ' . $originalInvoice->invoice_number . ($data['reason'] ? ' - السبب: ' . $data['reason'] : ''),
+            $return->update([
+                'subtotal' => $totalReturn,
+                'tax_amount' => $totalTax,
+                'total_amount' => $totalReturn + $totalTax,
             ]);
 
-            foreach ($returnLines as $line) {
-                SalesInvoiceLine::create([
-                    'sales_invoice_id' => $returnInvoice->id,
-                    'product_id' => $line['product_id'],
-                    'quantity' => -$line['quantity'],
-                    'unit_price' => $line['unit_price'],
-                    'discount_amount' => 0,
-                    'tax_percent' => 0,
-                    'tax_amount' => 0,
-                    'line_total' => -$line['line_total'],
-                ]);
-            }
+            // 4. Accounting Reversal (Truth Rule #10)
+            $this->createReturnJournalEntry($return);
 
-            return $returnInvoice;
+            return $return;
         });
+    }
+
+    /**
+     * Create Journal Entry for Sales Return
+     */
+    protected function createReturnJournalEntry(\Modules\Sales\Models\SalesReturn $return): void
+    {
+        $salesCode = Setting::getValue('acc_sales_revenue', '4101');
+        $taxCode = Setting::getValue('acc_tax_payable', '2201');
+        $cashCode = Setting::getValue('acc_cash', '1101');
+
+        $salesAccount = Account::where('code', $salesCode)->first();
+        $taxAccount = Account::where('code', $taxCode)->first();
+        $cashAccount = Account::where('code', $cashCode)->first();
+
+        $lines = [
+            // DR: Revenue (Cancel out the sale)
+            ['account_id' => $salesAccount->id, 'debit' => (float) $return->subtotal, 'credit' => 0],
+            // DR: Tax (Cancel out the VAT)
+            ['account_id' => $taxAccount->id, 'debit' => (float) $return->tax_amount, 'credit' => 0],
+            // CR: Cash (Refunded to customer)
+            ['account_id' => $cashAccount->id, 'debit' => 0, 'credit' => (float) $return->total_amount],
+        ];
+
+        $entry = $this->journalService->create([
+            'entry_date' => now(),
+            'reference' => $return->return_number,
+            'description' => 'POS Return: ' . $return->return_number,
+            'source_type' => \Modules\Sales\Models\SalesReturn::class,
+            'source_id' => $return->id,
+        ], $lines);
+
+        $this->journalService->post($entry);
     }
 
     /**
@@ -351,8 +401,9 @@ class POSService
     /**
      * Create Journal Entry for POS Sale
      * Ensures VAT, Item Revenue, and Shipping Revenue are separated.
+     * Enforces Accounting Truth for Discounts (4301) and Delivery Settlement (1202).
      */
-    protected function createInvoiceJournalEntry(SalesInvoice $invoice, string $paymentMethod): void
+    protected function createInvoiceJournalEntry(SalesInvoice $invoice, array $payments): void
     {
         $cashCode = Setting::getValue('acc_cash', '1101');
         $bankCode = Setting::getValue('acc_bank', '1102');
@@ -360,6 +411,8 @@ class POSService
         $salesCode = Setting::getValue('acc_sales_revenue', '4101');
         $taxCode = Setting::getValue('acc_tax_payable', '2201');
         $shippingCode = Setting::getValue('acc_shipping_revenue', '4201');
+        $discountCode = '4301'; // Sales Discounts
+        $pendingDeliveryCode = '1202'; // Pending Delivery Settlement
 
         $cashAccount = Account::where('code', $cashCode)->first();
         $bankAccount = Account::where('code', $bankCode)->first();
@@ -369,46 +422,99 @@ class POSService
         $salesAccount = Account::where('code', $salesCode)->first();
         $taxAccount = Account::where('code', $taxCode)->first();
         $shippingAccount = Account::where('code', $shippingCode)->first();
-
-        // Determine payment account
-        $paymentAccount = ($paymentMethod === 'card' || $paymentMethod === 'bank') ? ($bankAccount ?? $cashAccount) : $cashAccount;
+        $discountAccount = Account::where('code', $discountCode)->first();
+        $pendingDeliveryAccount = Account::where('code', $pendingDeliveryCode)->first();
 
         $lines = [];
 
-        // DEBITS
-        if ((float) $invoice->paid_amount > 0) {
-            $lines[] = ['account_id' => $paymentAccount->id, 'debit' => (float) $invoice->paid_amount, 'credit' => 0];
+        // --- DEBITS (Payments & AR) ---
+
+        foreach ($payments as $p) {
+            $amount = (float) $p['amount'];
+            if ($amount <= 0)
+                continue;
+
+            if ($p['method'] === 'credit') {
+                // Already handled in balance_due logic below
+                continue;
+            }
+
+            // Determine specific payment account
+            $account = null;
+            if (isset($p['account_id'])) {
+                $account = Account::find($p['account_id']);
+            } else {
+                $account = ($p['method'] === 'card' || $p['method'] === 'bank') ? $bankAccount : $cashAccount;
+            }
+
+            if ($account) {
+                $lines[] = ['account_id' => $account->id, 'debit' => $amount, 'credit' => 0, 'description' => 'POS ' . ucfirst($p['method']) . ' - ' . $invoice->invoice_number];
+            }
         }
-        if ((float) $invoice->balance_due > 0 && $arAccount) {
+
+        // Handle Balance Due (AR)
+        $deliveryFee = (float) $invoice->delivery_fee;
+        $arAmount = (float) $invoice->balance_due;
+
+        if ($invoice->is_delivery && $pendingDeliveryAccount) {
+            // Priority: Delivery fee goes to Pending account
+            $feeDebit = min($arAmount, $deliveryFee);
+            if ($feeDebit > 0) {
+                $lines[] = [
+                    'account_id' => $pendingDeliveryAccount->id,
+                    'debit' => $feeDebit,
+                    'credit' => 0,
+                    'description' => 'Pending Delivery Fee - ' . $invoice->invoice_number
+                ];
+                $arAmount -= $feeDebit;
+            }
+        }
+
+        if ($arAmount > 0 && $arAccount) {
             $lines[] = [
                 'account_id' => $arAccount->id,
-                'debit' => (float) $invoice->balance_due,
+                'debit' => $arAmount,
                 'credit' => 0,
                 'subledger_type' => Customer::class,
-                'subledger_id' => $invoice->customer_id
+                'subledger_id' => $invoice->customer_id,
+                'description' => 'POS AR - ' . $invoice->invoice_number
             ];
         }
 
-        // CREDITS
-        // Revenue = Total - VAT - Shipping
+        // Sales Discount (Debit)
+        if ((float) $invoice->discount_amount > 0 && $discountAccount) {
+            $lines[] = [
+                'account_id' => $discountAccount->id,
+                'debit' => (float) $invoice->discount_amount,
+                'credit' => 0,
+                'description' => 'Sales Discount - ' . $invoice->invoice_number
+            ];
+        }
+
+        // --- CREDITS (Revenue & Tax) ---
+
+        // Gross Revenue
         $lines[] = [
             'account_id' => $salesAccount->id,
             'debit' => 0,
-            'credit' => (float) $invoice->total - (float) $invoice->tax_amount - (float) $invoice->delivery_fee
+            'credit' => (float) $invoice->subtotal + (float) $invoice->discount_amount,
+            'description' => 'Gross Sales - ' . $invoice->invoice_number
         ];
 
+        // Tax
         if ((float) $invoice->tax_amount > 0 && $taxAccount) {
-            $lines[] = ['account_id' => $taxAccount->id, 'debit' => 0, 'credit' => (float) $invoice->tax_amount];
+            $lines[] = ['account_id' => $taxAccount->id, 'debit' => 0, 'credit' => (float) $invoice->tax_amount, 'description' => 'VAT Ledger'];
         }
 
-        if ((float) $invoice->delivery_fee > 0 && $shippingAccount) {
-            $lines[] = ['account_id' => $shippingAccount->id, 'debit' => 0, 'credit' => (float) $invoice->delivery_fee];
+        // Shipping Revenue
+        if ($deliveryFee > 0 && $shippingAccount) {
+            $lines[] = ['account_id' => $shippingAccount->id, 'debit' => 0, 'credit' => $deliveryFee, 'description' => 'Shipping Revenue'];
         }
 
         $entry = $this->journalService->create([
             'entry_date' => now(),
             'reference' => $invoice->invoice_number,
-            'description' => 'POS Sale: ' . $invoice->invoice_number,
+            'description' => 'POS Split Sale: ' . $invoice->invoice_number,
             'source_type' => SalesInvoice::class,
             'source_id' => $invoice->id,
         ], $lines);

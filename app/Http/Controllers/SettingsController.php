@@ -65,6 +65,9 @@ class SettingsController extends Controller
             // 'printer_auto_print' => 'nullable|boolean', // Removed strict check
             // 'printer_show_logo' => 'nullable|boolean', // Removed strict check
             'printer_copies' => 'nullable|integer|min:1|max:5',
+
+            // POS Security
+            'pos_refund_pin' => 'nullable|string|max:10',
         ]);
 
         // Handle logo upload
@@ -93,6 +96,7 @@ class SettingsController extends Controller
         Setting::setValue('pos_default_customer', $validated['pos_default_customer'] ?? null, 'pos');
         Setting::setValue('pos_allow_negative_stock', $request->has('pos_allow_negative_stock'), 'pos');
         Setting::setValue('pos_print_receipt', $request->has('pos_print_receipt'), 'pos');
+        Setting::setValue('pos_refund_pin', $validated['pos_refund_pin'] ?? '1234', 'pos');
 
         // Save Printer settings
         Setting::setValue('printer_type', $validated['printer_type'] ?? 'thermal', 'printer');

@@ -124,7 +124,7 @@ class POSController extends Controller
                     : (float) $p->available_stock,
                 'category' => $p->category?->name,
                 'unit' => $p->unit?->abbreviation ?? 'PCS',
-                'image' => $p->getPrimaryImageUrlAttribute(),
+                'image' => $p->primaryImageUrl,
             ]);
 
         return response()->json($products);
@@ -158,7 +158,7 @@ class POSController extends Controller
             'tax_rate' => (float) $product->tax_rate,
             'stock' => $product->getTotalStock(),
             'unit' => $product->unit?->abbreviation ?? 'PCS',
-            'image' => $product->getPrimaryImageUrlAttribute(),
+            'image' => $product->primaryImageUrl,
         ]);
     }
 
@@ -197,8 +197,6 @@ class POSController extends Controller
         return response()->json([
             'id' => $customer->id,
             'name' => $customer->name,
-            'mobile' => $customer->mobile,
-            'address' => $customer->shipping_address ?? $customer->billing_address,
             'balance' => (float) $customer->balance,
             'credit_limit' => (float) $customer->credit_limit,
             'is_blocked' => (bool) $customer->is_blocked,
@@ -226,16 +224,10 @@ class POSController extends Controller
             'notes' => 'nullable|string|max:500',
             'is_delivery' => 'nullable|boolean',
             'driver_id' => 'nullable|exists:hr_delivery_drivers,id',
-            'delivery_driver_id' => 'nullable|exists:hr_delivery_drivers,id',
             'delivery_fee' => 'nullable|numeric|min:0',
             'shipping_address' => 'nullable|string|max:500',
-            'delivery_address' => 'nullable|string|max:500',
             'warehouse_id' => 'nullable|exists:warehouses,id',
         ]);
-
-        // Map frontend names to service names
-        $data['driver_id'] = $data['delivery_driver_id'] ?? $data['driver_id'] ?? null;
-        $data['shipping_address'] = $data['delivery_address'] ?? $data['shipping_address'] ?? null;
 
         try {
             $invoice = $this->posService->checkout($data);
@@ -412,12 +404,9 @@ class POSController extends Controller
      */
     public function searchInvoice(Request $request)
     {
-        $q = $request->get('invoice_number') ?? $request->get('q');
-        if (!$q) {
-            return response()->json(['success' => false, 'message' => 'رقم الفاتورة مطلوب'], 400);
-        }
+        $request->validate(['q' => 'required|string']);
 
-        $invoice = SalesInvoice::where('invoice_number', $q)
+        $invoice = SalesInvoice::where('invoice_number', $request->q)
             ->with('lines.product')
             ->first();
 
@@ -454,19 +443,17 @@ class POSController extends Controller
     {
         $data = $request->validate([
             'invoice_id' => 'required|exists:sales_invoices,id',
-            'items' => 'nullable|array',
-            'items.*.line_id' => 'required_with:items|exists:sales_invoice_lines,id',
-            'items.*.quantity' => 'required_with:items|numeric|min:0.01',
+            'items' => 'required|array',
+            'items.*.line_id' => 'required|exists:sales_invoice_lines,id',
+            'items.*.quantity' => 'required|numeric|min:0.01',
             'reason' => 'nullable|string|max:255',
+            'pin' => 'required|string'
         ]);
 
-        // If no items provided, assume full return
-        if (empty($data['items'])) {
-            $invoice = SalesInvoice::with('lines')->find($data['invoice_id']);
-            $data['items'] = $invoice->lines->map(fn($line) => [
-                'line_id' => $line->id,
-                'quantity' => $line->quantity
-            ])->toArray();
+        // Security Check
+        $storedPin = Setting::getValue('pos_refund_pin', '1234');
+        if ($data['pin'] !== $storedPin) {
+            return response()->json(['success' => false, 'message' => 'الرقم السري غير صحيح'], 403);
         }
 
         try {

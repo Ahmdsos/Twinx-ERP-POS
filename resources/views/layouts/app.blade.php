@@ -16,8 +16,6 @@
     <!-- Alpine.js -->
     <script defer src="{{ asset('assets/vendor/alpinejs/alpine.min.js') }}"></script>
 
-    @stack('styles')
-
     <style>
         :root {
             --sidebar-width: 280px;

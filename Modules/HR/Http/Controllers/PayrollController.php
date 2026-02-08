@@ -125,4 +125,17 @@ class PayrollController extends Controller
             return back()->with('error', 'خطأ أثناء التعديل: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Recalculate payroll to sync with attendance changes.
+     */
+    public function recalculate(Payroll $payroll)
+    {
+        try {
+            $this->payrollService->recalculate($payroll);
+            return back()->with('success', 'تم إعادة احتساب كشف الرواتب بنجاح بناءً على سجلات الحضور الحالية.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
 }

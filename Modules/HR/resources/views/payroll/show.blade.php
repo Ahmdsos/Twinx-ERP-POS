@@ -28,11 +28,18 @@
             <div class="col-md-6 text-md-end">
                 <div class="d-flex justify-content-md-end gap-2">
                     @if($payroll->status == 'draft')
+                        <form action="{{ route('hr.payroll.recalculate', $payroll->id) }}" method="POST">
+                            @csrf
+                            <button type="submit"
+                                class="btn btn-warning bg-opacity-10 text-warning rounded-pill px-4 fw-bold border border-warning border-opacity-25 shadow-lg">
+                                <i class="bi bi-arrow-clockwise me-1"></i> إعادة احتساب
+                            </button>
+                        </form>
                         <form action="{{ route('hr.payroll.post', $payroll->id) }}" method="POST">
                             @csrf
                             <button type="submit" class="btn btn-primary rounded-pill px-4 fw-black border-0 shadow-lg"
                                 style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
-                                <i class="bi bi-send-fill me-1"></i> اعتماد وترحيل للحسابات
+                                <i class="bi bi-send-fill me-1"></i> اعتماد وترحيل
                             </button>
                         </form>
                     @elseif($payroll->status == 'processed')
@@ -51,7 +58,8 @@
                 <div class="glass-card p-4 rounded-4 border-white border-opacity-10 text-center bg-dark bg-opacity-25">
                     <div class="text-secondary x-small fw-bold mb-1 opacity-75">إجمالي الرواتب الأساسية</div>
                     <div class="text-white h3 fw-black mb-0">{{ number_format($payroll->items->sum('basic_salary'), 2) }}
-                        <span class="fs-6">ج.م</span></div>
+                        <span class="fs-6">ج.م</span>
+                    </div>
                 </div>
             </div>
             <div class="col-md-3">

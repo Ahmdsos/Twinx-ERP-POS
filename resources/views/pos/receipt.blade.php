@@ -199,6 +199,26 @@
         </div>
     @endif
 
+    @if($invoice->is_delivery)
+        <div class="customer-info" style="margin-top: 5px;">
+            <div style="font-weight: bold; margin-bottom: 2px; border-bottom: 1px dashed #ccc;">بيانات التوصيل:</div>
+
+            @if($invoice->shipping_address)
+                <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                    <span>العنوان:</span>
+                    <span style="max-width: 70%; text-align: left; font-size: 11px;">{{ $invoice->shipping_address }}</span>
+                </div>
+            @endif
+
+            @if($invoice->driver)
+                <div style="display: flex; justify-content: space-between;">
+                    <span>السائق:</span>
+                    <span class="fw-bold">{{ $invoice->driver->name }}</span>
+                </div>
+            @endif
+        </div>
+    @endif
+
     <!-- Items -->
     <table>
         <thead>
@@ -249,6 +269,13 @@
             </div>
         @endif
 
+        @if($invoice->is_delivery && $invoice->delivery_fee > 0)
+            <div class="totals-row">
+                <span>توصيل:</span>
+                <span>{{ number_format($invoice->delivery_fee, 2) }}</span>
+            </div>
+        @endif
+
         <div class="totals-row">
             <span>ضريبة
                 ({{ $invoice->lines->first()->tax_percent ?? \App\Models\Setting::getValue('default_tax_rate', 0) }}%):</span>
@@ -260,10 +287,26 @@
             <span>{{ number_format($invoice->total, 2) }}</span>
         </div>
 
-        <div class="totals-row" style="margin-top: 5px;">
-            <span>المدفوع ({{ $invoice->payment_id ? 'نقد/شبكة' : 'نقد' }}):</span>
-            <span>{{ number_format($invoice->paid_amount, 2) }}</span>
-        </div>
+        @if($invoice->paymentAllocations->isNotEmpty())
+            @foreach($invoice->paymentAllocations as $allocation)
+                <div class="totals-row" style="margin-top: 2px;">
+                    <span>مدفوع ({{ 
+                                match ($allocation->payment->payment_method) {
+                        'cash' => 'نقد',
+                        'card' => 'شبكة',
+                        'credit' => 'آجل',
+                        default => $allocation->payment->payment_method
+                    }
+                            }}):</span>
+                    <span>{{ number_format($allocation->amount, 2) }}</span>
+                </div>
+            @endforeach
+        @else
+            <div class="totals-row" style="margin-top: 5px;">
+                <span>المدفوع:</span>
+                <span>{{ number_format($invoice->paid_amount, 2) }}</span>
+            </div>
+        @endif
 
         @php
             $change = max(0, $invoice->paid_amount - $invoice->total);

@@ -93,8 +93,10 @@ class Supplier extends Model
 
     public static function generateCode(): string
     {
+        // Use lockForUpdate() to prevent race condition during concurrent supplier creation
         $lastSupplier = self::withTrashed()
             ->orderByDesc('id')
+            ->lockForUpdate()
             ->first();
 
         $nextNumber = $lastSupplier ? ((int) substr($lastSupplier->code, 4)) + 1 : 1;

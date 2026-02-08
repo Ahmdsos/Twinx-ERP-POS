@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Accounting\Models\Account;
 use Modules\Accounting\Models\JournalEntry;
 use Modules\Core\Traits\HasAuditTrail;
+use Modules\Finance\Enums\TreasuryTransactionType;
 use App\Models\User;
 
 class TreasuryTransaction extends Model
@@ -30,6 +31,7 @@ class TreasuryTransaction extends Model
     protected $casts = [
         'transaction_date' => 'date',
         'amount' => 'decimal:2',
+        'type' => TreasuryTransactionType::class,
     ];
 
     public function treasuryAccount()

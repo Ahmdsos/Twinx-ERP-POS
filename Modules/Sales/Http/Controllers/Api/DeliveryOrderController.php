@@ -117,17 +117,16 @@ class DeliveryOrderController extends Controller
     {
         $validated = $request->validate([
             'tracking_number' => 'nullable|string|max:100',
+            'driver_id' => 'nullable|exists:hr_delivery_drivers,id',
             'driver_name' => 'nullable|string|max:100',
             'vehicle_number' => 'nullable|string|max:50',
         ]);
 
-        if (!$deliveryOrder->ship()) {
+        if (!$this->salesService->shipDelivery($deliveryOrder, $validated)) {
             return response()->json([
                 'message' => "Cannot ship DO in status: {$deliveryOrder->status->label()}",
             ], 422);
         }
-
-        $deliveryOrder->update($validated);
 
         return response()->json([
             'message' => 'Delivery order shipped',

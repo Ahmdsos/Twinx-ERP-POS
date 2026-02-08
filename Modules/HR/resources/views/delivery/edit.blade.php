@@ -55,18 +55,6 @@
                                     class="form-control bg-white bg-opacity-5 text-white border-white border-opacity-10 shadow-none"
                                     value="{{ old('vehicle_info', $driver->vehicle_info) }}">
                             </div>
-
-                            <div class="col-md-6 text-start">
-                                <label class="form-label text-secondary small fw-bold">الحالة التشغيلية</label>
-                                <select name="status"
-                                    class="form-select bg-white bg-opacity-5 text-white border-white border-opacity-10 shadow-none"
-                                    required>
-                                    <option value="available" class="bg-dark" {{ $driver->status == 'available' ? 'selected' : '' }}>متاح للعمل</option>
-                                    <option value="on_delivery" class="bg-dark" {{ $driver->status == 'on_delivery' ? 'selected' : '' }}>في مهمة توصيل</option>
-                                    <option value="offline" class="bg-dark" {{ $driver->status == 'offline' ? 'selected' : '' }}>غير متصل</option>
-                                    <option value="suspended" class="bg-dark" {{ $driver->status == 'suspended' ? 'selected' : '' }}>موقوف</option>
-                                </select>
-                            </div>
                         </div>
                     </div>
 

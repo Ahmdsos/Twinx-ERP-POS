@@ -112,17 +112,20 @@ class Customer extends Model
 
     public static function generateCode(): string
     {
-        // Use raw DB query to ignore scopes and ensure we get the absolute max code
-        $maxCode = \Illuminate\Support\Facades\DB::table('customers')
-            ->where('code', 'LIKE', 'CUS-%')
-            ->max('code');
+        // H-01 FIX: Add lockForUpdate to prevent duplicate codes under concurrency
+        return \Illuminate\Support\Facades\DB::transaction(function () {
+            $maxCode = \Illuminate\Support\Facades\DB::table('customers')
+                ->lockForUpdate()
+                ->where('code', 'LIKE', 'CUS-%')
+                ->max('code');
 
-        if ($maxCode) {
-            $number = intval(substr($maxCode, 4));
-            return 'CUS-' . str_pad($number + 1, 4, '0', STR_PAD_LEFT);
-        }
+            if ($maxCode) {
+                $number = intval(substr($maxCode, 4));
+                return 'CUS-' . str_pad($number + 1, 4, '0', STR_PAD_LEFT);
+            }
 
-        return 'CUS-0001';
+            return 'CUS-0001';
+        });
     }
 
     // ========================================

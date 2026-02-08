@@ -28,7 +28,7 @@ class ProductStock extends Model
     protected $casts = [
         'quantity' => 'decimal:4',
         'reserved_quantity' => 'decimal:4',
-        'available_quantity' => 'decimal:4',
+        // H-05 FIX: Removed 'available_quantity' - it's a computed accessor, not a DB column
         'total_cost' => 'decimal:2',
         'average_cost' => 'decimal:4',
         'last_movement_at' => 'datetime',

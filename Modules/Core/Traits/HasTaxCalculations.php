@@ -15,8 +15,8 @@ trait HasTaxCalculations
      */
     public function calculateLineTax(float $quantity, float $price, float $discount = 0, ?float $taxRate = null): array
     {
-        // 1. Get Settings
-        $globalTax = (float) Setting::getValue('default_tax_rate', 0);
+        // 1. Get Settings - Use 14% as default to match frontend and SettingsSeeder
+        $globalTax = (float) Setting::getValue('default_tax_rate', 14);
         $taxRate = $taxRate ?? $globalTax;
         $isInclusive = (bool) Setting::getValue('tax_inclusive', false);
 
@@ -26,19 +26,19 @@ trait HasTaxCalculations
         if ($isInclusive) {
             // Price is Gross (Inclusive of Tax)
             // Net = Gross / (1 + Rate/100)
-            $lineGross = $grossBeforeTax;
-            $lineNet = $lineGross / (1 + ($taxRate / 100));
-            $taxAmount = $lineGross - $lineNet;
+            $lineGross = round($grossBeforeTax, 2);
+            $lineNet = round($lineGross / (1 + ($taxRate / 100)), 4);
+            $taxAmount = round($lineGross - $lineNet, 2);
 
-            $unitPriceNet = $price / (1 + ($taxRate / 100));
+            $unitPriceNet = round($price / (1 + ($taxRate / 100)), 4);
         } else {
             // Price is Net (Exclusive of Tax)
             // Tax = Net * Rate/100
-            $lineNet = $grossBeforeTax;
-            $taxAmount = ($lineNet * $taxRate) / 100;
-            $lineGross = $lineNet + $taxAmount;
+            $lineNet = round($grossBeforeTax, 4);
+            $taxAmount = round(($lineNet * $taxRate) / 100, 2);
+            $lineGross = round($lineNet + $taxAmount, 2);
 
-            $unitPriceNet = $price;
+            $unitPriceNet = round($price, 4);
         }
 
         return [

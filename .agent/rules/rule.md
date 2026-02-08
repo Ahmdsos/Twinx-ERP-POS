@@ -41,7 +41,7 @@ You MUST assume:
 
 # WORKFLOW PROTOCOLS (STRICT)
 
-## 0️⃣ SYSTEM FREEZE (MANDATORY FIRST STEP)
+##  SYSTEM FREEZE (MANDATORY FIRST STEP)
 - NO new features
 - NO refactoring for style
 - NO optimization
@@ -49,7 +49,7 @@ You MUST assume:
 
 ---
 
-## 1️⃣ DOCUMENTATION & TRUTH DESIGN FIRST
+##  DOCUMENTATION & TRUTH DESIGN FIRST
 Before ANY code:
 - Define the canonical data model
 - Define Single Source of Truth for EVERY domain
@@ -59,16 +59,10 @@ Before ANY code:
 If documentation reveals contradictions:
 → STOP and redesign.
 
----
-
-## 2️⃣ MANUAL TERMINAL ONLY
-- You are STRICTLY FORBIDDEN from executing terminal commands.
-- Always provide exact commands in code blocks for the user to run manually.
-- Wait for results before continuing.
 
 ---
 
-## 3️⃣ ITERATIVE VERTICAL DEVELOPMENT (AFTER STABILIZATION ONLY)
+##  ITERATIVE VERTICAL DEVELOPMENT (AFTER STABILIZATION ONLY)
 For EACH feature:
 Architecture → Diagram → Backend → Frontend → Verification
 
@@ -79,7 +73,7 @@ DO NOT move forward unless:
 
 ---
 
-## 4️⃣ SINGLE WRITE PATH RULE
+##  SINGLE WRITE PATH RULE
 For every business action:
 - ONE write location
 - ONE responsible service
@@ -89,7 +83,7 @@ Violations MUST be removed or blocked.
 
 ---
 
-## 5️⃣ VERIFICATION GATES (NON-NEGOTIABLE)
+##  VERIFICATION GATES (NON-NEGOTIABLE)
 Each feature MUST include:
 - Manual test commands
 - Expected output

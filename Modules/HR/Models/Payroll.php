@@ -122,6 +122,21 @@ class Payroll extends Model implements AccountableContract
         $deductionsTotal = $this->total_deductions;
         $netTotal = $this->net_salary;
 
+        // CRITICAL FIX: Validate journal will be balanced before creating lines
+        // Formula: Debits (Basic + Allowances) - Credits (Deductions) = Credits (Net)
+        // Therefore: Net MUST equal Basic + Allowances - Deductions
+        $calculatedNet = $basicTotal + $allowancesTotal - $deductionsTotal;
+        $tolerance = 0.01; // Allow 1 cent tolerance for decimal precision issues
+
+        if (abs($calculatedNet - $netTotal) > $tolerance) {
+            throw new \RuntimeException(
+                "Payroll journal would be unbalanced! " .
+                "Stored net_salary ({$netTotal}) does not match calculated " .
+                "(Basic {$basicTotal} + Allowances {$allowancesTotal} - Deductions {$deductionsTotal} = {$calculatedNet}). " .
+                "Please recalculate payroll totals before posting."
+            );
+        }
+
         $lines = [];
 
         // 1. Debit Expense: Basic Salary

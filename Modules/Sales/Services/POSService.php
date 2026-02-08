@@ -74,6 +74,11 @@ class POSService
             $globalDiscount = (float) ($data['discount'] ?? 0);
             $deliveryFee = (float) ($data['delivery_fee'] ?? 0);
 
+            // F-07 Validation: Prevent 100%+ discount
+            if ($globalDiscount > ($subtotal + $totalTax)) {
+                throw new \RuntimeException("قيمة الخصم لا يمكن أن تتجاوز إجمالي الفاتورة");
+            }
+
             // MATH TRUTH: Total = Net Subtotal + Total Tax - Global Discount + Delivery Fee
             $total = (float) round($subtotal + $totalTax - $globalDiscount + $deliveryFee, 2);
 
@@ -83,6 +88,36 @@ class POSService
 
             // 2. Resolve Customer
             $customerId = $data['customer_id'] ?? $this->resolveWalkInCustomer()->id;
+            $customer = \Modules\Sales\Models\Customer::find($customerId);
+
+            // Phase 2.3: Credit limit enforcement (only for credit payments)
+            $hasCredit = collect($data['payments'])->contains(fn($p) => $p['method'] === 'credit');
+            if ($hasCredit && $customer) {
+                // Walk-in customers cannot have credit
+                if ($customer->code === 'WALK-IN') {
+                    throw new \RuntimeException("لا يمكن البيع العميل 'نقدي' بنظام الآجل");
+                }
+
+                if (!$customer->canPlaceOrder($total)) {
+                    $reason = $customer->getOrderBlockReason($total);
+                    throw new \RuntimeException($reason ?? "العميل تجاوز حد الائتمان المسموح");
+                }
+            }
+
+            // Phase 2.3: Stock availability validation
+            $targetWarehouseId = $data['warehouse_id'] ?? $activeShift->warehouse_id ?? 1;
+            foreach ($items as $item) {
+                $stock = \Modules\Inventory\Models\ProductStock::where('product_id', $item['product_id'])
+                    ->where('warehouse_id', $targetWarehouseId)
+                    ->first();
+                $available = (float) ($stock ? $stock->quantity : 0);
+                $reqQty = (float) $item['quantity'];
+
+                if ($available < $reqQty) {
+                    $product = Product::find($item['product_id']);
+                    throw new \RuntimeException("الكمية المتاحة من ({$product->name}) هي {$available} فقط في هذا المخزن");
+                }
+            }
 
             // 3. Create Sales Invoice
             $invoice = SalesInvoice::create([
@@ -103,7 +138,8 @@ class POSService
                 'shipping_address' => $data['shipping_address'] ?? null,
                 'notes' => $data['notes'] ?? null,
                 'warehouse_id' => $data['warehouse_id'] ?? Warehouse::first()?->id ?? 1,
-                'pos_shift_id' => $activeShift?->id,
+                'pos_shift_id' => $activeShift->id,
+                'created_by' => $data['cashier_id'] ?? auth()->id(), // Phase 3: Cashier Assignment
             ]);
 
             // Track stats in shift - Split awareness
@@ -159,6 +195,15 @@ class POSService
             // 7. Create Journal Entry (Split support)
             $this->createInvoiceJournalEntry($invoice, $data['payments']);
 
+            // 8. Track Stats in Shift (Split Awareness)
+            // Added back to ensure X-Report works correctly
+            if ($activeShift) {
+                $activeShift->incrementTransaction();
+                foreach ($data['payments'] as $payment) {
+                    $activeShift->incrementSales((float) $payment['amount'], $payment['method']);
+                }
+            }
+
             return $invoice;
         });
     }
@@ -187,26 +232,29 @@ class POSService
         $datestamp = now()->format('Ymd');
         $prefix = 'POS-' . $datestamp . '-';
 
+        // Use lockForUpdate() to prevent race conditions in concurrent POS transactions
         $lastInvoice = SalesInvoice::where('invoice_number', 'like', $prefix . '%')
             ->orderByDesc('id')
+            ->lockForUpdate()
             ->first();
 
         $sequence = $lastInvoice ? (int) substr($lastInvoice->invoice_number, -4) + 1 : 1;
-        $number = $prefix . str_pad($sequence, 4, '0', STR_PAD_LEFT);
 
-        while (SalesInvoice::where('invoice_number', $number)->exists()) {
-            $sequence++;
-            $number = $prefix . str_pad($sequence, 4, '0', STR_PAD_LEFT);
-        }
-
-        return $number;
+        return $prefix . str_pad($sequence, 4, '0', STR_PAD_LEFT);
     }
 
     /**
      * Create Delivery Order from Invoice
      */
-    protected function createDeliveryOrder(SalesInvoice $invoice, array $data): void
+    public function createDeliveryOrder(SalesInvoice $invoice, array $data): void
     {
+        // Fix: Use passed data address first, then fallback to customer address
+        $shippingAddress = $data['shipping_address'] ?? $invoice->customer->address;
+
+        if (empty($shippingAddress)) {
+            throw new \Exception('Shipping address is required for delivery orders.');
+        }
+
         $do = DeliveryOrder::create([
             'sales_invoice_id' => $invoice->id,
             'sales_order_id' => null, // Explicitly null for POS direct sales
@@ -214,9 +262,11 @@ class POSService
             'warehouse_id' => $invoice->warehouse_id,
             'delivery_date' => now(),
             'status' => DeliveryStatus::READY,
-            'shipping_address' => $invoice->shipping_address ?? $invoice->customer->address,
-            'driver_id' => $invoice->driver_id,
-            'notes' => 'Delivery for POS invoice: ' . $invoice->invoice_number,
+            'shipping_address' => $shippingAddress,
+            'driver_id' => $data['driver_id'] ?? null,
+            'recipient_name' => $data['recipient_name'] ?? $invoice->customer->name,
+            'recipient_phone' => $data['recipient_phone'] ?? $invoice->customer->phone,
+            'notes' => ($data['notes'] ?? '') . ' (POS Invoice: ' . $invoice->invoice_number . ')',
         ]);
 
         foreach ($invoice->lines as $line) {
@@ -228,13 +278,12 @@ class POSService
             ]);
         }
 
-        if ($invoice->driver_id) {
-            $driver = DeliveryDriver::find($invoice->driver_id);
+        // Update driver status if assigned
+        if (!empty($data['driver_id'])) {
+            $driver = DeliveryDriver::find($data['driver_id']);
             if ($driver) {
-                $driver->update([
-                    'status' => 'on_delivery',
-                    'total_deliveries' => $driver->total_deliveries + 1
-                ]);
+                $driver->increment('total_deliveries');
+                $driver->update(['status' => 'on_delivery']);
             }
         }
 
@@ -287,12 +336,27 @@ class POSService
         return DB::transaction(function () use ($data) {
             $originalInvoice = SalesInvoice::with('lines')->findOrFail($data['invoice_id']);
 
-            // 1. Create Head of Return
+            // 1. Create Head of Return - Generate proper sequential return number
+            $datestamp = now()->format('Ymd');
+            $returnPrefix = 'RET-' . $datestamp . '-';
+
+            // Use lockForUpdate() to get last return number safely
+            $lastReturn = \Modules\Sales\Models\SalesReturn::where('return_number', 'like', $returnPrefix . '%')
+                ->orderByDesc('id')
+                ->lockForUpdate()
+                ->first();
+
+            $returnSequence = $lastReturn ? (int) substr($lastReturn->return_number, -4) + 1 : 1;
+            $returnNumber = $returnPrefix . str_pad($returnSequence, 4, '0', STR_PAD_LEFT);
+
+            $activeShift = \App\Models\PosShift::getActiveShift();
+
             $return = \Modules\Sales\Models\SalesReturn::create([
-                'return_number' => 'RET-' . now()->format('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT),
+                'return_number' => $returnNumber,
                 'sales_invoice_id' => $originalInvoice->id,
                 'customer_id' => $originalInvoice->customer_id,
                 'warehouse_id' => $originalInvoice->warehouse_id ?? 1,
+                'shift_id' => $activeShift?->id, // Audit Link
                 'return_date' => now(),
                 'status' => \Modules\Sales\Enums\SalesReturnStatus::COMPLETED,
                 'reason' => $data['reason'] ?? 'Return from POS',
@@ -307,8 +371,19 @@ class POSService
                 if (!$originalLine || $originalLine->sales_invoice_id !== $originalInvoice->id)
                     continue;
 
-                $unitPrice = (float) $originalLine->unit_price;
                 $quantity = (float) $item['quantity'];
+
+                // VALIDATION: Prevent returning more than originally purchased minus already returned
+                $alreadyReturned = \Modules\Sales\Models\SalesReturnLine::whereHas('salesReturn', function ($q) use ($originalInvoice) {
+                    $q->where('sales_invoice_id', $originalInvoice->id);
+                })->where('product_id', $originalLine->product_id)->sum('quantity');
+
+                if (($alreadyReturned + $quantity) > (float) $originalLine->quantity) {
+                    $avail = (float) $originalLine->quantity - $alreadyReturned;
+                    throw new \RuntimeException("الكمية المرتجعة أكبر من المتاح. المتاح للمرتجع من ({$originalLine->product->name}) هو {$avail} فقط.");
+                }
+
+                $unitPrice = (float) $originalLine->unit_price;
                 $lineTotal = $unitPrice * $quantity;
                 $lineTax = $originalLine->tax_amount * ($quantity / $originalLine->quantity);
 
@@ -493,24 +568,40 @@ class POSService
 
         // --- CREDITS (Revenue & Tax) ---
 
-        // Gross Revenue
+        // Truth: Revenue and Tax must be derived from actual invoice lines
+        $totalNetRevenue = $invoice->lines->sum('subtotal') ?: $invoice->subtotal;
+        $totalTaxCredit = $invoice->lines->sum('tax_amount') ?: $invoice->tax_amount;
+
+        // Sales Revenue (Net)
         $lines[] = [
             'account_id' => $salesAccount->id,
             'debit' => 0,
-            'credit' => (float) $invoice->subtotal + (float) $invoice->discount_amount,
-            'description' => 'Gross Sales - ' . $invoice->invoice_number
+            'credit' => round($totalNetRevenue, 2),
+            'description' => 'Sales Revenue - ' . $invoice->invoice_number
         ];
 
-        // Tax
-        if ((float) $invoice->tax_amount > 0 && $taxAccount) {
-            $lines[] = ['account_id' => $taxAccount->id, 'debit' => 0, 'credit' => (float) $invoice->tax_amount, 'description' => 'VAT Ledger'];
+        // Tax Payable (Credit)
+        if ($totalTaxCredit > 0 && $taxAccount) {
+            $lines[] = [
+                'account_id' => $taxAccount->id,
+                'debit' => 0,
+                'credit' => round($totalTaxCredit, 2),
+                'description' => 'VAT Output - ' . $invoice->invoice_number
+            ];
         }
 
-        // Shipping Revenue
+        // Shipping Revenue (separate credit)
         if ($deliveryFee > 0 && $shippingAccount) {
-            $lines[] = ['account_id' => $shippingAccount->id, 'debit' => 0, 'credit' => $deliveryFee, 'description' => 'Shipping Revenue'];
+            $lines[] = [
+                'account_id' => $shippingAccount->id,
+                'debit' => 0,
+                'credit' => round($deliveryFee, 2),
+                'description' => 'Shipping Revenue'
+            ];
         }
 
+        // Final Verification: The JournalService->create will call validateBalance
+        // If our logic doesn't result in Balance, it MUST fail here to protect the Ledger.
         $entry = $this->journalService->create([
             'entry_date' => now(),
             'reference' => $invoice->invoice_number,

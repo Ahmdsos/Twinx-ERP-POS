@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\HR\Models\Employee;
 use Modules\HR\Models\DeliveryDriver;
+use Modules\HR\Enums\DeliveryDriverStatus;
 use Illuminate\Support\Facades\DB;
 
 class DeliveryController extends Controller
@@ -47,12 +48,9 @@ class DeliveryController extends Controller
      */
     public function create()
     {
-        // Get employees who are active and NOT already drivers
-        $employees = Employee::where('status', 'active')
-            ->whereDoesntHave('deliveryDriver')
-            ->get();
-
-        return view('hr::delivery.create', compact('employees'));
+        // Redirect to Employee creation as per unified workflow
+        return redirect()->route('hr.employees.create')
+            ->with('info', 'يرجى تسجيل السائق كموظف جديد وتفعيل خيار "تعيين كسائق توصيل".');
     }
 
     /**
@@ -62,17 +60,18 @@ class DeliveryController extends Controller
     {
         $request->validate([
             'employee_id' => 'required|exists:hr_employees,id|unique:hr_delivery_drivers,employee_id',
-            'license_number' => 'nullable|string|max:50',
-            'license_expiry' => 'nullable|date',
-            'vehicle_info' => 'nullable|string|max:255',
-            'status' => 'required|in:available,on_delivery,offline,suspended',
+            'license_number' => 'required|string|max:50',
+            'vehicle_type' => 'nullable|string|max:50',
+            'vehicle_plate' => 'nullable|string|max:20',
         ]);
 
         try {
-            DeliveryDriver::create($request->all());
+            $data = $request->all();
+            $data['status'] = DeliveryDriverStatus::AVAILABLE->value; // Default status
 
-            return redirect()->route('hr.delivery.index')
-                ->with('success', 'تم تسجيل الموظف كسائق بنجاح.');
+            DeliveryDriver::create($data);
+
+            return redirect()->route('hr.delivery.index')->with('success', 'تم إضافة سائق جديد بنجاح');
         } catch (\Exception $e) {
             return back()->with('error', 'حدث خطأ أثناء التسجيل: ' . $e->getMessage());
         }
@@ -96,11 +95,10 @@ class DeliveryController extends Controller
             'license_number' => 'nullable|string|max:50',
             'license_expiry' => 'nullable|date',
             'vehicle_info' => 'nullable|string|max:255',
-            'status' => 'required|in:available,on_delivery,offline,suspended',
         ]);
 
         try {
-            $driver->update($request->all());
+            $driver->update($request->except('status')); // Prevent status update from here
 
             return redirect()->route('hr.delivery.index')
                 ->with('success', 'تم تحديث بيانات السائق بنجاح.');

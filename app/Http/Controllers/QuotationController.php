@@ -97,7 +97,11 @@ class QuotationController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('sales.quotations.create', compact('customers', 'products', 'selectedCustomer'));
+        // Tax settings from database (stored as percent, e.g., 20 for 20%)
+        $taxRatePercent = (float) \App\Models\Setting::getValue('default_tax_rate', 14);
+        $taxRate = $taxRatePercent / 100; // Convert to decimal for JS
+
+        return view('sales.quotations.create', compact('customers', 'products', 'selectedCustomer', 'taxRate', 'taxRatePercent'));
     }
 
     /**
@@ -165,7 +169,11 @@ class QuotationController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('sales.quotations.edit', compact('quotation', 'customers', 'products'));
+        // Tax settings from database (stored as percent, e.g., 20 for 20%)
+        $taxRatePercent = (float) \App\Models\Setting::getValue('default_tax_rate', 14);
+        $taxRate = $taxRatePercent / 100; // Convert to decimal for JS
+
+        return view('sales.quotations.edit', compact('quotation', 'customers', 'products', 'taxRate', 'taxRatePercent'));
     }
 
     /**

@@ -31,7 +31,7 @@
                                 class="bi bi-people-fill fs-4"></i></div>
                         <div>
                             <div class="text-secondary x-small fw-bold opacity-75">إجمالي الموظفين</div>
-                            <div class="h4 text-white mb-0">{{ $employees->total() }}</div>
+                            <div class="h4 text-white mb-0">{{ $stats['total'] }}</div>
                         </div>
                     </div>
                 </div>
@@ -43,7 +43,7 @@
                                 class="bi bi-check-circle-fill fs-4"></i></div>
                         <div>
                             <div class="text-secondary x-small fw-bold opacity-75">نشط حالياً</div>
-                            <div class="h4 text-white mb-0">{{ $employees->where('status', 'active')->count() }}</div>
+                            <div class="h4 text-white mb-0">{{ $stats['active'] }}</div>
                         </div>
                     </div>
                 </div>
@@ -55,7 +55,7 @@
                                 class="bi bi-clock-history fs-4"></i></div>
                         <div>
                             <div class="text-secondary x-small fw-bold opacity-75">في إجازة</div>
-                            <div class="h4 text-white mb-0">{{ $employees->where('status', 'on_leave')->count() }}</div>
+                            <div class="h4 text-white mb-0">{{ $stats['on_leave'] }}</div>
                         </div>
                     </div>
                 </div>
@@ -66,7 +66,7 @@
                         <div class="p-3 bg-info bg-opacity-10 rounded-3 text-info"><i class="bi bi-wallet2 fs-4"></i></div>
                         <div>
                             <div class="text-secondary x-small fw-bold opacity-75">كتلة الرواتب</div>
-                            <div class="h4 text-white mb-0">{{ number_format($employees->sum('basic_salary'), 0) }}</div>
+                            <div class="h4 text-white mb-0">{{ number_format($stats['total_salaries'], 0) }}</div>
                         </div>
                     </div>
                 </div>
@@ -157,10 +157,9 @@
                                     <div class="x-small text-secondary opacity-50 text-white">ج.م</div>
                                 </td>
                                 <td class="py-3 text-center">
-                                    @php $color = Modules\HR\Models\Employee::getStatusColors()[$employee->status] ?? 'secondary'; @endphp
                                     <span
-                                        class="badge bg-{{ $color }} bg-opacity-10 text-{{ $color }} border border-{{ $color }} border-opacity-25 rounded-pill px-3 py-2 x-small fw-bold">
-                                        {{ Modules\HR\Models\Employee::getStatusLabels()[$employee->status] ?? $employee->status }}
+                                        class="badge bg-{{ $employee->current_status->color() }} bg-opacity-10 text-{{ $employee->current_status->color() }} border border-{{ $employee->current_status->color() }} border-opacity-25 rounded-pill px-3 py-2 x-small fw-bold">
+                                        {{ $employee->current_status->label() }}
                                     </span>
                                 </td>
                                 <td class="pe-4 py-3 text-end">
@@ -206,32 +205,49 @@
     </div>
 
     <style>
-        .fw-black { font-weight: 900 !important; }
-        .x-small { font-size: 0.725rem !important; }
-        
+        .fw-black {
+            font-weight: 900 !important;
+        }
+
+        .x-small {
+            font-size: 0.725rem !important;
+        }
+
         .glass-card {
             background: rgba(10, 15, 30, 0.95) !important;
             backdrop-filter: blur(20px) saturate(180%);
             -webkit-backdrop-filter: blur(20px) saturate(180%);
             border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
         }
 
         .text-secondary {
-            color: #cbd5e0 !important; /* Brighter gray */
+            color: #cbd5e0 !important;
+            /* Brighter gray */
             opacity: 1 !important;
         }
 
         .btn-icon-box {
-            width: 36px; height: 36px;
-            display: flex; align-items: center; justify-content: center;
-            border: 1px solid transparent; transition: all 0.2s;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid transparent;
+            transition: all 0.2s;
         }
 
-        .btn-icon-box:hover { transform: translateY(-2px); border-color: currentColor; }
-        .table-hover tbody tr:hover { background-color: rgba(255, 255, 255, 0.05); }
+        .btn-icon-box:hover {
+            transform: translateY(-2px);
+            border-color: currentColor;
+        }
 
-        .form-control, .form-select {
+        .table-hover tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .form-control,
+        .form-select {
             background-color: rgba(0, 0, 0, 0.3) !important;
             border: 1px solid rgba(255, 255, 255, 0.2) !important;
             color: #ffffff !important;

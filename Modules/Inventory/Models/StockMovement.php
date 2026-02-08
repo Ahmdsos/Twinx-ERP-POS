@@ -89,13 +89,11 @@ class StockMovement extends Model
 
     /**
      * Get the source document (polymorphic)
+     * H-06 FIX: Always return MorphTo relationship - it handles null automatically
      */
     public function source()
     {
-        if ($this->source_type && $this->source_id) {
-            return $this->morphTo('source', 'source_type', 'source_id');
-        }
-        return null;
+        return $this->morphTo('source', 'source_type', 'source_id');
     }
 
     // =====================
@@ -157,9 +155,17 @@ class StockMovement extends Model
      */
     public function consume(float $quantity): float
     {
-        $consumed = min($quantity, $this->remaining_quantity);
-        $this->remaining_quantity -= $consumed;
-        $this->save();
+        // Re-fetch with lock to prevent race condition during concurrent FIFO consumption
+        // This is critical for accurate inventory cost calculations
+        $lockedSelf = static::lockForUpdate()->find($this->id);
+
+        $consumed = min($quantity, $lockedSelf->remaining_quantity);
+        $lockedSelf->remaining_quantity -= $consumed;
+        $lockedSelf->save();
+
+        // Sync the current instance
+        $this->remaining_quantity = $lockedSelf->remaining_quantity;
+
         return $consumed;
     }
 }

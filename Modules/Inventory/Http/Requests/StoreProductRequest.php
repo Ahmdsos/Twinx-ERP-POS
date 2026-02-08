@@ -16,8 +16,8 @@ class StoreProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'sku' => 'required|string|max:50|unique:products,sku',
-            'barcode' => 'nullable|string|max:50|unique:products,barcode',
+            'sku' => 'required|string|alpha_dash|max:50|unique:products,sku',
+            'barcode' => 'nullable|string|alpha_dash|max:50|unique:products,barcode',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'type' => ['required', Rule::enum(ProductType::class)],

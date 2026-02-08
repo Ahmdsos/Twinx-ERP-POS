@@ -10,14 +10,47 @@ use Carbon\Carbon;
 
 class LeaveController extends Controller
 {
-    public function store(Request $request, Employee $employee)
+    public function index(Request $request)
+    {
+        $query = Leave::with('employee');
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->whereHas('employee', function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%");
+            });
+        }
+
+        $leaves = $query->latest()->paginate(10)->withQueryString();
+        $employees = Employee::select('id', 'first_name', 'last_name')->where('status', 'active')->orderBy('first_name')->get();
+
+        return view('hr::leaves.index', compact('leaves', 'employees'));
+    }
+
+
+    public function store(Request $request)
     {
         $request->validate([
+            'employee_id' => 'required_without:employee|exists:hr_employees,id',
             'leave_type' => 'required|string|max:255',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'reason' => 'nullable|string',
         ]);
+
+        $employeeId = $request->employee_id ?? $request->route('employee');
+
+        // Handle route model binding if it was passed via route (legacy support)
+        if ($employeeId instanceof Employee) {
+            $employeeId = $employeeId->id;
+        }
+
+        $employee = Employee::findOrFail($employeeId);
 
         $start = Carbon::parse($request->start_date);
         $end = Carbon::parse($request->end_date);

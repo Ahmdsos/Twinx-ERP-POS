@@ -61,6 +61,30 @@
                                     value="{{ old('phone') }}" required>
                                 @error('phone') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
+
+                            <!-- New Fields -->
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small fw-bold">رقم الهوية الوطنية / جواز
+                                    السفر</label>
+                                <input type="text" name="id_number"
+                                    class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none @error('id_number') is-invalid @enderror"
+                                    value="{{ old('id_number') }}">
+                                @error('id_number') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small fw-bold">تاريخ الميلاد</label>
+                                <input type="date" name="birth_date"
+                                    class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none @error('birth_date') is-invalid @enderror"
+                                    value="{{ old('birth_date') }}">
+                                @error('birth_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label text-secondary small fw-bold">العنوان الحالي</label>
+                                <input type="text" name="address"
+                                    class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none @error('address') is-invalid @enderror"
+                                    value="{{ old('address') }}" placeholder="المدينة، الحي، الشارع...">
+                                @error('address') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            </div>
                         </div>
                     </div>
 
@@ -104,6 +128,109 @@
                                     value="{{ old('date_of_joining', date('Y-m-d')) }}" required>
                                 @error('date_of_joining') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small fw-bold">نوع العقد</label>
+                                <select name="contract_type"
+                                    class="form-select bg-dark border-white border-opacity-10 text-white shadow-none">
+                                    <option value="Full Time" {{ old('contract_type') == 'Full Time' ? 'selected' : '' }}>دوام
+                                        كامل</option>
+                                    <option value="Part Time" {{ old('contract_type') == 'Part Time' ? 'selected' : '' }}>دوام
+                                        جزئي</option>
+                                    <option value="Contract" {{ old('contract_type') == 'Contract' ? 'selected' : '' }}>عقد
+                                        مؤقت</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bank Info -->
+                    <div class="glass-card-deep rounded-4 p-4 mb-4">
+                        <h5 class="text-success fw-bold mb-4 d-flex align-items-center gap-2">
+                            <i class="bi bi-bank2"></i> البيانات البنكية
+                        </h5>
+                        <div class="row g-4 text-start">
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small fw-bold">اسم البنك</label>
+                                <input type="text" name="bank_name"
+                                    class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none"
+                                    value="{{ old('bank_name') }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small fw-bold">رقم الحساب</label>
+                                <input type="text" name="bank_account_number"
+                                    class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none"
+                                    value="{{ old('bank_account_number') }}">
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label text-secondary small fw-bold">IBAN</label>
+                                <input type="text" name="iban"
+                                    class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none"
+                                    value="{{ old('iban') }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Emergency Contact -->
+                    <div class="glass-card-deep rounded-4 p-4 mb-4">
+                        <h5 class="text-danger fw-bold mb-4 d-flex align-items-center gap-2">
+                            <i class="bi bi-telephone-plus"></i> الطوارئ
+                        </h5>
+                        <div class="row g-4 text-start">
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small fw-bold">اسم جهة الاتصال</label>
+                                <input type="text" name="emergency_contact_name"
+                                    class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none"
+                                    value="{{ old('emergency_contact_name') }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small fw-bold">رقم هاتف الطوارئ</label>
+                                <input type="text" name="emergency_contact_phone"
+                                    class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none"
+                                    value="{{ old('emergency_contact_phone') }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Delivery Driver Section -->
+                    <div class="glass-card-deep rounded-4 p-4 mb-4">
+                        <div class="form-check form-switch mb-4">
+                            <input class="form-check-input" type="checkbox" id="is_driver" name="is_driver" value="1" {{ old('is_driver') ? 'checked' : '' }} onchange="toggleDriverFields()">
+                            <h5 class="form-check-label text-warning fw-bold d-inline-block ms-2" for="is_driver">
+                                <i class="bi bi-truck"></i> تعيين كسائق توصيل
+                            </h5>
+                        </div>
+
+                        <div id="driver_fields" style="display: none;">
+                            <div class="row g-4 text-start">
+                                <div class="col-md-6">
+                                    <label class="form-label text-secondary small fw-bold">رقم الرخصة <span
+                                            class="text-danger">*</span></label>
+                                    <input type="text" name="license_number"
+                                        class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none"
+                                        value="{{ old('license_number') }}">
+                                    @error('license_number') <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-secondary small fw-bold">تاريخ انتهاء الرخصة</label>
+                                    <input type="date" name="license_expiry"
+                                        class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none"
+                                        value="{{ old('license_expiry') }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-secondary small fw-bold">نوع المركبة</label>
+                                    <input type="text" name="vehicle_type"
+                                        class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none"
+                                        value="{{ old('vehicle_type') }}" placeholder="مثال: موتوسيكل، سيارة فان...">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-secondary small fw-bold">رقم اللوحة / معلومات
+                                        المركبة</label>
+                                    <input type="text" name="vehicle_plate"
+                                        class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none"
+                                        value="{{ old('vehicle_plate') }}">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -120,6 +247,23 @@
                                     <option value="{{ $val }}" class="bg-dark text-white" {{ old('status', 'active') == $val ? 'selected' : '' }}>{{ $label }}</option>
                                 @endforeach
                             </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label text-secondary small fw-bold">حساب النظام المرتبط (User)</label>
+                            <select name="user_id"
+                                class="form-select bg-dark border-white border-opacity-10 text-white shadow-none">
+                                <option value="" class="bg-dark text-secondary">-- اختر مستخدم --</option>
+                                @foreach($users as $user)
+                                    <option value="{{ $user->id }}" class="bg-dark text-white" {{ old('user_id') == $user->id ? 'selected' : '' }}>
+                                        {{ $user->name }} ({{ $user->email }})
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div class="form-text text-secondary opacity-50 x-small mt-2">
+                                <i class="bi bi-info-circle me-1"></i> ربط الموظف بمستخدم يتيح له تسجيل الدخول واستخدام
+                                النظام.
+                            </div>
                         </div>
                     </div>
 
@@ -181,3 +325,24 @@
         }
     </style>
 @endsection
+
+@push('scripts')
+    <script>
+        function toggleDriverFields() {
+            const isDriver = document.getElementById('is_driver').checked;
+            const driverFields = document.getElementById('driver_fields');
+
+            if (isDriver) {
+                driverFields.style.display = 'block';
+                // Optional: Set required attributes if needed, but backend validation handles logic
+            } else {
+                driverFields.style.display = 'none';
+            }
+        }
+
+        // Run on load to handle validation errors (old input)
+        document.addEventListener('DOMContentLoaded', function () {
+            toggleDriverFields();
+        });
+    </script>
+@endpush

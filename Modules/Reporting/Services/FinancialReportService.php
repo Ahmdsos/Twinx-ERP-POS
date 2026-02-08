@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Models\Account;
 use Modules\Accounting\Models\JournalEntryLine;
 use Modules\Accounting\Enums\AccountType;
+use Modules\Accounting\Enums\JournalStatus;
 
 /**
  * FinancialReportService - Generates financial statements
@@ -166,7 +167,7 @@ class FinancialReportService
         $query = JournalEntryLine::query()
             ->where('account_id', $accountId)
             ->whereHas('journalEntry', function ($q) use ($fromDate, $toDate) {
-                $q->where('status', 'posted');
+                $q->where('status', JournalStatus::POSTED);
                 if ($fromDate) {
                     $q->whereDate('entry_date', '>=', $fromDate);
                 }

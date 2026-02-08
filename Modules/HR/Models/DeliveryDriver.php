@@ -22,7 +22,10 @@ class DeliveryDriver extends Model
         'total_deliveries',
     ];
 
+    protected $guarded = [];
+
     protected $casts = [
+        'status' => \Modules\HR\Enums\DeliveryDriverStatus::class,
         'license_expiry' => 'date',
         'rating' => 'decimal:2',
     ];
@@ -75,5 +78,15 @@ class DeliveryDriver extends Model
     public function getIsInFieldAttribute(): bool
     {
         return $this->activeShipments()->exists();
+    }
+
+    public function occupy(): void
+    {
+        $this->update(['status' => 'on_delivery']);
+    }
+
+    public function release(): void
+    {
+        $this->update(['status' => 'available']);
     }
 }

@@ -228,6 +228,37 @@
                                         تستخدم لتأكيد عمليات (المرتجع، حذف الأصناف، تعديل الأسعار).
                                     </div>
                                 </div>
+
+                                <!-- Phase 3: Price Override Security Settings -->
+                                <div class="col-md-6 mt-3">
+                                    <label class="form-label text-white-50">كلمة مرور المدير (للتسعير)</label>
+                                    <div class="input-group">
+                                        <input type="password" name="pos_manager_pin" id="pos_manager_pin"
+                                            class="form-control bg-transparent text-white"
+                                            value="{{ $settings['pos']['pos_manager_pin'] ?? '' }}"
+                                            placeholder="إذا فارغ يستخدم PIN المرتجعات">
+                                        <button class="btn btn-outline-secondary" type="button"
+                                            onclick="toggleManagerPinVisibility()">
+                                            <i class="bi bi-eye" id="manager-pin-icon"></i>
+                                        </button>
+                                    </div>
+                                    <div class="form-text text-white-50 small">
+                                        PIN خاص للمدير لاعتماد تغيير الأسعار.
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 mt-3">
+                                    <label class="form-label text-white-50">الحد الأقصى للخصم (%)</label>
+                                    <div class="input-group">
+                                        <input type="number" step="1" min="0" max="100" name="pos_max_discount_percent"
+                                            class="form-control bg-transparent text-white"
+                                            value="{{ $settings['pos']['pos_max_discount_percent'] ?? 50 }}">
+                                        <span class="input-group-text bg-transparent text-white-50">%</span>
+                                    </div>
+                                    <div class="form-text text-white-50 small">
+                                        أقصى نسبة خصم مسموحة في نقاط البيع.
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -356,6 +387,20 @@
         function togglePinVisibility() {
             const input = document.getElementById('pos_refund_pin');
             const icon = document.getElementById('pin-icon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        }
+
+        function toggleManagerPinVisibility() {
+            const input = document.getElementById('pos_manager_pin');
+            const icon = document.getElementById('manager-pin-icon');
             if (input.type === 'password') {
                 input.type = 'text';
                 icon.classList.remove('bi-eye');

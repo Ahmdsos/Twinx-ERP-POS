@@ -14,8 +14,8 @@ class HRController extends Controller
     {
         $stats = [
             'total_employees' => \Modules\HR\Models\Employee::count(),
-            'active_employees' => \Modules\HR\Models\Employee::where('status', 'active')->count(),
-            'total_salary' => \Modules\HR\Models\Employee::where('status', 'active')->sum('basic_salary'),
+            'active_employees' => \Modules\HR\Models\Employee::where('status', \Modules\HR\Enums\EmployeeStatus::ACTIVE->value)->count(),
+            'total_salary' => \Modules\HR\Models\Employee::where('status', \Modules\HR\Enums\EmployeeStatus::ACTIVE->value)->sum('basic_salary'),
         ];
 
         // Alerts: Expiring documents in the next 30 days
@@ -31,7 +31,9 @@ class HRController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $employee = auth()->user()->employee;
+        // Load current user's employee profile
+        $user = auth()->user();
+        $employee = $user ? $user->employee : null;
         $attendanceStatus = 'not_linked';
 
         if ($employee) {
@@ -39,7 +41,7 @@ class HRController extends Controller
             $attendanceStatus = $attendanceService->getTodayStatus($employee);
         }
 
-        return view('hr::index', compact('stats', 'attendanceStatus', 'expiringDocuments', 'pendingLeaves'));
+        return view('hr::index', compact('stats', 'attendanceStatus', 'expiringDocuments', 'pendingLeaves', 'employee'));
     }
 
     /**

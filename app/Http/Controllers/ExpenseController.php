@@ -90,7 +90,7 @@ class ExpenseController extends Controller
             // Dr Tax Account (Tax Amount)
             // Cr Payment Account (Total)
 
-            $taxAccount = Account::where('code', '2105')->first(); // VAT Input/Receivable? 
+            $taxAccount = Account::where('code', \App\Models\Setting::getValue('acc_tax_payable', '2105'))->first();
             // Actually 2105 is usually Tax Payable. Input Tax should be an Asset (1xxx).
             // Let's assume 2105 handles both for net tax liability, or separate.
             // For simplicity, using Tax Account provided.

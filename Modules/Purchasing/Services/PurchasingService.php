@@ -179,7 +179,12 @@ class PurchasingService
         $apAccount = Account::where('code', $apCode)->first(); // Accounts Payable
 
         if (!$inventoryAccount || !$apAccount) {
-            return; // Skip if accounts not configured
+            // CRITICAL: Do NOT silently fail - this hides configuration errors
+            throw new \RuntimeException(
+                "GRN Journal Entry Failed: Missing required accounts. " .
+                "Inventory Account: " . ($inventoryAccount ? 'Found' : 'NOT FOUND') . ", " .
+                "AP Account: " . ($apAccount ? 'Found' : 'NOT FOUND')
+            );
         }
 
         $entry = $this->journalService->create([
@@ -354,7 +359,11 @@ class PurchasingService
             : Account::where('code', $apCode)->first();
 
         if (!$apAccount) {
-            return;
+            // CRITICAL: Do NOT silently fail - this hides configuration errors
+            throw new \RuntimeException(
+                "Supplier Payment Journal Entry Failed: AP Account not found. " .
+                "Code: {$apCode}. Please configure in Settings or ensure it exists in Chart of Accounts."
+            );
         }
 
         $entry = $this->journalService->create([
@@ -373,6 +382,9 @@ class PurchasingService
             ],
             ['account_id' => $payment->payment_account_id, 'debit' => 0, 'credit' => $payment->amount],
         ]);
+
+        // CRITICAL FIX: Auto-post journal entry to update account balances
+        $this->journalService->post($entry);
 
         $payment->update(['journal_entry_id' => $entry->id]);
     }

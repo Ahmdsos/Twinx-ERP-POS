@@ -19,10 +19,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Implicitly grant "Super Admin" role all permissions
+        // Implicitly grant "admin" role all permissions
         // This works in the app by using gate-related functions like auth()->user->can() and @can()
         \Illuminate\Support\Facades\Gate::before(function ($user, $ability) {
-            return $user->hasRole('Super Admin') ? true : null;
+            return $user->hasRole('admin') ? true : null;
         });
 
         \Illuminate\Support\Facades\Event::listen(\Illuminate\Auth\Events\Login::class, function ($event) {

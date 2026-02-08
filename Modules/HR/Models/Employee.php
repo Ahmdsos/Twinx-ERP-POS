@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use App\Models\User;
 use Modules\Core\Traits\HasDocumentNumber;
 use Modules\Core\Traits\HasAuditTrail;
+use Modules\HR\Enums\EmployeeStatus;
 
 class Employee extends Model
 {
@@ -47,28 +48,33 @@ class Employee extends Model
         'updated_by',
     ];
 
+    // H-16 FIX: Deprecated - use EmployeeStatus enum instead
+    /** @deprecated Use EmployeeStatus::ACTIVE instead */
     const STATUS_ACTIVE = 'active';
+    /** @deprecated Use EmployeeStatus::INACTIVE instead */
     const STATUS_INACTIVE = 'inactive';
+    /** @deprecated Use EmployeeStatus::ON_LEAVE instead */
     const STATUS_ON_LEAVE = 'on_leave';
+    /** @deprecated Use EmployeeStatus::TERMINATED instead */
     const STATUS_TERMINATED = 'terminated';
 
     public static function getStatusLabels(): array
     {
         return [
-            self::STATUS_ACTIVE => 'نشط',
-            self::STATUS_INACTIVE => 'غير نشط',
-            self::STATUS_ON_LEAVE => 'في إجازة',
-            self::STATUS_TERMINATED => 'تم إنهاء الخدمة',
+            EmployeeStatus::ACTIVE->value => EmployeeStatus::ACTIVE->label(),
+            EmployeeStatus::INACTIVE->value => EmployeeStatus::INACTIVE->label(),
+            EmployeeStatus::ON_LEAVE->value => EmployeeStatus::ON_LEAVE->label(),
+            EmployeeStatus::TERMINATED->value => EmployeeStatus::TERMINATED->label(),
         ];
     }
 
     public static function getStatusColors(): array
     {
         return [
-            self::STATUS_ACTIVE => 'success',
-            self::STATUS_INACTIVE => 'secondary',
-            self::STATUS_ON_LEAVE => 'warning text-dark',
-            self::STATUS_TERMINATED => 'danger',
+            EmployeeStatus::ACTIVE->value => EmployeeStatus::ACTIVE->color(),
+            EmployeeStatus::INACTIVE->value => EmployeeStatus::INACTIVE->color(),
+            EmployeeStatus::ON_LEAVE->value => EmployeeStatus::ON_LEAVE->color(),
+            EmployeeStatus::TERMINATED->value => EmployeeStatus::TERMINATED->color(),
         ];
     }
 
@@ -76,6 +82,7 @@ class Employee extends Model
         'date_of_joining' => 'date',
         'birth_date' => 'date',
         'basic_salary' => 'decimal:2',
+        'status' => EmployeeStatus::class, // H-16: Enum casting
     ];
 
     /**
@@ -156,5 +163,32 @@ class Employee extends Model
     public function getFullNameAttribute(): string
     {
         return "{$this->first_name} {$this->last_name}";
+    }
+    /**
+     * Get the effective status of the employee (e.g. checks for active leaves).
+     */
+    public function getCurrentStatusAttribute(): EmployeeStatus
+    {
+        // Check for active leave
+        $isOnLeave = false;
+
+        if ($this->relationLoaded('leaves')) {
+            $isOnLeave = $this->leaves->contains(function ($leave) {
+                return $leave->status === 'approved' &&
+                    now()->between(\Carbon\Carbon::parse($leave->start_date), \Carbon\Carbon::parse($leave->end_date));
+            });
+        } else {
+            $isOnLeave = $this->leaves()
+                ->where('status', 'approved')
+                ->whereDate('start_date', '<=', now())
+                ->whereDate('end_date', '>=', now())
+                ->exists();
+        }
+
+        if ($isOnLeave) {
+            return EmployeeStatus::ON_LEAVE;
+        }
+
+        return $this->status;
     }
 }

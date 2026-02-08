@@ -22,12 +22,20 @@ class Brand extends Model
         'is_active' => 'boolean',
     ];
 
+    /**
+     * Get products associated with this brand.
+     * 
+     * ⚠️ WARNING: This relationship requires Product.brand_id column.
+     * Current Product model uses 'brand' as string column.
+     * 
+     * TODO: Create migration to add brand_id FK to products table,
+     * then migrate existing 'brand' string values to proper FK references.
+     * 
+     * Alternative: Use scopeForBrand() on Product model with name matching.
+     */
     public function products()
     {
-        return $this->hasMany(Product::class); // Assuming Product model exists
-        // Note: Product model needs 'brand_id' or similar if we link formally, 
-        // currently Product uses 'brand' string column in existing schema.
-        // We might want to Refactor Product to use brand_id later, 
-        // but for now we stick to the plan: Create Brand management first.
+        // Note: This will not work until brand_id is added to products table
+        return $this->hasMany(Product::class, 'brand_id');
     }
 }

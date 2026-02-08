@@ -154,8 +154,10 @@ class Shipment extends Model
 
         $this->logStatusChange($oldStatus, ShipmentStatus::DELIVERED);
 
-        // Update delivery order status
-        $this->deliveryOrder?->complete();
+        // Update delivery order status via Service (H-08: Accounting Hook)
+        if ($this->deliveryOrder) {
+            app(\Modules\Sales\Services\SalesService::class)->completeDelivery($this->deliveryOrder);
+        }
 
         return true;
     }

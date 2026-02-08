@@ -138,7 +138,8 @@
                         <td class="text-end">{{ number_format($salesInvoice->subtotal, 2) }}</td>
                     </tr>
                     <tr>
-                        <td>الضريبة (14%):</td>
+                        <td>الضريبة ({{ number_format(\App\Models\Setting::getValue('default_tax_rate', 14), 0) }}%):
+                        </td>
                         <td class="text-end">{{ number_format($salesInvoice->tax_amount, 2) }}</td>
                     </tr>
                     <tr>

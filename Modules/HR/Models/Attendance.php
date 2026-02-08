@@ -24,32 +24,22 @@ class Attendance extends Model
 
     protected $casts = [
         'attendance_date' => 'date',
+        'status' => \Modules\HR\Enums\AttendanceStatus::class,
     ];
 
+    // Constants for backward compatibility and easier access
     const STATUS_PRESENT = 'present';
     const STATUS_ABSENT = 'absent';
     const STATUS_LATE = 'late';
     const STATUS_ON_LEAVE = 'on_leave';
+    const STATUS_HOLIDAY = 'holiday';
 
     public static function getStatusLabels(): array
     {
-        return [
-            self::STATUS_PRESENT => 'حاضر',
-            self::STATUS_ABSENT => 'غائب',
-            self::STATUS_LATE => 'متأخر',
-            self::STATUS_ON_LEAVE => 'إجازة',
-        ];
+        return array_column(\Modules\HR\Enums\AttendanceStatus::cases(), 'value', 'value');
+        // Or better, map it if needed, but Enum has label() method now.
     }
 
-    public static function getStatusColors(): array
-    {
-        return [
-            self::STATUS_PRESENT => 'success',
-            self::STATUS_ABSENT => 'danger',
-            self::STATUS_LATE => 'warning text-dark',
-            self::STATUS_ON_LEAVE => 'info',
-        ];
-    }
 
     /**
      * Get the duration in minutes.

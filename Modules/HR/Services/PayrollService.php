@@ -107,6 +107,81 @@ class PayrollService
     }
 
     /**
+     * Recalculate a specific payroll (must be draft).
+     * Useful if attendance or employee data changed after generation.
+     */
+    public function recalculate(Payroll $payroll)
+    {
+        if ($payroll->status !== 'draft') {
+            throw new \Exception("لا يمكن إعادة احتساب كشف رواتب معتمد أو مرحل.");
+        }
+
+        return DB::transaction(function () use ($payroll) {
+            // Delete existing items
+            $payroll->items()->delete();
+
+            $year = $payroll->year;
+            $month = $payroll->month;
+
+            $employees = Employee::where('status', 'active')->get();
+            $grandTotal = 0;
+            $monthStart = Carbon::create($year, $month, 1)->startOfMonth();
+            $monthEnd = $monthStart->copy()->endOfMonth();
+            $daysInMonth = $monthStart->daysInMonth;
+
+            foreach ($employees as $employee) {
+                $baseSalary = $employee->basic_salary;
+                $dailyRate = $baseSalary / $daysInMonth;
+                $calculatedDeductions = 0;
+                $calculatedAllowances = 0;
+
+                // 1. Attendance Audit
+                $absentCount = \Modules\HR\Models\Attendance::where('employee_id', $employee->id)
+                    ->whereBetween('attendance_date', [$monthStart, $monthEnd])
+                    ->where('status', \Modules\HR\Models\Attendance::STATUS_ABSENT)
+                    ->count();
+
+                // Track Leaves just for info (Paid leaves don't deduct)
+                $leaveCount = \Modules\HR\Models\Attendance::where('employee_id', $employee->id)
+                    ->whereBetween('attendance_date', [$monthStart, $monthEnd])
+                    ->where('status', 'on_leave') // Using string as constant might be missing in some contexts
+                    ->count();
+
+                $calculatedDeductions += ($absentCount * $dailyRate);
+
+                $netSalary = max(0, $baseSalary + $calculatedAllowances - $calculatedDeductions);
+
+                $notes = [];
+                if ($absentCount > 0)
+                    $notes[] = "خصم غياب $absentCount يوم";
+                if ($leaveCount > 0)
+                    $notes[] = "إجازة $leaveCount يوم";
+
+                PayrollItem::create([
+                    'payroll_id' => $payroll->id,
+                    'employee_id' => $employee->id,
+                    'basic_salary' => $baseSalary,
+                    'allowances' => $calculatedAllowances,
+                    'deductions' => $calculatedDeductions,
+                    'net_salary' => $netSalary,
+                    'notes' => count($notes) > 0 ? implode(' | ', $notes) : null,
+                ]);
+
+                $grandTotal += $netSalary;
+            }
+
+            $payroll->update([
+                'total_basic' => $employees->sum('basic_salary'),
+                'total_allowances' => $payroll->items()->sum('allowances'),
+                'total_deductions' => $payroll->items()->sum('deductions'),
+                'net_salary' => $grandTotal,
+            ]);
+
+            return $payroll;
+        });
+    }
+
+    /**
      * Post payroll to the accounting ledger.
      */
     public function postToAccounting(Payroll $payroll)

@@ -17,6 +17,11 @@ class BulkActionsController extends Controller
      */
     public function deleteProducts(Request $request)
     {
+        // SECURITY FIX: Require authorization for bulk delete
+        if (!auth()->user()->can('products.delete')) {
+            abort(403, 'غير مصرح لك بحذف المنتجات');
+        }
+
         $request->validate(['ids' => 'required|array']);
 
         $count = Product::whereIn('id', $request->ids)->delete();
@@ -103,6 +108,11 @@ class BulkActionsController extends Controller
      */
     public function deleteCustomers(Request $request)
     {
+        // SECURITY FIX: Require authorization for bulk delete
+        if (!auth()->user()->can('customers.delete')) {
+            abort(403, 'غير مصرح لك بحذف العملاء');
+        }
+
         $request->validate(['ids' => 'required|array']);
 
         $count = Customer::whereIn('id', $request->ids)->delete();

@@ -19,6 +19,7 @@ class SalesReturn extends Model
         'sales_invoice_id',
         'customer_id',
         'warehouse_id',
+        'shift_id', // Added
         'return_date',
         'status',
         'subtotal',
@@ -63,6 +64,11 @@ class SalesReturn extends Model
     public function warehouse(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class);
+    }
+
+    public function shift(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\PosShift::class, 'shift_id');
     }
 
     public function lines(): HasMany

@@ -53,6 +53,11 @@ class SalesService
                 $quantity = $line['quantity'] ?? 0;
                 $unitPrice = $line['unit_price'] ?? 0;
                 $discount = $line['discount_percent'] ?? 0;
+
+                if ($discount > 100) {
+                    throw new \RuntimeException("نسبة الخصم لا يمكن أن تتجاوز 100%");
+                }
+
                 $lineTotal = $quantity * $unitPrice * (1 - $discount / 100);
                 return $lineTotal;
             });
@@ -76,6 +81,7 @@ class SalesService
                 'shipping_method' => $data['shipping_method'] ?? null,
                 'currency' => $data['currency'] ?? 'EGP',
                 'exchange_rate' => $data['exchange_rate'] ?? 1,
+                'quotation_id' => $data['quotation_id'] ?? null,
                 'created_by' => auth()->id(),
             ]);
 
@@ -175,12 +181,104 @@ class SalesService
                 $totalCost += $quantity * $unitCost;
             }
 
-            // Complete delivery and create COGS journal
-            $do->complete();
-            $this->createCogsJournalEntry($do, $totalCost);
+            // H-08: Complete delivery and trigger accounting
+            // Truth: If it's a direct delivery (like POS), complete it immediately
+            $this->completeDelivery($do);
 
             return $do->fresh(['lines', 'salesOrder', 'warehouse']);
         });
+    }
+
+    /**
+     * Ship delivery order (H-13 Integration)
+     */
+    public function shipDelivery(DeliveryOrder $do, array $data): bool
+    {
+        return DB::transaction(function () use ($do, $data) {
+            if (!$do->ship()) {
+                return false;
+            }
+
+            $do->update([
+                'driver_id' => $data['driver_id'] ?? $do->driver_id,
+                'driver_name' => $data['driver_name'] ?? $do->driver_name,
+                'vehicle_number' => $data['vehicle_number'] ?? $do->vehicle_number,
+                'tracking_number' => $data['tracking_number'] ?? $do->tracking_number,
+            ]);
+
+            // Mark driver as busy/on_delivery
+            if ($do->driver) {
+                $do->driver->update(['status' => 'on_delivery']);
+            }
+
+            return true;
+        });
+    }
+
+    /**
+     * Complete delivery order (H-08: Accounting Trigger)
+     */
+    public function completeDelivery(DeliveryOrder $do): bool
+    {
+        return DB::transaction(function () use ($do) {
+            if (!$do->complete()) {
+                return false;
+            }
+
+            // Trigger COGS Journal Entry
+            $this->triggerCogsEntry($do);
+
+            // Mark driver as available
+            if ($do->driver) {
+                $do->driver->update(['status' => 'available']);
+            }
+
+            // Update Sales Order delivery status
+            $do->salesOrder->updateDeliveryStatus();
+
+            return true;
+        });
+    }
+
+    /**
+     * Cancel delivery order (H-13: Status Reversal)
+     */
+    public function cancelDelivery(DeliveryOrder $do): bool
+    {
+        return DB::transaction(function () use ($do) {
+            if ($do->status === DeliveryStatus::DELIVERED) {
+                throw new \RuntimeException("Cannot cancel a delivered order");
+            }
+
+            $do->update(['status' => DeliveryStatus::CANCELLED]);
+
+            // Reverse driver status if they were on delivery
+            if ($do->driver && $do->driver->status === 'on_delivery') {
+                $do->driver->update(['status' => 'available']);
+            }
+
+            // Reverse SO quantities potentially? 
+            // For now, following task requirements for driver status.
+
+            return true;
+        });
+    }
+
+    /**
+     * Trigger COGS Journal Entry from existing DO (Truth Consolidation)
+     */
+    public function triggerCogsEntry(DeliveryOrder $do): void
+    {
+        if ($do->journal_entry_id) {
+            return;
+        }
+
+        $totalCost = $do->getTotalCost();
+        if ($totalCost <= 0) {
+            return;
+        }
+
+        $this->createCogsJournalEntry($do, $totalCost);
     }
 
     /**
@@ -195,7 +293,13 @@ class SalesService
         $inventoryAccount = Account::where('code', $inventoryCode)->first(); // Inventory
 
         if (!$cogsAccount || !$inventoryAccount) {
-            return;
+            // CRITICAL: Do NOT silently fail - this hides configuration errors and causes financial data loss
+            throw new \RuntimeException(
+                "COGS Journal Entry Failed: Missing required accounts. " .
+                "COGS Account (code: {$cogsCode}): " . ($cogsAccount ? 'Found' : 'NOT FOUND') . ", " .
+                "Inventory Account (code: {$inventoryCode}): " . ($inventoryAccount ? 'Found' : 'NOT FOUND') . ". " .
+                "Please configure these accounts in Settings or ensure they exist in Chart of Accounts."
+            );
         }
 
         $entry = $this->journalService->create([
@@ -283,7 +387,13 @@ class SalesService
         $taxAccount = Account::where('code', $taxCode)->first(); // Tax Payable
 
         if (!$arAccount || !$salesAccount) {
-            return;
+            // CRITICAL: Do NOT silently fail - this hides configuration errors and causes financial data loss
+            throw new \RuntimeException(
+                "Invoice Journal Entry Failed: Missing required accounts. " .
+                "AR Account (code: {$arCode}): " . ($arAccount ? 'Found' : 'NOT FOUND') . ", " .
+                "Sales Revenue Account (code: {$salesCode}): " . ($salesAccount ? 'Found' : 'NOT FOUND') . ". " .
+                "Please configure these accounts in Settings or ensure they exist in Chart of Accounts."
+            );
         }
 
         $lines = [
@@ -516,7 +626,7 @@ class SalesService
      */
     protected function handleDeliverySuccess(DeliveryOrder $delivery, array $params): void
     {
-        $pendingAccount = Account::where('code', '1202')->first();
+        $pendingAccount = Account::where('code', \App\Models\Setting::getValue('acc_pending_delivery', '1202'))->first();
         $cashAccount = Account::where('code', \App\Models\Setting::getValue('acc_cash', '1101'))->first();
 
         if (!$pendingAccount || !$cashAccount)
@@ -566,7 +676,7 @@ class SalesService
         }
 
         // 2. Accounting Truth: Reverse Pending Fee (Audit Finding #1)
-        $pendingAccount = Account::where('code', '1202')->first();
+        $pendingAccount = Account::where('code', \App\Models\Setting::getValue('acc_pending_delivery', '1202'))->first();
         $shippingRevenueAccount = Account::where('code', \App\Models\Setting::getValue('acc_shipping_revenue', '4201'))->first();
 
         if (!$pendingAccount || !$shippingRevenueAccount)

@@ -86,6 +86,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [POSController::class, 'index'])->name('index');
         Route::get('/search', [POSController::class, 'searchProducts'])->name('search');
         Route::get('/products/search', [POSController::class, 'searchProducts'])->name('products.search');
+        Route::get('/customers/search', [POSController::class, 'searchCustomers'])->name('customers.search');
         Route::get('/customers/{id}/brief', [POSController::class, 'getCustomerBrief'])->name('customers.brief');
         Route::post('/customers/quick-create', [POSController::class, 'quickCreateCustomer'])->name('customers.quick-create');
         Route::post('/checkout', [POSController::class, 'checkout'])->name('checkout');
@@ -101,10 +102,22 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/shift/status', [POSController::class, 'shiftStatus'])->name('shift.status');
         Route::get('/shift/{shift}/report', [POSController::class, 'shiftReport'])->name('shift.report');
         Route::get('/shift/stats', [POSController::class, 'getShiftStats'])->name('shift.stats');
-        Route::get('/recent-transactions', [POSController::class, 'recentTransactions'])->name('recent');
+        Route::get('/recent-transactions', [POSController::class, 'lastTransactions'])->name('recent');
         Route::post('/sales-return', [POSController::class, 'salesReturn'])->name('return');
         Route::get('/invoice/search', [POSController::class, 'searchInvoice'])->name('invoice.search');
         Route::post('/pin/validate', [POSController::class, 'validateRefundPin'])->name('pin.validate');
+
+        // Phase 3: Security & Reporting Routes
+        Route::post('/pin/price-override', [POSController::class, 'validatePriceOverridePin'])->name('pin.priceOverride');
+        Route::post('/cart/log-deletion', [POSController::class, 'logCartDeletion'])->name('cart.logDeletion');
+        Route::get('/x-report', [POSController::class, 'xReport'])->name('xReport');
+        Route::get('/last-transactions', [POSController::class, 'lastTransactions'])->name('lastTransactions');
+        Route::post('/drawer/open', [POSController::class, 'openCashDrawer'])->name('drawer.open');
+        Route::post('/expenses', [POSController::class, 'storeExpense'])->name('expenses.store');
+
+        // Phase 3: Delivery Management
+        Route::get('/delivery/list', [POSController::class, 'listDeliveryOrders'])->name('delivery.list');
+        Route::post('/delivery/status', [POSController::class, 'updateDeliveryStatus'])->name('delivery.status');
     });
 
     // ==========================================
@@ -183,6 +196,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/financial/balance-sheet', [App\Http\Controllers\ReportController::class, 'financial'])->name('financial.bs'); // Reuse controller method for now with type param
 
         // Inventory
+        // Shifts Report
+        Route::get('/shifts', [ReportController::class, 'shifts'])->name('shifts');
         Route::get('/inventory/valuation', [App\Http\Controllers\ReportController::class, 'inventory'])->name('inventory.valuation');
         Route::get('/inventory/low-stock', [App\Http\Controllers\ReportController::class, 'lowStock'])->name('inventory.low-stock');
 
@@ -346,10 +361,12 @@ Route::middleware(['auth'])->group(function () {
     // Reports are now handled in the dedicated group above
 
     // ==========================================
-    // COURIERS (شركات الشحن)
+    // COURIERS (شركات الشحن) - Requires permission
     // ==========================================
-    Route::resource('couriers', CourierController::class);
-    Route::patch('couriers/{courier}/toggle-status', [CourierController::class, 'toggleStatus'])->name('couriers.toggle-status');
+    Route::middleware(['can:couriers.manage'])->group(function () {
+        Route::resource('couriers', CourierController::class);
+        Route::patch('couriers/{courier}/toggle-status', [CourierController::class, 'toggleStatus'])->name('couriers.toggle-status');
+    });
 
     // ==========================================
     // ADMIN / SETTINGS (Restricted to Super Admin)
@@ -431,7 +448,31 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{id}/read', [\App\Http\Controllers\NotificationsController::class, 'markAsRead'])->name('read');
         Route::post('/read-all', [\App\Http\Controllers\NotificationsController::class, 'markAllAsRead'])->name('read-all');
     });
+
+    // ==========================================
+    // HR MODULE
+    // ==========================================
+    Route::middleware(['can:hr.manage'])->prefix('hr')->name('hr.')->group(function () {
+        // Employees
+        Route::resource('employees', \Modules\HR\Http\Controllers\EmployeeController::class);
+
+        // Payroll
+        Route::resource('payroll', \Modules\HR\Http\Controllers\PayrollController::class);
+        Route::post('payroll/generate', [\Modules\HR\Http\Controllers\PayrollController::class, 'generate'])->name('payroll.generate');
+        Route::post('payroll/{payroll}/post', [\Modules\HR\Http\Controllers\PayrollController::class, 'post'])->name('payroll.post');
+        Route::post('payroll/{payroll}/recalculate', [\Modules\HR\Http\Controllers\PayrollController::class, 'recalculate'])->name('payroll.recalculate');
+        Route::put('payroll/items/{item}', [\Modules\HR\Http\Controllers\PayrollController::class, 'updateItem'])->name('payroll.items.update');
+
+        // Leaves
+        Route::get('leaves', [\Modules\HR\Http\Controllers\LeaveController::class, 'index'])->name('leaves.index');
+        Route::post('leaves/{leave}/approve', [\Modules\HR\Http\Controllers\LeaveController::class, 'approve'])->name('leaves.approve');
+        Route::post('leaves/{leave}/reject', [\Modules\HR\Http\Controllers\LeaveController::class, 'reject'])->name('leaves.reject');
+        // Note: Store route is nested in employee check employee controller or add generic store if needed
+        Route::post('employees/{employee}/leaves', [\Modules\HR\Http\Controllers\LeaveController::class, 'store'])->name('leaves.store');
+    });
 });
 
 
 
+// POS Routes continued
+Route::post('/pos/expenses', [POSController::class, 'saveExpense'])->name('pos.expenses.store');

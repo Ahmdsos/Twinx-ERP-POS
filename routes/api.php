@@ -23,8 +23,8 @@ Route::get('/health', fn() => response()->json([
     'timestamp' => now()->toISOString(),
 ]));
 
-// API Version 1
-Route::prefix('v1')->middleware(['throttle:60,1'])->group(function () {
+// API Version 1 - Requires authentication via Sanctum token
+Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
 
     // ==========================================
     // PRODUCTS API

@@ -165,25 +165,18 @@ class DeliveryOrderController extends Controller
      */
     public function ship(Request $request, DeliveryOrder $delivery)
     {
-        if ($delivery->status !== DeliveryStatus::READY) {
-            return back()->with('error', 'يمكن شحن الطلبات الجاهزة فقط');
-        }
-
         $validated = $request->validate([
             'driver_name' => 'nullable|string|max:100',
+            'driver_id' => 'nullable|exists:hr_delivery_drivers,id',
             'vehicle_number' => 'nullable|string|max:50',
             'tracking_number' => 'nullable|string|max:100',
         ]);
 
-        $delivery->update([
-            'status' => DeliveryStatus::SHIPPED,
-            'shipped_date' => now(),
-            'driver_name' => $validated['driver_name'] ?? null,
-            'vehicle_number' => $validated['vehicle_number'] ?? null,
-            'tracking_number' => $validated['tracking_number'] ?? null,
-        ]);
+        if ($this->salesService->shipDelivery($delivery, $validated)) {
+            return back()->with('success', 'تم شحن الطلب بنجاح');
+        }
 
-        return back()->with('success', 'تم شحن الطلب بنجاح');
+        return back()->with('error', 'فشل في شحن الطلب');
     }
 
     /**
@@ -191,19 +184,11 @@ class DeliveryOrderController extends Controller
      */
     public function complete(DeliveryOrder $delivery)
     {
-        if (!in_array($delivery->status, [DeliveryStatus::READY, DeliveryStatus::SHIPPED])) {
-            return back()->with('error', 'لا يمكن إتمام هذا التسليم');
+        if ($this->salesService->completeDelivery($delivery)) {
+            return back()->with('success', 'تم تسليم الطلب بنجاح');
         }
 
-        $delivery->update([
-            'status' => DeliveryStatus::DELIVERED,
-            'delivered_by' => auth()->id(),
-        ]);
-
-        // Update SO delivery status
-        $delivery->salesOrder->updateDeliveryStatus();
-
-        return back()->with('success', 'تم تسليم الطلب بنجاح');
+        return back()->with('error', 'لا يمكن إتمام هذا التسليم');
     }
 
     /**
@@ -211,12 +196,14 @@ class DeliveryOrderController extends Controller
      */
     public function cancel(DeliveryOrder $delivery)
     {
-        if ($delivery->status === DeliveryStatus::DELIVERED) {
-            return back()->with('error', 'لا يمكن إلغاء طلب تم تسليمه');
+        try {
+            if ($this->salesService->cancelDelivery($delivery)) {
+                return back()->with('success', 'تم إلغاء أمر التسليم');
+            }
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
         }
 
-        $delivery->update(['status' => DeliveryStatus::CANCELLED]);
-
-        return back()->with('success', 'تم إلغاء أمر التسليم');
+        return back()->with('error', 'فشل في إلغاء أمر التسليم');
     }
 }

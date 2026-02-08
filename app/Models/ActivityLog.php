@@ -41,13 +41,11 @@ class ActivityLog extends Model
 
     /**
      * Get the subject model
+     * H-07 FIX: Always return MorphTo relationship - it handles null automatically
      */
     public function subject()
     {
-        if ($this->subject_type && $this->subject_id) {
-            return $this->morphTo('subject', 'subject_type', 'subject_id');
-        }
-        return null;
+        return $this->morphTo('subject', 'subject_type', 'subject_id');
     }
 
     /**

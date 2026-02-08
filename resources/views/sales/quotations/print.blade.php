@@ -178,7 +178,7 @@
             </div>
         @endif
         <div class="totals-row">
-            <span>الضريبة (14%):</span>
+            <span>الضريبة ({{ number_format(\App\Models\Setting::getValue('default_tax_rate', 14), 0) }}%):</span>
             <span>{{ number_format($quotation->tax_amount, 2) }}</span>
         </div>
         <div class="totals-row final">

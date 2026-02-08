@@ -47,7 +47,12 @@ class SettingsSeeder extends Seeder
 
             // Email Settings
             ['group' => 'email', 'key' => 'email_from_name', 'value' => 'Twinx ERP', 'type' => 'string'],
+            ['group' => 'email', 'key' => 'email_from_name', 'value' => 'Twinx ERP', 'type' => 'string'],
             ['group' => 'email', 'key' => 'email_from_address', 'value' => 'noreply@twinx.local', 'type' => 'string'],
+
+            // Payroll Accounting Settings (Defaults based on ChartOfAccountsSeeder)
+            ['group' => 'accounting', 'key' => 'acc_salaries_exp', 'value' => '5211', 'type' => 'string'], // Salaries Expense
+            ['group' => 'accounting', 'key' => 'acc_salaries_payable', 'value' => '2400', 'type' => 'string'], // Salaries Payable
         ];
 
         foreach ($settings as $setting) {

@@ -188,13 +188,15 @@ class JournalService
         $totalCredit = 0;
 
         foreach ($lines as $line) {
-            $totalDebit += (float) ($line['debit'] ?? 0);
-            $totalCredit += (float) ($line['credit'] ?? 0);
+            // Truth: Explicitly round each line before summing to match DB storage
+            $totalDebit += round((float) ($line['debit'] ?? 0), 2);
+            $totalCredit += round((float) ($line['credit'] ?? 0), 2);
         }
 
-        $precision = pow(10, -config('erp.currency.decimal_places', 2));
+        // Standard accounting precision
+        $precision = 0.001;
 
-        if (abs($totalDebit - $totalCredit) >= $precision) {
+        if (abs($totalDebit - $totalCredit) > $precision) {
             throw new UnbalancedJournalException($totalDebit, $totalCredit);
         }
     }
@@ -216,8 +218,8 @@ class JournalService
         return JournalEntryLine::create([
             'journal_entry_id' => $entry->id,
             'account_id' => $lineData['account_id'],
-            'debit' => $lineData['debit'] ?? 0,
-            'credit' => $lineData['credit'] ?? 0,
+            'debit' => round($lineData['debit'] ?? 0, 2),
+            'credit' => round($lineData['credit'] ?? 0, 2),
             'description' => $lineData['description'] ?? null,
             'cost_center' => $lineData['cost_center'] ?? null,
             'subledger_type' => $lineData['subledger_type'] ?? null,
@@ -244,7 +246,9 @@ class JournalService
             });
 
         foreach ($accountTotals as $accountId => $totals) {
-            $account = Account::find($accountId);
+            // Use lockForUpdate() to prevent race conditions during concurrent balance updates
+            // This ensures atomic read-modify-write operation on account balance
+            $account = Account::lockForUpdate()->find($accountId);
             if ($account) {
                 // Calculate new balance based on account type
                 if ($account->isDebitNormal()) {

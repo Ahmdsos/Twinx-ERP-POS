@@ -45,9 +45,10 @@ class SalesInvoiceLine extends Model
         return $this->belongsTo(SalesInvoice::class);
     }
 
+    // Compatibility alias: Some legacy code or internal logic expects invoice()
     public function invoice(): BelongsTo
     {
-        return $this->belongsTo(SalesInvoice::class, 'sales_invoice_id');
+        return $this->salesInvoice();
     }
 
     public function product(): BelongsTo

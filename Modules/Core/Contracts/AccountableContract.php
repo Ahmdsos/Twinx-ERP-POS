@@ -51,4 +51,11 @@ interface AccountableContract
      * @return Carbon
      */
     public function getJournalDate(): Carbon;
+
+    /**
+     * Get the primary key value for the model
+     * 
+     * @return mixed
+     */
+    public function getKey();
 }

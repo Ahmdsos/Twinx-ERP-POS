@@ -78,7 +78,11 @@ class SalesOrderController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('sales.orders.create', compact('customers', 'warehouses', 'products'));
+        // Tax settings from database (stored as percent, e.g., 20 for 20%)
+        $taxRatePercent = (float) \App\Models\Setting::getValue('default_tax_rate', 14);
+        $taxRate = $taxRatePercent / 100; // Convert to decimal for JS
+
+        return view('sales.orders.create', compact('customers', 'warehouses', 'products', 'taxRate', 'taxRatePercent'));
     }
 
     /**
@@ -167,7 +171,11 @@ class SalesOrderController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('sales.orders.edit', compact('salesOrder', 'customers', 'warehouses', 'products'));
+        // Tax settings from database (stored as percent, e.g., 20 for 20%)
+        $taxRatePercent = (float) \App\Models\Setting::getValue('default_tax_rate', 14);
+        $taxRate = $taxRatePercent / 100; // Convert to decimal for JS
+
+        return view('sales.orders.edit', compact('salesOrder', 'customers', 'warehouses', 'products', 'taxRate', 'taxRatePercent'));
     }
 
     /**

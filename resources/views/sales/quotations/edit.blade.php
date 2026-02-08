@@ -219,7 +219,7 @@
                         </div>
 
                         <div class="d-flex justify-content-between mb-4 text-gray-400">
-                            <span>الضريبة (14%)</span>
+                            <span>الضريبة ({{ number_format($taxRatePercent, 0) }}%)</span>
                             <span class="fw-bold text-white" x-text="formatMoney(totals.tax)"></span>
                         </div>
 
@@ -282,7 +282,7 @@
             get totals() {
                 let subtotal = this.items.reduce((sum, item) => sum + this.calculateLineTotal(item), 0);
                 let grand = subtotal - (parseFloat(this.globalDiscount) || 0);
-                let tax = grand * 0.14; // Fixed 14% VAT
+                let tax = grand * {{ $taxRate }}; // Tax rate from settings
                 
                 return {
                     subtotal: subtotal,

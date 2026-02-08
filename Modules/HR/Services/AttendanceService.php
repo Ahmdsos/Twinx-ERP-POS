@@ -29,7 +29,7 @@ class AttendanceService
             ['employee_id' => $employee->id, 'attendance_date' => $today],
             [
                 'clock_in' => Carbon::now()->toTimeString(),
-                'status' => 'present',
+                'status' => \Modules\HR\Enums\AttendanceStatus::PRESENT,
                 'notes' => $data['notes'] ?? null,
             ]
         );
@@ -54,6 +54,7 @@ class AttendanceService
             throw new \Exception('تم تسجيل الانصراف بالفعل اليوم.');
         }
 
+        /** @var Attendance $attendance */
         $attendance->update([
             'clock_out' => Carbon::now()->toTimeString(),
             'notes' => $data['notes'] ?? $attendance->notes,
@@ -90,7 +91,7 @@ class AttendanceService
             [
                 'clock_in' => $data['clock_in'] ?? null,
                 'clock_out' => $data['clock_out'] ?? null,
-                'status' => $data['status'] ?? 'present',
+                'status' => $data['status'] ?? \Modules\HR\Enums\AttendanceStatus::PRESENT,
                 'notes' => '[سجل يدوي] ' . ($data['notes'] ?? ''),
             ]
         );

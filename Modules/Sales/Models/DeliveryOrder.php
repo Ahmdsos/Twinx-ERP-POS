@@ -38,6 +38,8 @@ class DeliveryOrder extends Model
         'notes',
         'journal_entry_id',
         'delivered_by',
+        'recipient_name',
+        'recipient_phone',
     ];
 
     protected $casts = [

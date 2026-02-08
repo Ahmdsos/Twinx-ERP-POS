@@ -129,6 +129,8 @@ class BackupController extends Controller
      */
     public function download(string $filename)
     {
+        // SECURITY FIX: Sanitize filename to prevent path traversal (../)
+        $filename = $this->sanitizeFilename($filename);
         $path = storage_path('app/backups/' . $filename);
 
         if (!file_exists($path)) {
@@ -144,6 +146,8 @@ class BackupController extends Controller
      */
     public function destroy(string $filename)
     {
+        // SECURITY FIX: Sanitize filename to prevent path traversal (../)
+        $filename = $this->sanitizeFilename($filename);
         $path = storage_path('app/backups/' . $filename);
 
         if (file_exists($path)) {
@@ -161,11 +165,14 @@ class BackupController extends Controller
      */
     public function openFolder(string $filename)
     {
+        // SECURITY FIX: Sanitize filename to prevent path traversal (../)
+        $filename = $this->sanitizeFilename($filename);
         $path = storage_path('app/backups/' . $filename);
 
         if (file_exists($path)) {
-            // Windows command to select file in explorer
-            exec('explorer /select,"' . str_replace('/', '\\', $path) . '"');
+            // SECURITY FIX: Use escapeshellarg to prevent command injection
+            $safePath = escapeshellarg(str_replace('/', '\\', $path));
+            exec('explorer /select,' . $safePath);
             return back()->with('success', 'تم فتح المجلد بنجاح');
         }
 
@@ -353,5 +360,25 @@ class BackupController extends Controller
         $bytes /= (1 << (10 * $pow));
 
         return round($bytes, $precision) . ' ' . $units[$pow];
+    }
+
+    /**
+     * Sanitize filename to prevent path traversal attacks
+     * Removes any directory path components and returns only the basename
+     */
+    protected function sanitizeFilename(string $filename): string
+    {
+        // Remove any path traversal sequences
+        $filename = str_replace(['../', '..\\', '/', '\\'], '', $filename);
+
+        // Get only the basename (removes any remaining path)
+        $filename = basename($filename);
+
+        // Only allow alphanumeric, dashes, underscores, dots
+        if (!preg_match('/^[a-zA-Z0-9_\-\.]+$/', $filename)) {
+            abort(400, 'اسم ملف غير صالح');
+        }
+
+        return $filename;
     }
 }

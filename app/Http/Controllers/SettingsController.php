@@ -68,6 +68,8 @@ class SettingsController extends Controller
 
             // POS Security
             'pos_refund_pin' => 'nullable|string|max:10',
+            'pos_manager_pin' => 'nullable|string|max:10',
+            'pos_max_discount_percent' => 'nullable|numeric|min:0|max:100',
         ]);
 
         // Handle logo upload
@@ -97,6 +99,9 @@ class SettingsController extends Controller
         Setting::setValue('pos_allow_negative_stock', $request->has('pos_allow_negative_stock'), 'pos');
         Setting::setValue('pos_print_receipt', $request->has('pos_print_receipt'), 'pos');
         Setting::setValue('pos_refund_pin', $validated['pos_refund_pin'] ?? '1234', 'pos');
+        // Phase 3: Security settings
+        Setting::setValue('pos_manager_pin', $validated['pos_manager_pin'] ?? '', 'pos');
+        Setting::setValue('pos_max_discount_percent', $validated['pos_max_discount_percent'] ?? 50, 'pos');
 
         // Save Printer settings
         Setting::setValue('printer_type', $validated['printer_type'] ?? 'thermal', 'printer');

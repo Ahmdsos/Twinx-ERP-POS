@@ -24,6 +24,7 @@ class PosShift extends Model
         'total_amount',
         'total_cash',
         'total_card',
+        'total_credit',
         'status',
         'closing_notes',
     ];
@@ -38,6 +39,7 @@ class PosShift extends Model
         'total_amount' => 'decimal:2',
         'total_cash' => 'decimal:2',
         'total_card' => 'decimal:2',
+        'total_credit' => 'decimal:2',
     ];
 
     /**
@@ -51,6 +53,16 @@ class PosShift extends Model
     public function invoices(): HasMany
     {
         return $this->hasMany(\Modules\Sales\Models\SalesInvoice::class, 'pos_shift_id');
+    }
+
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(\Modules\Accounting\Models\Expense::class, 'pos_shift_id');
+    }
+
+    public function returns(): HasMany
+    {
+        return $this->hasMany(\Modules\Sales\Models\SalesReturn::class, 'shift_id');
     }
 
     /**
@@ -90,10 +102,10 @@ class PosShift extends Model
         $userId = $userId ?? auth()->id();
 
         // Close any existing open shifts for this user
-        static::open()->forUser($userId)->update([
-            'status' => 'closed',
-            'closed_at' => now(),
-        ]);
+        $existingShifts = static::open()->forUser($userId)->get();
+        foreach ($existingShifts as $shift) {
+            $shift->close($shift->opening_cash + $shift->total_cash, 'System Auto-Close'); // Force close
+        }
 
         return static::create([
             'user_id' => $userId,
@@ -105,11 +117,20 @@ class PosShift extends Model
 
     public function close(float $closingCash, ?string $notes = null): self
     {
+        // Calculate totals dynamically
+        $totalExpenses = $this->expenses()->sum('amount');
+        $totalReturns = $this->returns()->sum('total_amount'); // Assuming all returns are cash deducted from drawer? 
+        // ideally we should check return method, but for now assuming returns come from drawer if cash
+        // Or we should verify if returns are refunded to 'credit' or 'wallet'.
+        // Let's assume cash returns for accurate drawer count.
+
+        $expectedCash = ($this->opening_cash + $this->total_cash) - $totalExpenses - $totalReturns;
+
         $this->update([
             'closed_at' => now(),
             'closing_cash' => $closingCash,
-            'expected_cash' => $this->opening_cash + $this->total_cash,
-            'cash_difference' => $closingCash - ($this->opening_cash + $this->total_cash),
+            'expected_cash' => $expectedCash,
+            'cash_difference' => $closingCash - $expectedCash,
             'status' => 'closed',
             'closing_notes' => $notes,
         ]);
@@ -117,15 +138,21 @@ class PosShift extends Model
         return $this;
     }
 
+    public function incrementTransaction(): void
+    {
+        $this->increment('total_sales'); // Transaction Count
+    }
+
     public function incrementSales(float $amount, string $paymentMethod = 'cash'): void
     {
-        $this->increment('total_sales');
-        $this->increment('total_amount', $amount);
+        $this->increment('total_amount', $amount); // Value
 
         if ($paymentMethod === 'cash') {
             $this->increment('total_cash', $amount);
-        } else {
+        } elseif ($paymentMethod === 'card') {
             $this->increment('total_card', $amount);
+        } elseif ($paymentMethod === 'credit') {
+            $this->increment('total_credit', $amount);
         }
     }
 }

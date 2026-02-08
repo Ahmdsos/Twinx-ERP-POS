@@ -35,9 +35,21 @@ class EmployeeController extends Controller
             $query->where('department', 'like', "%{$request->department}%");
         }
 
-        $employees = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
+        $employees = $query->with('leaves')->orderBy('id', 'desc')->paginate(10)->withQueryString();
 
-        return view('hr::employees.index', compact('employees'));
+        // Calculate stats
+        $stats = [
+            'total' => Employee::count(),
+            'active' => Employee::where('status', \Modules\HR\Enums\EmployeeStatus::ACTIVE)->count(),
+            'on_leave' => Employee::whereHas('leaves', function ($q) {
+                $q->where('status', 'approved')
+                    ->whereDate('start_date', '<=', now())
+                    ->whereDate('end_date', '>=', now());
+            })->count(),
+            'total_salaries' => Employee::where('status', \Modules\HR\Enums\EmployeeStatus::ACTIVE)->sum('basic_salary'),
+        ];
+
+        return view('hr::employees.index', compact('employees', 'stats'));
     }
 
     /**
@@ -45,7 +57,8 @@ class EmployeeController extends Controller
      */
     public function create()
     {
-        $users = User::all();
+        // Get users who are NOT already linked to an employee
+        $users = User::doesntHave('employee')->get();
         return view('hr::employees.create', compact('users'));
     }
 
@@ -72,7 +85,7 @@ class EmployeeController extends Controller
             'social_security_number' => 'nullable|string|max:255',
             'contract_type' => 'nullable|string|max:50',
             'status' => 'required|in:active,inactive,on_leave,terminated',
-            'user_id' => 'nullable|exists:users,id',
+            'user_id' => 'nullable|exists:users,id|unique:hr_employees,user_id',
             'emergency_contact_name' => 'nullable|string|max:255',
             'emergency_contact_phone' => 'nullable|string|max:20',
         ]);
@@ -80,7 +93,7 @@ class EmployeeController extends Controller
         try {
             DB::beginTransaction();
 
-            Employee::create([
+            $employee = Employee::create([
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
                 'birth_date' => $request->birth_date,
@@ -107,6 +120,27 @@ class EmployeeController extends Controller
                 'created_by' => auth()->id(),
             ]);
 
+            // Handle Delivery Driver Creation
+            if ($request->has('is_driver') && $request->is_driver == 1) {
+                // Validate Driver Fields
+                $request->validate([
+                    'license_number' => 'required|string|max:50',
+                    'license_expiry' => 'nullable|date',
+                    'vehicle_type' => 'nullable|string|max:50',
+                    'vehicle_plate' => 'nullable|string|max:20',
+                ]);
+
+                \Modules\HR\Models\DeliveryDriver::create([
+                    'employee_id' => $employee->id,
+                    'license_number' => $request->license_number,
+                    'license_expiry' => $request->license_expiry,
+                    'vehicle_info' => ($request->vehicle_type . ' - ' . $request->vehicle_plate),
+                    'status' => \Modules\HR\Enums\DeliveryDriverStatus::AVAILABLE,
+                    'rating' => 5.0, // Default rating
+                    'total_deliveries' => 0,
+                ]);
+            }
+
             DB::commit();
 
             return redirect()->route('hr.employees.index')
@@ -123,6 +157,8 @@ class EmployeeController extends Controller
     public function show(Employee $employee)
     {
         $employee->load([
+            'user',
+            'deliveryDriver', // Eager load driver profile
             'documents',
             'leaves',
             'attendance' => function ($q) {
@@ -141,7 +177,11 @@ class EmployeeController extends Controller
      */
     public function edit(Employee $employee)
     {
-        $users = User::all();
+        // Get users who are NOT linked to ANY employee OR are linked to THIS employee
+        $users = User::doesntHave('employee')
+            ->orWhere('id', $employee->user_id)
+            ->get();
+
         return view('hr::employees.edit', compact('employee', 'users'));
     }
 
@@ -168,7 +208,7 @@ class EmployeeController extends Controller
             'social_security_number' => 'nullable|string|max:255',
             'contract_type' => 'nullable|string|max:50',
             'status' => 'required|in:active,inactive,on_leave,terminated',
-            'user_id' => 'nullable|exists:users,id',
+            'user_id' => 'nullable|exists:users,id|unique:hr_employees,user_id,' . $employee->id,
             'emergency_contact_name' => 'nullable|string|max:255',
             'emergency_contact_phone' => 'nullable|string|max:20',
         ]);
@@ -199,6 +239,36 @@ class EmployeeController extends Controller
                 'emergency_contact_name' => $request->emergency_contact_name,
                 'emergency_contact_phone' => $request->emergency_contact_phone,
             ]);
+
+            // Handle Delivery Driver Logic
+            if ($request->has('is_driver') && $request->is_driver == 1) {
+                // Validate Driver Fields
+                $request->validate([
+                    'license_number' => 'required|string|max:50',
+                    'license_expiry' => 'nullable|date',
+                    'vehicle_type' => 'nullable|string|max:50',
+                    'vehicle_plate' => 'nullable|string|max:20',
+                ]);
+
+                \Modules\HR\Models\DeliveryDriver::updateOrCreate(
+                    ['employee_id' => $employee->id],
+                    [
+                        'license_number' => $request->license_number,
+                        'license_expiry' => $request->license_expiry,
+                        'vehicle_info' => ($request->vehicle_type . ' - ' . $request->vehicle_plate),
+                        // Keep existing status/rating or default if new
+                        'status' => $employee->deliveryDriver?->status ?? \Modules\HR\Enums\DeliveryDriverStatus::AVAILABLE,
+                        'rating' => $employee->deliveryDriver?->rating ?? 5.0,
+                        'total_deliveries' => $employee->deliveryDriver?->total_deliveries ?? 0,
+                    ]
+                );
+            } else {
+                // If is_driver is unchecked, we might want to delete the driver profile or just leave it?
+                // For now, let's leave it but maybe disable it? Or delete it if user explicitly unchecks?
+                // Safer to just leave it to prevent accidental data loss, or we can soft delete if supported.
+                // Requirement implies "form fields are empty/not present", so if unticked, we assume not a driver.
+                // But deleting might lose history. Let's just leave it for now.
+            }
 
             return redirect()->route('hr.employees.index')
                 ->with('success', 'تم تحديث بيانات الموظف بنجاح.');

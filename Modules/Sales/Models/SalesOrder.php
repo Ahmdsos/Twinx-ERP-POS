@@ -36,6 +36,7 @@ class SalesOrder extends Model
         'customer_notes',
         'shipping_address',
         'shipping_method',
+        'quotation_id',
     ];
 
     protected $casts = [
@@ -47,6 +48,7 @@ class SalesOrder extends Model
         'tax_amount' => 'decimal:2',
         'total' => 'decimal:2',
         'exchange_rate' => 'decimal:4',
+        'quotation_id' => 'integer',
     ];
 
     // Implement HasDocumentNumber trait methods
@@ -67,6 +69,11 @@ class SalesOrder extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function quotation(): BelongsTo
+    {
+        return $this->belongsTo(Quotation::class);
     }
 
     public function warehouse(): BelongsTo

@@ -294,6 +294,12 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link py-2 fs-6 {{ request()->routeIs('hr.leaves.*') ? 'text-white fw-bold' : '' }}"
+                        href="{{ route('hr.leaves.index') }}">
+                        إدارة الإجازات
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link py-2 fs-6 {{ request()->routeIs('hr.payroll.*') ? 'text-white fw-bold' : '' }}"
                         href="{{ route('hr.payroll.index') }}">
                         مسيرات الرواتب
@@ -363,6 +369,12 @@
                         <a class="nav-link py-2 fs-6 {{ request()->routeIs('reports.purchases.by-supplier') ? 'text-white fw-bold' : 'text-secondary-light' }}"
                             href="{{ route('reports.purchases.by-supplier') }}">
                             مشتريات الموردين
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link py-2 fs-6 {{ request()->routeIs('reports.shifts') ? 'text-white fw-bold' : 'text-secondary-light' }}"
+                            href="{{ route('reports.shifts') }}">
+                            تقارير الورديات
                         </a>
                     </li>
                 </ul>

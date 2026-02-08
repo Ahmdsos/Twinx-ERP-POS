@@ -82,4 +82,30 @@ class ReportController extends Controller
 
         return view('reports.inventory.low-stock', compact('lowStockItems'));
     }
+
+    public function shifts(Request $request)
+    {
+        $query = \App\Models\PosShift::with('user')->latest('opened_at');
+
+        if ($request->filled('cashier_id')) {
+            $query->where('user_id', $request->cashier_id);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('opened_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('opened_at', '<=', $request->date_to);
+        }
+
+        $shifts = $query->paginate(20)->withQueryString();
+        $cashiers = \App\Models\User::whereHas('shifts')->get();
+
+        return view('reports.shifts.index', compact('shifts', 'cashiers'));
+    }
 }

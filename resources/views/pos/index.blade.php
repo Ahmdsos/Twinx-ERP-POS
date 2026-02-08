@@ -43,6 +43,13 @@
                             @endforeach
                         </ul>
                     </div>
+
+                    <button
+                        class="btn btn-slate-800 border border-slate-700 text-white h-100 d-flex align-items-center gap-2"
+                        @click="openRecentTransactions()" title="آخر العمليات / مرتجع">
+                        <i class="bi bi-clock-history"></i>
+                    </button>
+
                 </div>
 
                 <!-- CUSTOMER SEARCH -->
@@ -50,15 +57,105 @@
                     <div class="input-group input-group-slate shadow-sm border border-slate-700">
                         <span class="input-group-text bg-transparent border-0 text-slate-400 ps-3"><i
                                 class="bi bi-person-circle fs-5"></i></span>
-                        <input type="text" class="form-control bg-transparent border-0 text-white shadow-none py-2"
-                            placeholder="ابحث عن عميل (F2)..." x-model="searchQuery" @keydown.enter="searchCustomer()">
+                        <input type="text" id="product-search"
+                            class="form-control bg-transparent border-0 text-white shadow-none py-2"
+                            placeholder="اختر عميل أو ابحث بالاسم/الكود/الموبايل..." x-model="searchQuery"
+                            @focus="loadRecentCustomers(); showCustomerDropdown = true"
+                            @input.debounce.300ms="searchCustomer()"
+                            @blur="setTimeout(() => showCustomerDropdown = false, 200)">
                         <button class="btn btn-link text-emerald-400 decoration-none fw-bold small pe-3"
                             @click="openAddCustomerModal()">
                             <i class="bi bi-plus-lg"></i> جديد
                         </button>
                     </div>
+
+                    <!-- Search Results Dropdown (OUTSIDE input-group) -->
+                    <div x-show="showCustomerDropdown && customerResults.length > 0" x-transition
+                        class="position-absolute w-100 bg-slate-800 border border-slate-700 rounded shadow-lg p-1"
+                        style="top: 100%; left: 0; z-index: 9999; max-height: 300px; overflow-y: auto;">
+                        <template x-for="c in customerResults" :key="c.id">
+                            <div class="p-2 rounded d-flex justify-content-between align-items-center cursor-pointer"
+                                style="cursor: pointer;" @mousedown.prevent="selectCustomer(c)"
+                                @mouseover="$el.style.backgroundColor = '#334155'"
+                                @mouseout="$el.style.backgroundColor = 'transparent'">
+                                <div>
+                                    <div class="text-white fw-bold" x-text="c.name"></div>
+                                    <div class="text-slate-400" style="font-size: 11px;"
+                                        x-text="c.mobile || c.phone || '---'"></div>
+                                </div>
+                                <div class="text-emerald-400 font-monospace" style="font-size: 10px;" x-text="c.code"></div>
+                            </div>
+                        </template>
+                    </div>
+
+                    <!-- Selected Customer Badge -->
+                    <div x-show="selectedCustomer" x-cloak
+                        class="mt-2 p-2 rounded d-flex justify-content-between align-items-center"
+                        style="background: rgba(5, 150, 105, 0.1); border: 1px solid rgba(16, 185, 129, 0.3);">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-person-check-fill text-success me-2 fs-5"></i>
+                            <div>
+                                <div class="text-white fw-bold" style="font-size: 13px;" x-text="selectedCustomer?.name">
+                                </div>
+                                <div class="text-secondary" style="font-size: 11px;"
+                                    x-text="'كود: ' + (selectedCustomer?.code || '---') + ' | رصيد: ' + formatNumber(selectedCustomer?.balance || 0)">
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-link text-danger p-0" @click="clearSelectedCustomer()">
+                            <i class="bi bi-x-circle-fill"></i>
+                        </button>
+                    </div>
+
+                    <div x-show="!selectedCustomer" class="mt-2 px-2 text-secondary"
+                        style="font-size: 11px; font-style: italic;">
+                        <i class="bi bi-info-circle me-1"></i> يتم التسبيع لعميل نقدي (Walk-in)
+                    </div>
                 </div>
             </header>
+
+            <!-- DELIVERY INFO PANEL (Phase 3) -->
+            <div x-show="isDeliveryMode" x-transition.opacity.duration.300ms
+                class="p-3 bg-slate-900/80 border-bottom border-slate-800 backdrop-blur-sm">
+
+                <div class="d-flex align-items-center mb-2 text-blue-400 fw-bold fs-xs text-uppercase tracking-wider">
+                    <i class="bi bi-geo-alt-fill me-2"></i> بيانات التوصيل
+                </div>
+
+                <!-- Driver -->
+                <div class="mb-2">
+                    <select x-model="selectedDriver"
+                        class="form-select form-select-sm bg-slate-800 border-slate-700 text-white fs-xs">
+                        <option value="">-- اختر السائق --</option>
+                        <template x-for="d in drivers" :key="d.id">
+                            <option :value="d.id" x-text="d.name"></option>
+                        </template>
+                    </select>
+                </div>
+
+                <!-- Address & Fee -->
+                <div class="row g-2">
+                    <div class="col-8">
+                        <input type="text" x-model="recipientName"
+                            class="form-control form-control-sm bg-slate-800 border-slate-700 text-white placeholder-slate-500 fs-xs mb-2"
+                            placeholder="اسم المستلم...">
+                        <input type="text" x-model="recipientPhone"
+                            class="form-control form-control-sm bg-slate-800 border-slate-700 text-white placeholder-slate-500 fs-xs mb-2"
+                            placeholder="رقم الموبايل...">
+                        <textarea x-model="shippingAddress" rows="1"
+                            class="form-control form-control-sm bg-slate-800 border-slate-700 text-white placeholder-slate-500 fs-xs"
+                            placeholder="العنوان بالتفصيل..."></textarea>
+                    </div>
+                    <div class="col-4">
+                        <div class="input-group input-group-sm">
+                            <input type="number" x-model.number="deliveryFee"
+                                class="form-control bg-slate-800 border-slate-700 text-white text-center fs-xs"
+                                placeholder="رسوم">
+                            <span class="input-group-text bg-slate-800 border-slate-700 text-slate-500 fs-xs">EGP</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- CART ITEMS (SCROLLABLE) -->
             <div class="flex-grow-1 overflow-auto custom-scrollbar p-2" id="cart-items-container">
@@ -106,10 +203,12 @@
                                 </button>
                             </div>
 
-                            <div
-                                class="text-slate-400 fs-xs font-mono px-2 py-1 rounded bg-slate-950/50 border border-slate-800/50">
+                            <button
+                                class="btn btn-sm text-slate-400 hover:text-white fs-xs font-mono px-2 py-1 rounded bg-slate-950/50 border border-slate-800/50 hover:border-emerald-500/50 transition-all d-flex align-items-center gap-2"
+                                @click.stop="openPriceOverride(index)" title="تعديل السعر">
                                 <span x-text="formatMoney(item.price)"></span>
-                            </div>
+                                <i class="bi bi-pencil-square text-slate-500"></i>
+                            </button>
 
                             <button
                                 class="btn btn-sm text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-rose-900/20 rounded p-1"
@@ -130,8 +229,18 @@
                         <span class="text-white fw-bold font-mono" x-text="formatMoney(cartSubtotal)"></span>
                     </div>
                     <div class="col-6 d-flex justify-content-between">
-                        <span>الضريبة (14%):</span>
+                        <span>الضريبة ({{ $taxRatePercent }}%):</span>
                         <span class="text-white fw-bold font-mono" x-text="formatMoney(cartTax)"></span>
+                    </div>
+                    <!-- Phase 3: Cart Discount Input -->
+                    <div class="col-12 d-flex justify-content-between align-items-center mt-1" x-show="cart.length > 0">
+                        <span class="text-rose-400"><i class="bi bi-percent me-1"></i>خصم:</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="number"
+                                class="form-control form-control-sm bg-slate-800 border-slate-700 text-white text-center"
+                                style="width: 80px;" min="0" step="1" x-model.number="cartDiscount" placeholder="0.00">
+                            <span class="text-rose-400 font-mono small">EGP</span>
+                        </div>
                     </div>
                     <div class="col-12 border-top border-slate-800 my-2"></div>
                     <div class="col-12 d-flex justify-content-between align-items-end">
@@ -143,6 +252,14 @@
 
                 <!-- Big Buttons -->
                 <div class="d-grid gap-2 grid-cols-2">
+                    <button
+                        class="btn btn-slate-800 py-3 text-white fw-bold hover:bg-slate-700 border border-slate-700 position-relative"
+                        @click="showHeldSales()" x-show="heldCount > 0">
+                        <i class="bi bi-collection-play me-2"></i>معلقة
+                        <span
+                            class="position-absolute top-0 end-0 translate-middle badge rounded-pill bg-amber-500 text-dark"
+                            x-text="heldCount"></span>
+                    </button>
                     <button class="btn btn-slate-800 py-3 text-white fw-bold hover:bg-slate-700 border border-slate-700"
                         @click="holdSale()">
                         <i class="bi bi-pause-circle me-2"></i> تعليق (Hold)
@@ -229,11 +346,12 @@
                                 </div>
 
                                 <!-- Stock Pill -->
-                                <div class="twinx-pill" :class="{
-                                                                             'text-emerald-400 border-emerald-500/50': product.stock > 10,
-                                                                             'text-amber-400 border-amber-500/50': product.stock <= 10 && product.stock > 0,
-                                                                             'text-rose-400 border-rose-500/50': product.stock <= 0
-                                                                         }">
+                                <div class="twinx-pill"
+                                    :class="{
+                                                                                                                                                                                                                                                                                                                                                                                                                                                         'text-emerald-400 border-emerald-500/50': product.stock > 10,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                         'text-amber-400 border-amber-500/50': product.stock <= 10 && product.stock > 0,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                         'text-rose-400 border-rose-500/50': product.stock <= 0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                     }">
                                     <i class="bi" :class="product.stock > 0 ? 'bi-box-seam' : 'bi-x-circle'"></i>
                                     <span x-text="product.stock > 0 ? product.stock : 'نفذ'"></span>
                                 </div>
@@ -268,8 +386,9 @@
 
 
         <!-- ==================== RIGHT: QUICK ACCESS & KEYBOARD (Fixed Width) ==================== -->
-        <aside class="d-none d-xxl-flex flex-column bg-slate-950 border-start border-slate-800 p-3 gap-3"
-            style="width: 280px; min-width: 280px;">
+        <aside
+            class="d-none d-xxl-flex flex-column bg-slate-950 border-start border-slate-800 p-3 gap-3 overflow-y-auto custom-scrollbar"
+            style="width: 280px; min-width: 280px; max-height: 100vh;">
             <!-- CLOCK & INFO -->
             <div class="bg-slate-900 rounded p-3 border border-slate-800 text-center shadow-sm">
                 <div class="text-white fs-4 fw-black font-mono tracking-widest" x-text="currentTime">00:00:00</div>
@@ -279,9 +398,30 @@
             <h6 class="text-slate-500 fw-bold fs-xs text-uppercase tracking-wider mt-2 mb-1 px-1">العمليات</h6>
 
             <div class="d-grid gap-2">
+                <button class="btn btn-slate-action py-3 text-start px-3 transition-all relative overflow-hidden"
+                    @click="isDeliveryMode = !isDeliveryMode; if(isDeliveryMode) refundMode = false;"
+                    :class="{'bg-blue-900/20 border-blue-500 text-blue-400': isDeliveryMode}">
+                    <div class="d-flex align-items-center">
+                        <div
+                            class="w-8 h-8 rounded bg-slate-800 d-flex align-items-center justify-content-center me-3 border border-slate-700">
+                            <i class="bi bi-truck"></i>
+                        </div>
+                        <span class="fw-bold">توصيل منزلي</span>
+                    </div>
+                </button>
+
+                <button class="btn btn-slate-action py-3 text-start px-3" @click="showDeliveryModal()">
+                    <div class="d-flex align-items-center">
+                        <div
+                            class="w-8 h-8 rounded bg-slate-800 d-flex align-items-center justify-content-center me-3 border border-slate-700">
+                            <i class="bi bi-truck-flatbed"></i>
+                        </div>
+                        <span class="fw-bold">إدارة التوصيل</span>
+                    </div>
+                </button>
+
                 <button class="btn btn-slate-action py-3 text-start px-3 relative overflow-hidden"
-                    @click="setRefundMode(!refundMode)"
-                    :class="{'bg-rose-900/20 border-rose-500 text-rose-400': refundMode}">
+                    @click="openRecentTransactions()" :class="{'bg-rose-900/20 border-rose-500 text-rose-400': refundMode}">
                     <div class="d-flex align-items-center">
                         <div
                             class="w-8 h-8 rounded bg-slate-800 d-flex align-items-center justify-content-center me-3 border border-slate-700">
@@ -312,24 +452,82 @@
                 </button>
             </div>
 
-            <h6 class="text-slate-500 fw-bold fs-xs text-uppercase tracking-wider mt-4 mb-1 px-1">اختصارات</h6>
-
+            <!-- Phase 3: Additional Actions -->
+            <h6 class="text-slate-500 fw-bold fs-xs text-uppercase tracking-wider mt-3 mb-1 px-1">التقارير</h6>
             <div class="d-grid gap-2">
-                <div
-                    class="d-flex justify-content-between align-items-center px-2 py-1 bg-slate-900/50 rounded border border-slate-800/50">
-                    <span class="text-slate-400 fs-sm">بحث</span>
-                    <kbd class="bg-slate-800 text-slate-300 border-slate-600">F2</kbd>
-                </div>
-                <div
-                    class="d-flex justify-content-between align-items-center px-2 py-1 bg-slate-900/50 rounded border border-slate-800/50">
-                    <span class="text-slate-400 fs-sm">دفع</span>
-                    <kbd class="bg-slate-800 text-slate-300 border-slate-600">F10</kbd>
-                </div>
-                <div
-                    class="d-flex justify-content-between align-items-center px-2 py-1 bg-slate-900/50 rounded border border-slate-800/50">
-                    <span class="text-slate-400 fs-sm">طباعة آخر فاتورة</span>
-                    <kbd class="bg-slate-800 text-slate-300 border-slate-600">F8</kbd>
-                </div>
+                <button class="btn btn-slate-action py-2 text-start px-3" @click="showXReport()">
+                    <div class="d-flex align-items-center">
+                        <div
+                            class="w-8 h-8 rounded bg-blue-900/30 d-flex align-items-center justify-content-center me-3 border border-blue-700/50">
+                            <i class="bi bi-file-earmark-bar-graph text-blue-400"></i>
+                        </div>
+                        <span class="fw-bold text-sm">X-Report (ملخص)</span>
+                    </div>
+                </button>
+
+                <button class="btn btn-slate-action py-2 text-start px-3" @click="showLastTransactions()">
+                    <div class="d-flex align-items-center">
+                        <div
+                            class="w-8 h-8 rounded bg-purple-900/30 d-flex align-items-center justify-content-center me-3 border border-purple-700/50">
+                            <i class="bi bi-receipt text-purple-400"></i>
+                        </div>
+                        <span class="fw-bold text-sm">آخر المعاملات</span>
+                    </div>
+                </button>
+
+                <button class="btn btn-slate-action py-2 text-start px-3" @click="openCashDrawer()">
+                    <div class="d-flex align-items-center">
+                        <div
+                            class="w-8 h-8 rounded bg-amber-900/30 d-flex align-items-center justify-content-center me-3 border border-amber-700/50">
+                            <i class="bi bi-box-arrow-up text-amber-400"></i>
+                        </div>
+                        <span class="fw-bold text-sm">فتح الدرج</span>
+                    </div>
+                </button>
+            </div>
+
+            <h6
+                class="text-white fw-bold fs-xs text-uppercase tracking-wider mt-4 mb-3 px-1 border-top border-slate-800 pt-3">
+                <i class="bi bi-keyboard me-2 text-emerald-400"></i> اختصارات الكيبورد
+            </h6>
+
+            <div class="d-grid gap-2 mb-3">
+                <!-- F2: Search -->
+                <button
+                    class="d-flex justify-content-between align-items-center px-3 py-3 bg-slate-800 rounded border border-slate-600 hover:border-emerald-400 hover:bg-slate-700 transition-all shadow-sm group"
+                    @click="document.getElementById('product-search').focus()">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-search text-slate-400 group-hover:text-emerald-300 fs-5 transition-colors"></i>
+                        <span class="text-slate-200 fs-sm fw-bold group-hover:text-white transition-colors">بحث منتج</span>
+                    </div>
+                    <kbd
+                        class="bg-slate-900 text-emerald-400 border border-emerald-500/50 rounded px-2 py-1 fs-xs font-mono fw-bold shadow-[0_0_8px_rgba(16,185,129,0.3)]">F2</kbd>
+                </button>
+
+                <!-- F10: Pay -->
+                <button
+                    class="d-flex justify-content-between align-items-center px-3 py-3 bg-slate-800 rounded border border-slate-600 hover:border-emerald-400 hover:bg-slate-700 transition-all shadow-sm group"
+                    @click="activePaymentTab = 'cash'; openCheckoutModal()">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-credit-card text-slate-400 group-hover:text-emerald-300 fs-5 transition-colors"></i>
+                        <span class="text-slate-200 fs-sm fw-bold group-hover:text-white transition-colors">دفع سريع</span>
+                    </div>
+                    <kbd
+                        class="bg-slate-900 text-emerald-400 border border-emerald-500/50 rounded px-2 py-1 fs-xs font-mono fw-bold shadow-[0_0_8px_rgba(16,185,129,0.3)]">F10</kbd>
+                </button>
+
+                <!-- F8: Print Last -->
+                <button
+                    class="d-flex justify-content-between align-items-center px-3 py-3 bg-slate-800 rounded border border-slate-600 hover:border-emerald-400 hover:bg-slate-700 transition-all shadow-sm group"
+                    @click="printLastInvoice()">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-printer text-slate-400 group-hover:text-emerald-300 fs-5 transition-colors"></i>
+                        <span class="text-slate-200 fs-sm fw-bold group-hover:text-white transition-colors">طباعة
+                            فاتورة</span>
+                    </div>
+                    <kbd
+                        class="bg-slate-900 text-emerald-400 border border-emerald-500/50 rounded px-2 py-1 fs-xs font-mono fw-bold shadow-[0_0_8px_rgba(16,185,129,0.3)]">F8</kbd>
+                </button>
             </div>
 
             <div class="mt-auto">
@@ -359,36 +557,302 @@
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body p-4 bg-slate-900">
-                        <div class="text-center mb-4">
-                            <div
-                                class="d-inline-flex align-items-center justify-content-center w-16 h-16 rounded-circle bg-emerald-500/10 text-emerald-400 mb-3 border border-emerald-500/20">
-                                <i class="bi bi-person-badge fs-3"></i>
+                        <!-- SHIFT STATUS / INFO -->
+                        <div x-show="activeShiftId" class="fade-in">
+                            <div class="text-center mb-4">
+                                <div
+                                    class="d-inline-flex align-items-center justify-content-center w-16 h-16 rounded-circle bg-emerald-500/10 text-emerald-400 mb-3 border border-emerald-500/20">
+                                    <i class="bi bi-person-badge fs-3"></i>
+                                </div>
+                                <h5 class="text-white fw-bold">{{ auth()->user()->name }}</h5>
+                                <div class="text-slate-500 fs-sm">مدير النظام</div>
                             </div>
-                            <h5 class="text-white fw-bold">{{ auth()->user()->name }}</h5>
-                            <div class="text-slate-500 fs-sm">مدير النظام</div>
+
+                            <div class="bg-slate-950 rounded p-3 border border-slate-800 mb-4">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-slate-400">رقم الوردية:</span>
+                                    <span class="text-white font-mono fw-bold" x-text="'#' + activeShiftId"></span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-slate-400">وقت البدء:</span>
+                                    <span class="text-white font-mono" x-text="shiftStartTime"></span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-slate-400">المبيعات (كاش):</span>
+                                    <span class="text-emerald-400 font-mono fw-bold"
+                                        x-text="formatMoney(activeShiftStats.total_cash || 0)"></span>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-slate-400 small fw-bold">النقدية الفعلية (Closing
+                                    Cash)</label>
+                                <div class="input-group input-group-slate border border-slate-700">
+                                    <span class="input-group-text bg-transparent border-0 text-emerald-500">EGP</span>
+                                    <input type="number" x-model.number="closingCash"
+                                        class="form-control bg-transparent border-0 text-white text-center font-mono fw-bold fs-5"
+                                        placeholder="0.00">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-slate-400 small fw-bold">رمز الإغلاق (PIN)</label>
+                                <input type="password" x-model="shiftPin"
+                                    class="form-control bg-slate-800 border-slate-700 text-white text-center font-mono fw-bold fs-5"
+                                    placeholder="****">
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-outline-rose-500 hover:bg-rose-900/20 py-2" @click="closeShift()"
+                                    :disabled="isProcessing">
+                                    <i class="bi bi-door-closed me-2"></i> إغلاق الوردية (Z-Report)
+                                </button>
+                            </div>
                         </div>
 
-                        <div class="bg-slate-950 rounded p-3 border border-slate-800 mb-4">
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-slate-400">رقم الوردية:</span>
-                                <span class="text-white font-mono fw-bold">#{{ $activeShift->id ?? 'NEW' }}</span>
+                        <!-- OPEN SHIFT UI -->
+                        <div x-show="!activeShiftId" class="fade-in">
+                            <div class="text-center mb-4">
+                                <div
+                                    class="d-inline-flex align-items-center justify-content-center w-16 h-16 rounded-circle bg-amber-500/10 text-amber-400 mb-3 border border-amber-500/20">
+                                    <i class="bi bi-door-open fs-3"></i>
+                                </div>
+                                <h5 class="text-white fw-bold">لا توجد وردية مفتوحة</h5>
+                                <div class="text-slate-500 fs-sm">يرجى بدء وردية جديدة لمباشرة العمل</div>
                             </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-slate-400">وقت البدء:</span>
-                                <span
-                                    class="text-white font-mono">{{ $activeShift->created_at->format('H:i A') ?? '--' }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <span class="text-slate-400">المبيعات (كاش):</span>
-                                <span class="text-emerald-400 font-mono fw-bold">EGP 0.00</span>
-                            </div>
-                        </div>
 
-                        <div class="d-grid gap-2">
-                            <button class="btn btn-outline-rose-500 hover:bg-rose-900/20 py-2" @click="closeShift()">
-                                <i class="bi bi-door-closed me-2"></i> إغلاق الوردية (Z-Report)
+                            <div class="mb-4">
+                                <label class="form-label text-slate-400 small fw-bold">نقدية البداية (Opening Cash)</label>
+                                <div class="input-group input-group-slate border border-slate-700">
+                                    <span class="input-group-text bg-transparent border-0 text-amber-500">EGP</span>
+                                    <input type="number" x-model.number="openingCash"
+                                        class="form-control bg-transparent border-0 text-white text-center font-mono fw-bold fs-5"
+                                        placeholder="0.00">
+                                </div>
+                            </div>
+
+                            <button class="btn btn-amber-600 w-100 py-3 fw-bold" @click="openShift()"
+                                :disabled="isProcessing">
+                                <span x-show="!isProcessing"><i class="bi bi-play-fill me-2"></i> بدء الوردية</span>
+                                <span x-show="isProcessing" class="spinner-border spinner-border-sm"></span>
                             </button>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="expenseModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content slate-modal shadow-lg border-amber-900/50">
+                    <div class="modal-header border-slate-800 bg-amber-950/10">
+                        <h5 class="modal-title fw-bold text-white"><i class="bi bi-wallet2 me-2 text-amber-500"></i> تسجيل
+                            مصروف</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-4 bg-slate-900">
+                        <div class="mb-3">
+                            <label class="form-label text-slate-400 small fw-bold">المبلغ</label>
+                            <input type="number" x-model.number="expenseAmount"
+                                class="form-control form-control-lg bg-slate-800 border-slate-700 text-white text-center font-mono fw-bold fs-4"
+                                placeholder="0.00">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label text-slate-400 small fw-bold">ملاحظات / سبب الصرف</label>
+                            <textarea x-model="expenseNotes" class="form-control bg-slate-800 border-slate-700 text-white"
+                                rows="3" placeholder="مثلاً: شراء أدوات نظافة"></textarea>
+                        </div>
+                        <button class="btn btn-amber-600 w-100 py-3 fw-bold" @click="saveExpense()"
+                            :disabled="!expenseAmount || !expenseNotes">
+                            <span x-show="!isProcessing"><i class="bi bi-save me-2"></i> حفظ المصروف</span>
+                            <span x-show="isProcessing" class="spinner-border spinner-border-sm"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RECENT TRANSACTIONS MODAL (Phase 3.5) -->
+        <div class="modal fade" id="recentTransactionsModal" tabindex="-1">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content slate-modal shadow-lg border-slate-700">
+                    <div class="modal-header border-slate-800 bg-slate-900">
+                        <h5 class="modal-title fw-bold text-white"><i class="bi bi-clock-history me-2 text-info"></i> آخر
+                            العمليات</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-0 bg-slate-900">
+                        <div class="table-responsive" style="max-height: 50vh;">
+                            <table class="table table-dark table-hover mb-0">
+                                <thead class="bg-slate-950">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>التاريخ</th>
+                                        <th>العميل</th>
+                                        <th>المبلغ</th>
+                                        <th>إجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="inv in recentTransactions" :key="inv.id">
+                                        <tr>
+                                            <td class="font-mono text-xs" x-text="inv.invoice_number"></td>
+                                            <td class="text-xs" x-text="inv.created_at"></td>
+                                            <td class="text-xs" x-text="inv.customer_name"></td>
+                                            <td class="font-mono text-emerald-400 fw-bold" x-text="formatMoney(inv.total)">
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-danger" @click="openReturnModal(inv)">
+                                                    <i class="bi bi-arrow-return-left"></i> استرجاع
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-info"
+                                                    @click="window.open('/pos/receipt/' + inv.id, '_blank')">
+                                                    <i class="bi bi-printer"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RETURN MODAL (Phase 3.5) -->
+        <div class="modal fade" id="returnModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content slate-modal shadow-lg border-danger">
+                    <div class="modal-header border-slate-800 bg-rose-950/20">
+                        <h5 class="modal-title fw-bold text-white"><i
+                                class="bi bi-arrow-return-left me-2 text-rose-500"></i> مرتجع مبيعات</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-4 bg-slate-900">
+                        <div class="alert alert-info bg-slate-800 border-slate-700 text-slate-300 fs-sm">
+                            <i class="bi bi-info-circle me-2"></i> حدد الكميات المراد إرجاعها من الفاتورة رقم <span
+                                class="fw-bold font-mono text-white" x-text="returnInvoice?.invoice_number"></span>
+                        </div>
+
+                        <div class="table-responsive mb-3 border border-slate-700 rounded" style="max-height: 45vh;">
+                            <table class="table table-dark table-sm mb-0">
+                                <thead>
+                                    <tr class="bg-slate-800/80">
+                                        <th class="p-2">الصنف</th>
+                                        <th class="p-2 text-center">الكمية</th>
+                                        <th class="p-2 text-center text-emerald-400">المتاح</th>
+                                        <th class="p-2 text-center" style="width: 100px;">الاسترجاع</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="item in returnItems" :key="item.line_id">
+                                        <tr class="border-bottom border-slate-800/50">
+                                            <td class="p-2">
+                                                <div class="fw-bold text-white small" x-text="item.product_name"></div>
+                                                <div class="text-slate-500 fs-xs" x-text="formatMoney(item.price)"></div>
+                                            </td>
+                                            <td class="p-2 text-center text-slate-400 font-mono" x-text="item.original_qty">
+                                            </td>
+                                            <td class="p-2 text-center text-emerald-400 font-mono fw-bold"
+                                                x-text="item.max_qty"></td>
+                                            <td class="p-2">
+                                                <input type="number" x-model.number="item.return_qty"
+                                                    class="form-control form-control-sm bg-slate-800 border-slate-600 text-white text-center font-mono"
+                                                    min="0" :max="item.max_qty">
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label text-slate-400 small fw-bold">رمز الإغلاق (PIN)</label>
+                            <input type="password" x-model="returnPin"
+                                class="form-control bg-slate-800 border-slate-700 text-white text-center font-mono placeholder-slate-600"
+                                placeholder="****">
+                        </div>
+
+                        <button class="btn btn-rose-600 w-100 py-3 fw-bold" @click="submitReturn()"
+                            :disabled="isProcessing">
+                            <span x-show="!isProcessing"><i class="bi bi-check-circle me-2"></i> تأكيد المرتجع</span>
+                            <span x-show="isProcessing" class="spinner-border spinner-border-sm"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 0.5 PRICE OVERRIDE MODAL (Phase 3) -->
+        <div class="modal fade" id="priceOverrideModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content slate-modal shadow-lg border-rose-900/50">
+                    <div class="modal-header border-slate-800 bg-rose-950/10">
+                        <h5 class="modal-title fw-bold text-white"><i class="bi bi-tag-fill me-2 text-rose-500"></i> تعديل
+                            السعر</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-4 bg-slate-900">
+                        <!-- Product Info -->
+                        <div class="bg-slate-950 rounded p-3 border border-slate-800 mb-4 d-flex gap-3 align-items-center">
+                            <div
+                                class="w-12 h-12 rounded bg-slate-800 d-flex align-items-center justify-content-center border border-slate-700">
+                                <i class="bi bi-box-seam text-slate-400 fs-4"></i>
+                            </div>
+                            <div>
+                                <div class="text-white fw-bold mb-1" x-text="overrideItem?.name"></div>
+                                <div class="text-slate-500 fs-xs font-mono">
+                                    السعر الأصلي: <span class="text-emerald-400"
+                                        x-text="formatMoney(overrideItem?.original_price)"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Price Input -->
+                        <div class="mb-4">
+                            <label class="form-label text-slate-400 small fw-bold">السعر الجديد (EGP)</label>
+                            <input type="number" x-model.number="overrideNewPrice" step="0.5"
+                                class="form-control form-control-lg bg-slate-800 border-slate-700 text-white text-center font-mono fw-bold fs-4 focus:ring-rose-500 focus:border-rose-500">
+                        </div>
+
+                        <!-- Security Section (Shows only if price is lower) -->
+                        <div x-show="isPriceLower" x-transition.opacity>
+                            <div
+                                class="alert alert-danger bg-rose-900/20 border-rose-900/50 text-rose-200 fs-sm d-flex align-items-center mb-3">
+                                <i class="bi bi-shield-lock-fill me-2 fs-5"></i>
+                                <div>
+                                    <div class="fw-bold">تصريح المدير مطلوب</div>
+                                    <div class="text-rose-300/70 fs-xs">تخفيض السعر يتطلب موافقة إدارية</div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-slate-400 small fw-bold">رمز المدير (Manager PIN)</label>
+                                <input type="password" x-model="overridePin"
+                                    class="form-control bg-slate-800 border-slate-700 text-white text-center font-mono letter-spacing-4 placeholder-slate-600"
+                                    placeholder="••••">
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label text-slate-400 small fw-bold">سبب التعديل</label>
+                                <select x-model="overrideReason"
+                                    class="form-select bg-slate-800 border-slate-700 text-white">
+                                    <option value="">اختر السبب...</option>
+                                    <option value="damage">عطب / تلف بسيط</option>
+                                    <option value="expiry">قرب انتهاء الصلاحية</option>
+                                    <option value="bulk">خصم كميات</option>
+                                    <option value="manager">قرار إداري مباشر</option>
+                                    <option value="other">أخرى</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-rose-500 w-100 py-3 fw-bold shadow-lg hover:bg-rose-600 transition-colors"
+                            @click="submitPriceOverride()" :disabled="isPriceLower && !overridePin">
+                            <span x-show="!isProcessingOverride">حفظ التغييرات</span>
+                            <span x-show="isProcessingOverride" class="spinner-border spinner-border-sm"></span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -409,18 +873,32 @@
                             <div class="fs-2 fw-black text-emerald-400 font-mono" x-text="formatMoney(cartTotal)"></div>
                         </div>
                     </div>
-                    <div class="modal-body p-0 d-flex bg-slate-900" style="height: 500px;">
+                    <div class="modal-body p-0 d-flex bg-slate-900" style="height: 650px;">
                         <!-- Payment Methods (Left) -->
                         <div class="w-25 border-end border-slate-800 bg-slate-950 p-2 d-flex flex-column gap-2">
-                            <button class="btn btn-slate-action py-3 text-start active" @click="activePaymentTab = 'cash'"
+                            <!-- Cashier Selection (Manager Override) -->
+                            <div class="mb-2" x-show="cashiers.length > 0">
+                                <label class="text-slate-500 x-small mb-1 d-block">الكاشير</label>
+                                <select class="form-select form-select-sm bg-slate-900 border-slate-700 text-white fs-xs"
+                                    x-model="selectedCashierId">
+                                    <template x-for="cashier in cashiers" :key="cashier.id">
+                                        <option :value="cashier.id" x-text="cashier.name"
+                                            :selected="cashier.id == currentUserId"></option>
+                                    </template>
+                                </select>
+                            </div>
+                            <button class="btn btn-slate-action py-3 text-start transition-all"
+                                @click="activePaymentTab = 'cash'; paymentAmount = remainingAmount;"
                                 :class="{'bg-emerald-900/20 border-emerald-500 text-white': activePaymentTab === 'cash'}">
                                 <i class="bi bi-cash-stack me-2 text-emerald-500"></i> كاش
                             </button>
-                            <button class="btn btn-slate-action py-3 text-start" @click="activePaymentTab = 'card'"
+                            <button class="btn btn-slate-action py-3 text-start transition-all"
+                                @click="activePaymentTab = 'card'; paymentAmount = remainingAmount;"
                                 :class="{'bg-blue-900/20 border-blue-500 text-white': activePaymentTab === 'card'}">
                                 <i class="bi bi-credit-card me-2 text-blue-500"></i> بطاقة بنكية
                             </button>
-                            <button class="btn btn-slate-action py-3 text-start" @click="activePaymentTab = 'credit'"
+                            <button class="btn btn-slate-action py-3 text-start transition-all"
+                                @click="activePaymentTab = 'credit'; paymentAmount = remainingAmount;"
                                 :class="{'bg-amber-900/20 border-amber-500 text-white': activePaymentTab === 'credit'}">
                                 <i class="bi bi-person-badge me-2 text-amber-500"></i> أجل (عميل)
                             </button>
@@ -428,61 +906,145 @@
 
                         <!-- Payment Input (Right) -->
                         <div class="w-75 p-4 d-flex flex-column relative">
-                            <!-- CASH VIEW -->
-                            <div x-show="activePaymentTab === 'cash'" class="fade-in">
-                                <label class="form-label text-slate-400">المبلغ المدفوع</label>
-                                <div
-                                    class="input-group input-group-lg input-group-slate mb-4 border border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
-                                    <span class="input-group-text bg-transparent border-0 text-emerald-500 fs-4">EGP</span>
-                                    <input type="number"
-                                        class="form-control bg-transparent border-0 text-white fs-3 font-mono fw-bold"
-                                        x-model="paymentAmount" id="payment-input">
+
+                            <!-- INPUT AREA -->
+                            <div class="flex-grow-0 mb-3">
+                                <!-- CASH VIEW -->
+                                <div x-show="activePaymentTab === 'cash'" class="fade-in">
+                                    <label class="form-label text-slate-400 small">المبلغ (نقد)</label>
+                                    <div
+                                        class="input-group input-group-lg input-group-slate mb-3 border border-emerald-500/30">
+                                        <span
+                                            class="input-group-text bg-transparent border-0 text-emerald-500 fs-4">EGP</span>
+                                        <input type="number"
+                                            class="form-control bg-transparent border-0 text-white fs-3 font-mono fw-bold"
+                                            x-model="paymentAmount" id="payment-input">
+                                    </div>
+                                    <!-- FAST CASH -->
+                                    <div class="d-grid grid-cols-4 gap-2 mb-3">
+                                        <button class="btn btn-slate-800 py-2 font-mono fw-bold"
+                                            @click="paymentAmount = 50">50</button>
+                                        <button class="btn btn-slate-800 py-2 font-mono fw-bold"
+                                            @click="paymentAmount = 100">100</button>
+                                        <button class="btn btn-slate-800 py-2 font-mono fw-bold"
+                                            @click="paymentAmount = 200">200</button>
+                                        <button class="btn btn-slate-800 py-2 font-mono fw-bold"
+                                            @click="paymentAmount = remainingAmount">Baki</button>
+                                    </div>
                                 </div>
 
-                                <!-- FAST CASH -->
-                                <div class="d-grid grid-cols-4 gap-2 mb-4">
-                                    <button class="btn btn-slate-800 py-2 font-mono fw-bold"
-                                        @click="paymentAmount = 50">50</button>
-                                    <button class="btn btn-slate-800 py-2 font-mono fw-bold"
-                                        @click="paymentAmount = 100">100</button>
-                                    <button class="btn btn-slate-800 py-2 font-mono fw-bold"
-                                        @click="paymentAmount = 200">200</button>
-                                    <button class="btn btn-slate-800 py-2 font-mono fw-bold"
-                                        @click="paymentAmount = cartTotal">PL. All</button>
+                                <!-- CARD VIEW -->
+                                <div x-show="activePaymentTab === 'card'" class="fade-in">
+                                    <label class="form-label text-slate-400 small">المبلغ (بطاقة)</label>
+                                    <div
+                                        class="input-group input-group-lg input-group-slate mb-3 border border-blue-500/30">
+                                        <span class="input-group-text bg-transparent border-0 text-blue-500 fs-4">EGP</span>
+                                        <input type="number"
+                                            class="form-control bg-transparent border-0 text-white fs-3 font-mono fw-bold"
+                                            x-model="paymentAmount">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label text-slate-500 fs-xs">رقم العملية / Auth Code
+                                            (اختياري)</label>
+                                        <input type="text" x-model="cardTxnId"
+                                            class="form-control bg-slate-800 border-slate-700 text-white font-mono"
+                                            placeholder="xxxx">
+                                    </div>
                                 </div>
 
-                                <div class="p-3 rounded bg-slate-950 border border-slate-800">
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span class="text-slate-400">المطلوب:</span>
-                                        <span class="text-white font-mono" x-text="formatMoney(cartTotal)"></span>
+                                <!-- CREDIT VIEW -->
+                                <div x-show="activePaymentTab === 'credit'" class="fade-in">
+                                    <label class="form-label text-slate-400 small">المبلغ (آجل)</label>
+                                    <div
+                                        class="input-group input-group-lg input-group-slate mb-3 border border-amber-500/30">
+                                        <span
+                                            class="input-group-text bg-transparent border-0 text-amber-500 fs-4">EGP</span>
+                                        <input type="number"
+                                            class="form-control bg-transparent border-0 text-white fs-3 font-mono fw-bold"
+                                            x-model="paymentAmount">
                                     </div>
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span class="text-slate-400">المدفوع:</span>
-                                        <span class="text-emerald-400 font-mono"
-                                            x-text="formatMoney(paymentAmount || 0)"></span>
+                                    <div class="bg-amber-900/10 border border-amber-900/30 p-2 rounded mb-3">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="text-amber-500 small">العميل:</span>
+                                            <span class="fw-bold text-white"
+                                                x-text="selectedCustomer ? selectedCustomer.name : 'لم يتم تحديد عميل'"></span>
+                                        </div>
+                                        <div class="text-end mt-1" x-show="!selectedCustomer">
+                                            <button class="btn btn-sm btn-outline-amber-500"
+                                                @click="addCustomerModal.show()">اختر عميل</button>
+                                        </div>
                                     </div>
-                                    <div class="border-top border-slate-800 my-2"></div>
-                                    <div class="d-flex justify-content-between">
-                                        <span class="fw-bold"
-                                            :class="remainingAmount > 0 ? 'text-rose-400' : 'text-slate-400'">المتبقي:</span>
-                                        <span class="fw-black font-mono"
-                                            :class="remainingAmount > 0 ? 'text-rose-400' : 'text-slate-400'"
-                                            x-text="formatMoney(remainingAmount)"></span>
+                                </div>
+
+                                <!-- ADD PAYMENT BTN -->
+                                <button
+                                    class="btn btn-slate-800 w-100 border-dashed border-slate-600 hover:bg-slate-700 text-slate-300"
+                                    @click="addPayment()">
+                                    <i class="bi bi-plus-circle me-2"></i> إضافة دفعة (Split Payment)
+                                </button>
+                            </div>
+
+                            <!-- PAYMENT LIST -->
+                            <div class="flex-grow-1 overflow-auto custom-scrollbar border-top border-slate-800 py-2 mb-2"
+                                style="max-height: 150px;">
+                                <template x-for="(p, i) in payments" :key="i">
+                                    <div
+                                        class="d-flex justify-content-between align-items-center p-2 bg-slate-950 rounded mb-1 border border-slate-800 animate__animated animate__fadeIn">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge"
+                                                :class="{
+                                                                                                                                                                                                                                                                                                            'bg-emerald-900 text-emerald-400': p.method === 'cash',
+                                                                                                                                                                                                                                                                                                            'bg-blue-900 text-blue-400': p.method === 'card',
+                                                                                                                                                                                                                                                                                                            'bg-amber-900 text-amber-400': p.method === 'credit'
+                                                                                                                                                                                                                                                                                                        }"
+                                                x-text="p.label"></span>
+                                            <span class="font-mono fw-bold text-white"
+                                                x-text="formatMoney(p.amount)"></span>
+                                            <span class="text-slate-500 fs-xs font-mono" x-show="p.note"
+                                                x-text="'Ref: ' + p.note"></span>
+                                        </div>
+                                        <button class="btn btn-link text-rose-500 p-0" @click="removePayment(i)"><i
+                                                class="bi bi-x-lg"></i></button>
                                     </div>
-                                    <div class="d-flex justify-content-between mt-2" x-show="changeAmount > 0">
-                                        <span class="fw-bold text-blue-400">الباقي للعميل (Change):</span>
-                                        <span class="fw-black text-blue-400 font-mono"
-                                            x-text="formatMoney(changeAmount)"></span>
-                                    </div>
+                                </template>
+                                <div x-show="payments.length === 0" class="text-center text-slate-600 py-2 fs-xs italic">
+                                    -- دفع مباشر (Single Payment) --
                                 </div>
                             </div>
 
-                            <div class="mt-auto d-flex gap-2">
+                            <!-- TOTALS -->
+                            <div class="p-3 rounded bg-slate-950 border border-slate-800 mt-auto">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="text-slate-400">Total Due:</span>
+                                    <span class="text-white font-mono" x-text="formatMoney(cartTotal)"></span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="text-slate-400">Total Paid:</span>
+                                    <span class="text-emerald-400 font-mono fw-bold" x-text="formatMoney(totalPaid)"></span>
+                                </div>
+                                <div class="border-top border-slate-800 my-2"></div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="fw-bold" :class="remainingAmount > 0 ? 'text-rose-400' : 'text-slate-400'">
+                                        <template x-if="remainingAmount > 0">Remaining:</template>
+                                        <template x-if="remainingAmount <= 0">Complete</template>
+                                    </span>
+                                    <span class="fw-black font-mono"
+                                        :class="remainingAmount > 0 ? 'text-rose-400' : 'text-slate-400'"
+                                        x-text="formatMoney(remainingAmount)"></span>
+                                </div>
+                                <div class="d-flex justify-content-between mt-2" x-show="changeAmount > 0">
+                                    <span class="fw-bold text-blue-400">Change:</span>
+                                    <span class="fw-black text-blue-400 font-mono"
+                                        x-text="formatMoney(changeAmount)"></span>
+                                </div>
+                            </div>
+
+                            <!-- FOOTER ACTIONS -->
+                            <div class="mt-3 d-flex gap-2">
                                 <button class="btn btn-slate-700 flex-grow-1 py-3" @click="closePaymentModal()">إلغاء
                                     (Esc)</button>
                                 <button class="btn btn-emerald-600 flex-grow-1 py-3 fw-bold shadow-lg"
-                                    :disabled="remainingAmount > 0.1 && activePaymentTab !== 'credit'"
-                                    @click="processCheckout()">
+                                    :disabled="!canCheckout" @click="processCheckout()">
                                     <span x-show="!isProcessing"><i class="bi bi-check-lg me-2"></i> تأكيد وطباعة
                                         (Enter)</span>
                                     <span x-show="isProcessing" class="spinner-border spinner-border-sm"></span>
@@ -523,7 +1085,243 @@
             </div>
         </div>
 
+        <!-- HELD SALES MODAL (Inside Alpine Scope) -->
+        <div class="modal fade" id="heldSalesModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content bg-slate-900 border border-slate-700 text-white">
+                    <div class="modal-header border-slate-700">
+                        <h5 class="modal-title"><i class="bi bi-pause-circle me-2"></i>الفواتير المعلقة</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <template x-if="heldSales.length === 0">
+                            <div class="text-center py-5 text-slate-400">
+                                <i class="bi bi-inbox fs-1"></i>
+                                <p class="mt-2">لا توجد فواتير معلقة</p>
+                            </div>
+                        </template>
+                        <template x-for="sale in heldSales" :key="sale.id">
+                            <div
+                                class="d-flex justify-content-between align-items-center p-3 mb-2 bg-slate-800 rounded border border-slate-700">
+                                <div>
+                                    <div class="fw-bold" x-text="sale.hold_number"></div>
+                                    <div class="text-slate-400 small">
+                                        <span x-text="sale.items?.length || 0"></span> أصناف -
+                                        <span x-text="formatMoney(sale.total)"></span>
+                                    </div>
+                                    <div class="text-slate-500 text-xs" x-text="sale.created_at"></div>
+                                </div>
+                                <button class="btn btn-emerald-600 btn-sm" @click="resumeSale(sale.id)">
+                                    <i class="bi bi-play-fill me-1"></i>استئناف
+                                </button>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DELIVERY MANAGEMENT MODAL -->
+        <div class="modal fade" id="deliveryModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered modal-xl">
+                <div class="modal-content bg-slate-900 border border-slate-700 text-white shadow-2xl">
+                    <div class="modal-header border-slate-700">
+                        <h5 class="modal-title"><i class="bi bi-truck-flatbed me-2"></i>إدارة التوصيل</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover mb-0">
+                                <thead>
+                                    <tr class="text-slate-400 border-bottom border-slate-800">
+                                        <th class="p-3">رقم الفاتورة</th>
+                                        <th class="p-3">العميل</th>
+                                        <th class="p-3">العنوان</th>
+                                        <th class="p-3">السائق</th>
+                                        <th class="p-3">الحالة</th>
+                                        <th class="p-3">الإجمالي</th>
+                                        <th class="p-3 text-end">إجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-if="deliveryOrders.length === 0">
+                                        <tr>
+                                            <td colspan="7" class="text-center py-5 text-slate-500">لا توجد طلبات توصيل نشطة
+                                            </td>
+                                        </tr>
+                                    </template>
+                                    <template x-for="order in deliveryOrders" :key="order.id">
+                                        <tr class="border-bottom border-slate-800/50">
+                                            <td class="p-3 font-mono" x-text="order.invoice_number"></td>
+                                            <td class="p-3" x-text="order.customer_name"></td>
+                                            <td class="p-3 small text-slate-400" x-text="order.address"></td>
+                                            <td class="p-3">
+                                                <span class="badge bg-slate-800 border border-slate-600"
+                                                    x-text="order.driver_name"></span>
+                                            </td>
+                                            <td class="p-3">
+                                                <span class="badge" :class="getDeliveryStatusClass(order.status)"
+                                                    x-text="order.status_label"></span>
+                                            </td>
+                                            <td class="p-3 font-mono text-emerald-400" x-text="formatMoney(order.total)">
+                                            </td>
+                                            <td class="p-3 text-end">
+                                                <div class="btn-group btn-group-sm">
+                                                    <button class="btn btn-outline-primary"
+                                                        x-show="order.status === 'ready'"
+                                                        @click="updateDeliveryStatus(order.id, 'shipped')"
+                                                        title="Mark as Shipped">
+                                                        <i class="bi bi-send"></i> خرج
+                                                    </button>
+                                                    <button class="btn btn-outline-emerald-600"
+                                                        x-show="order.status === 'shipped'"
+                                                        @click="updateDeliveryStatus(order.id, 'delivered')"
+                                                        title="Mark as Delivered">
+                                                        <i class="bi bi-check-lg"></i> تسليم
+                                                    </button>
+                                                    <button class="btn btn-outline-rose-600"
+                                                        @click="updateDeliveryStatus(order.id, 'cancelled')" title="Cancel">
+                                                        <i class="bi bi-x-lg"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-slate-700 bg-slate-950">
+                        <button class="btn btn-slate-700" @click="fetchDeliveryOrders()"><i
+                                class="bi bi-arrow-clockwise me-2"></i> تحديث</button>
+                        <button class="btn btn-slate-600" data-bs-dismiss="modal">إغلاق</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- X-REPORT MODAL (Professional Shift Summary) -->
+        <div class="modal fade" id="xReportModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content slate-modal shadow-2xl border-emerald-500/20">
+                    <div class="modal-header border-slate-700 bg-slate-950 p-4">
+                        <h5 class="modal-title fw-black text-white">
+                            <i class="bi bi-file-earmark-bar-graph me-2 text-emerald-500"></i>
+                            X-Report (ملخص الوردية)
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-4 bg-slate-900 custom-scrollbar" style="max-height: 80vh; overflow-y: auto;">
+                        <template x-if="xReportData">
+                            <div class="fade-in">
+                                <!-- Shift Header -->
+                                <div class="bg-slate-950 rounded-xl p-3 border border-slate-800 mb-4">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="text-slate-500 small">رقم الوردية:</span>
+                                        <span class="text-white font-mono fw-bold"
+                                            x-text="'#' + xReportData.shift_id"></span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="text-slate-500 small">وقت البدء:</span>
+                                        <span class="text-white font-mono" x-text="xReportData.started_at"></span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-slate-500 small">المدة:</span>
+                                        <span class="text-white font-mono" x-text="xReportData.duration"></span>
+                                    </div>
+                                </div>
+
+                                <!-- Financial Grid -->
+                                <div class="row g-3 mb-4">
+                                    <div class="col-6">
+                                        <div class="bg-slate-800/40 p-3 rounded-xl border border-slate-700">
+                                            <div class="text-slate-500 fs-xs mb-1 text-uppercase fw-bold ls-1">المبيعات
+                                                الإجمالية</div>
+                                            <div class="text-white fs-4 fw-black font-mono"
+                                                x-text="formatNumber(xReportData.total_sales)"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="bg-slate-800/40 p-3 rounded-xl border border-slate-700">
+                                            <div class="text-rose-400 fs-xs mb-1 text-uppercase fw-bold ls-1">المرتجع</div>
+                                            <div class="text-rose-400 fs-4 fw-black font-mono"
+                                                x-text="formatNumber(xReportData.total_returns)"></div>
+                                            <div class="text-slate-500 fs-xs mt-1"
+                                                x-text="xReportData.returns_count + ' معاملة'"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Payment Breakdown -->
+                                <h6 class="text-slate-400 small fw-bold mb-3 text-uppercase ls-1">تفاصيل التحصيل</h6>
+                                <div class="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden mb-4">
+                                    <div class="d-flex justify-content-between p-3 border-bottom border-slate-800/50">
+                                        <div class="d-flex align-items-center">
+                                            <div class="w-2 h-2 rounded-circle bg-emerald-500 me-2"></div>
+                                            <span class="text-slate-300">نقداً (Cash)</span>
+                                        </div>
+                                        <span class="text-white font-mono fw-bold"
+                                            x-text="formatNumber(xReportData.total_cash)"></span>
+                                    </div>
+                                    <div class="d-flex justify-content-between p-3 border-bottom border-slate-800/50">
+                                        <div class="d-flex align-items-center">
+                                            <div class="w-2 h-2 rounded-circle bg-blue-500 me-2"></div>
+                                            <span class="text-slate-300">بطاقة (Card)</span>
+                                        </div>
+                                        <span class="text-white font-mono fw-bold"
+                                            x-text="formatNumber(xReportData.total_card)"></span>
+                                    </div>
+                                    <div class="d-flex justify-content-between p-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="w-2 h-2 rounded-circle bg-amber-500 me-2"></div>
+                                            <span class="text-slate-300">آجل (Credit)</span>
+                                        </div>
+                                        <span class="text-white font-mono fw-bold"
+                                            x-text="formatNumber(xReportData.total_credit)"></span>
+                                    </div>
+                                </div>
+
+                                <!-- Outflow -->
+                                <h6 class="text-slate-400 small fw-bold mb-3 text-uppercase ls-1">المصروفات</h6>
+                                <div class="bg-rose-900/10 rounded-xl p-3 border border-rose-900/20 mb-4">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="text-rose-300">إجمالي المصروفات:</span>
+                                        <span class="text-rose-400 font-mono fw-bold fs-5"
+                                            x-text="formatNumber(xReportData.total_expenses)"></span>
+                                    </div>
+                                </div>
+
+                                <!-- Final Summary -->
+                                <div
+                                    class="bg-emerald-500/10 rounded-xl p-4 border border-emerald-500/20 shadow-emerald-glow">
+                                    <div class="text-emerald-400 fs-xs mb-1 text-uppercase fw-bold ls-1 text-center">النقدية
+                                        المتوقعة بالدرج</div>
+                                    <div class="text-emerald-400 fs-2 fw-black font-mono text-center"
+                                        x-text="formatNumber(xReportData.expected_cash) + ' EGP'"></div>
+                                    <div class="text-slate-500 fs-xs text-center mt-2">(Opening + Cash - Expenses - Returns)
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                        <template x-if="!xReportData">
+                            <div class="text-center py-5">
+                                <div class="spinner-border text-emerald-500 mb-3"></div>
+                                <div class="text-slate-400">جاري تحميل البيانات...</div>
+                            </div>
+                        </template>
+                    </div>
+                    <div class="modal-footer border-slate-700 bg-slate-950">
+                        <button class="btn btn-emerald-600 px-4 fw-bold" @click="window.print()">
+                            <i class="bi bi-printer me-2"></i> طباعة (Ctrl+P)
+                        </button>
+                        <button class="btn btn-slate-700 px-4" data-bs-dismiss="modal">إغلاق</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+
 
     <style>
         /* ... Existing CSS + New Fixes ... */
@@ -794,16 +1592,70 @@
                 products: [],
                 categories: @json($categories),
                 warehouses: @json($warehouses),
+                drivers: @json($drivers),
+
+                // Shift Management
+                activeShiftId: {{ $activeShift->id ?? 'null' }},
+                shiftStartTime: '{{ $activeShift?->opened_at?->format('H:i A') ?? '--' }}',
+                activeShiftStats: { total_cash: 0 },
+                openingCash: 0,
+                shiftPin: '',
+                closingCash: 0,
+                cashiers: @json($cashiers), // Phase 3: Cashier Selection
                 warehouseId: {{ $activeShift->warehouse_id ?? auth()->user()->warehouse_id ?? 1 }}, // Stock Truth
+
+                // Cashier Selection (Phase 3)
+                selectedCashierId: {{ auth()->id() }},
+                currentUserId: {{ auth()->id() }},
+
+                // Delivery State (Phase 3)
+                isDeliveryMode: false,
+                shippingAddress: '',
+                recipientName: '',
+                recipientPhone: '',
+                selectedDriver: null,
+                deliveryFee: 0,
 
                 searchQuery: '',
                 productSearch: '',
                 isLoading: false,
                 isProcessing: false,
 
-                scanMode: false,
-                refundMode: false,
                 activeCategory: null,
+                selectedItemIndex: -1,
+
+                // Payment State (Phase 3 Multi-Payment)
+                paymentAmount: 0,
+                activePaymentTab: 'cash',
+                cartDiscount: 0,
+                payments: [], // For split payments
+                cardTxnId: '', // For card payments
+                creditNote: '', // For credit payments
+                expenseModal: null,
+
+                // Delivery Management (Phase 3)
+                deliveryOrders: [],
+                deliveryModalInstance: null,
+
+                // Customer Selection (F-05)
+                selectedCustomer: null,
+                customerResults: [],
+                isSearchingCustomer: false,
+                showCustomerDropdown: false,
+
+                selectCustomer(customer) {
+                    this.selectedCustomer = customer;
+
+                    // Auto-fill Delivery Info
+                    this.recipientName = customer.name;
+                    this.recipientPhone = customer.mobile || customer.phone || '';
+                    this.shippingAddress = customer.address || '';
+
+                    this.customerResults = [];
+                    this.searchQuery = '';
+                    this.showCustomerDropdown = false;
+                    this.playBeep();
+                },
 
                 // Payment State
                 paymentModal: null,
@@ -815,25 +1667,150 @@
                 // New Customer State
                 newCustomer: { name: '', mobile: '' },
 
+                // Held Sales State (C-04 DB Persistence)
+                heldSales: [],
+                heldSalesModal: null,
+                heldCount: 0,
+                xReportModal: null,
+                xReportData: null,
+
                 currentTime: new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
 
-                // Computed
-                get cartSubtotal() { return this.cart.reduce((a, b) => a + Number(b.subtotal), 0); },
-                get cartTax() { return this.cartSubtotal * 0.14; },
-                get cartTotal() { return this.cartSubtotal + this.cartTax; },
+                // Precision Helpers
+                roundMoney(val) { return Math.round((val + Number.EPSILON) * 100) / 100; },
+                roundNet(val) { return Math.round((val + Number.EPSILON) * 10000) / 10000; },
 
-                get remainingAmount() { return Math.max(0, this.cartTotal - this.paymentAmount); },
-                get changeAmount() { return Math.max(0, this.paymentAmount - this.cartTotal); },
+                calculateLine(qty, price, discount = 0, productTaxRate = null) {
+                    const rate = (productTaxRate !== null && productTaxRate !== undefined) ? productTaxRate : {{ $taxRatePercent }};
+                    const inclusive = {{ $taxInclusive ? 'true' : 'false' }};
+                    let unitPrice = price - (discount / qty);
+                    let netAmount, taxAmount, lineTotal;
+
+                    if (inclusive) {
+                        // Backend: netPrice = round(unitPrice / (1 + (rate/100)), 4)
+                        let netPrice = this.roundNet(unitPrice / (1 + (rate / 100)));
+                        lineTotal = this.roundMoney(netPrice * qty * (1 + (rate / 100)));
+                        taxAmount = this.roundMoney(lineTotal - (netPrice * qty));
+                        netAmount = this.roundNet(netPrice * qty);
+                    } else {
+                        // Backend: netAmount = round(unitPrice * qty, 2)
+                        netAmount = this.roundMoney(unitPrice * qty);
+                        taxAmount = this.roundMoney(netAmount * (rate / 100));
+                        lineTotal = this.roundMoney(netAmount + taxAmount);
+                    }
+
+                    return {
+                        qty: qty,
+                        price: price,
+                        // Original price passed
+                        unit_price_net: inclusive ? this.roundNet(unitPrice / (1 + (rate / 100))) : unitPrice,
+                        discount: discount,
+                        net_amount: netAmount,
+                        tax_amount: taxAmount,
+                        subtotal: lineTotal, // This is the gross amount shown in cart
+                        tax_rate: rate
+                    };
+                },
+
+                // Computed
+                get cartSubtotal() { return this.cart.reduce((a, b) => a + Number(b.net_amount || 0), 0); },
+                get cartTax() { return this.cart.reduce((a, b) => a + Number(b.tax_amount || 0), 0); },
+                get cartTotal() {
+                    let total = this.cart.reduce((a, b) => a + Number(b.subtotal || 0), 0);
+
+                    // Phase 3: Apply cart discount
+                    let finalAmount = Math.max(0, total - (this.cartDiscount || 0));
+
+                    // Phase 3: Apply Delivery Fee
+                    if (this.isDeliveryMode && this.deliveryFee) {
+                        finalAmount += parseFloat(this.deliveryFee) || 0;
+                    }
+
+                    return this.roundMoney(finalAmount);
+                },
+
+                get remainingAmount() { return Math.max(0, this.cartTotal - this.totalPaid); },
+                get changeAmount() { return Math.max(0, this.totalPaid - this.cartTotal); },
+
+                // Phase 3: Multi-Payment Logic
+                get totalPaid() {
+                    // Start with current input if no split payments added yet
+                    if (this.payments.length === 0) return this.paymentAmount;
+                    // Otherwise sum up the list + current input (optional, but let's encourage adding to list)
+                    return this.payments.reduce((a, b) => a + Number(b.amount), 0);
+                },
+
+                addPayment() {
+                    if (this.paymentAmount <= 0) return;
+
+                    const method = this.activePaymentTab;
+                    const amount = parseFloat(this.paymentAmount);
+                    const note = method === 'card' ? this.cardTxnId : (method === 'credit' ? this.creditNote : '');
+
+                    if (method === 'credit' && !this.selectedCustomer) {
+                        alert('يجب اختيار عميل للدفع الآجل');
+                        return;
+                    }
+
+                    this.payments.push({
+                        method: method,
+                        amount: amount,
+                        note: note,
+                        label: method === 'cash' ? 'نقد' : (method === 'card' ? 'بطاقة' : 'آجل')
+                    });
+
+                    // Reset input for next payment
+                    this.paymentAmount = Math.max(0, this.cartTotal - this.totalPaid);
+                    this.cardTxnId = '';
+                    this.creditNote = '';
+                },
+
+                removePayment(index) {
+                    this.payments.splice(index, 1);
+                    this.paymentAmount = Math.max(0, this.cartTotal - this.totalPaid);
+                },
+
+                get canCheckout() {
+                    if (this.cart.length === 0) return false;
+                    // If split payments exist, must fully pay
+                    if (this.payments.length > 0) {
+                        return this.remainingAmount <= 0.1;
+                    }
+                    // Simple mode
+                    if (this.activePaymentTab === 'credit' && !this.selectedCustomer) return false;
+                    return this.remainingAmount <= 0.1 || this.activePaymentTab === 'credit';
+                },
 
                 initPOS() {
                     this.fetchProducts();
+
+                    // Initialize ALL Modals to prevent trigger errors
                     this.paymentModal = new bootstrap.Modal(document.getElementById('paymentModal'));
                     this.addCustomerModal = new bootstrap.Modal(document.getElementById('addCustomerModal'));
                     this.shiftModal = new bootstrap.Modal(document.getElementById('shiftModal'));
+                    this.heldSalesModal = new bootstrap.Modal(document.getElementById('heldSalesModal'));
+                    this.deliveryModalInstance = new bootstrap.Modal(document.getElementById('deliveryModal'));
+                    this.expenseModal = new bootstrap.Modal(document.getElementById('expenseModal'));
+                    this.recentTransactionsModal = new bootstrap.Modal(document.getElementById('recentTransactionsModal'));
+                    this.returnModal = new bootstrap.Modal(document.getElementById('returnModal'));
+                    this.priceOverrideModalInstance = new bootstrap.Modal(document.getElementById('priceOverrideModal'));
+                    this.xReportModal = new bootstrap.Modal(document.getElementById('xReportModal'));
+
+                    this.initDeliveryWatcher();
+                    this.fetchHeldSales();
+                    if (this.activeShiftId) this.fetchShiftStats();
 
                     setInterval(() => {
                         this.currentTime = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
                     }, 1000);
+
+                    // Reliability: Warn on unsaved changes
+                    window.onbeforeunload = (e) => {
+                        if (this.cart && this.cart.length > 0) {
+                            e.preventDefault();
+                            e.returnValue = '';
+                        }
+                    };
                 },
 
                 setWarehouse(id, name) {
@@ -880,11 +1857,28 @@
 
                 addToCart(product) {
                     const existing = this.cart.find(i => i.id === product.id);
+                    const currentQty = existing ? existing.qty : 0;
+
+                    // Phase 3: Stock warning before adding
+                    if (product.stock <= 0) {
+                        alert('⚠️ هذا المنتج نفد من المخزون');
+                        return;
+                    }
+                    if (currentQty + 1 > product.stock) {
+                        alert(`⚠️ الكمية المتاحة من (${product.name}) هي ${product.stock} فقط`);
+                        return;
+                    }
+
                     if (existing) {
-                        existing.qty++;
-                        existing.subtotal = existing.qty * existing.price;
+                        const calc = this.calculateLine(existing.qty + 1, existing.price, existing.discount || 0, product.tax_rate);
+                        Object.assign(existing, calc);
                     } else {
-                        this.cart.push({ ...product, qty: 1, subtotal: Number(product.price), price: Number(product.price) });
+                        const calc = this.calculateLine(1, Number(product.price), 0, product.tax_rate);
+                        this.cart.push({
+                            ...product,
+                            ...calc,
+                            original_price: Number(product.price)
+                        });
                     }
                     this.playBeep();
                     this.scrollToBottom();
@@ -896,8 +1890,8 @@
                         if (confirm('حذف الصنف من السلة؟')) this.cart.splice(index, 1);
                         return;
                     }
-                    item.qty += delta;
-                    item.subtotal = item.qty * item.price;
+                    const calc = this.calculateLine(item.qty + delta, item.price, item.discount || 0, item.tax_rate);
+                    Object.assign(item, calc);
                 },
 
                 removeItem(index) { this.cart.splice(index, 1); },
@@ -923,54 +1917,382 @@
                     if (this.isProcessing) return;
                     this.isProcessing = true;
 
-                    const payload = {
-                        items: this.cart,
-                        total: this.cartTotal,
-                        payment: {
+                    // FIX: Map cart items to match backend validation
+                    const mappedItems = this.cart.map(item => ({
+                        product_id: item.id,
+                        quantity: item.qty,
+                        // TRUTH: Send the price as handled in calculateLine (Gross/Net based on setting)
+                        // Backend (POSService) will handle tax extraction/addition correctly.
+                        price: item.price,
+                        discount: item.discount || 0,
+                    }));
+
+                    // Phase 3: Multi-Payment Logic
+                    let finalPayments = [];
+                    if (this.payments.length > 0) {
+                        finalPayments = this.payments;
+                    } else {
+                        // Simple Mode (Single Payment)
+                        finalPayments = [{
                             method: this.activePaymentTab,
                             amount: this.paymentAmount,
-                            change: this.changeAmount
-                        },
-                        customer_id: null // TODO: Add Customer Selection
+                            note: this.activePaymentTab === 'card' ? this.cardTxnId : (this.activePaymentTab === 'credit' ? this.creditNote : '')
+                        }];
+                    }
+
+                    const payload = {
+                        items: mappedItems,
+                        customer_id: this.selectedCustomer ? this.selectedCustomer.id : null,
+                        payments: finalPayments,
+                        discount: this.cartDiscount || 0,
+                        notes: '',
+                        warehouse_id: this.warehouseId,
+                        // Phase 3: Delivery Data
+                        is_delivery: this.isDeliveryMode,
+                        driver_id: this.isDeliveryMode ? this.selectedDriver : null,
+                        delivery_fee: this.isDeliveryMode ? (this.deliveryFee || 0) : 0,
+                        shipping_address: this.isDeliveryMode ? this.shippingAddress : null,
+                        // Phase 3: Cashier Selection
+                        cashier_id: this.selectedCashierId,
                     };
 
                     try {
-                        // Simulate API Call
-                        // const res = await axios.post('/pos/checkout', payload);
-                        await new Promise(r => setTimeout(r, 1000)); // Mock delay
+                        // F-01 FIX: Real API call instead of simulation
+                        const res = await axios.post('{{ route("pos.checkout") }}', payload);
 
-                        this.playSuccess();
-                        this.closePaymentModal();
-                        this.cart = [];
-                        alert('تمت العملية بنجاح! (Simulation)');
+                        if (res.data.success) {
+                            this.playSuccess();
+                            this.closePaymentModal();
+                            this.cart = [];
+                            this.paymentAmount = 0;
+                            this.cartDiscount = 0; // Reset discount after checkout
 
+                            // Show success and offer to print receipt
+                            if (confirm('تمت العملية بنجاح! فاتورة رقم: ' + res.data.invoice.number + '\n\nهل تريد طباعة الفاتورة؟')) {
+                                window.open('{{ url("pos/receipt") }}/' + res.data.invoice.id, '_blank');
+                            }
+                        }
                     } catch (e) {
-                        alert('فشل العملية: ' + e.message);
+                        alert('فشل العملية: ' + (e.response?.data?.message || e.message));
                     } finally {
                         this.isProcessing = false;
                     }
                 },
 
-                // --- CUSTOMER LOGIC ---
+                // --- CUSTOMER LOGIC (F-05) ---
+                async loadRecentCustomers() {
+                    // Load recent customers when input is focused (for dropdown behavior)
+                    if (this.customerResults.length > 0 || this.selectedCustomer) {
+                        return; // Already have results or customer selected
+                    }
+                    this.isSearchingCustomer = true;
+                    try {
+                        const res = await axios.get('/pos/customers/search', {
+                            params: { q: '' } // Empty query to get recent customers
+                        });
+                        this.customerResults = res.data;
+                    } catch (e) {
+                        console.error('Load recent customers failed', e);
+                    } finally {
+                        this.isSearchingCustomer = false;
+                    }
+                },
+
+                async searchCustomer() {
+                    // Search with any query length (including empty to show all)
+                    this.isSearchingCustomer = true;
+                    try {
+                        const res = await axios.get('/pos/customers/search', {
+                            params: { q: this.searchQuery }
+                        });
+                        this.customerResults = res.data;
+                    } catch (e) {
+                        console.error('Customer search failed', e);
+                    } finally {
+                        this.isSearchingCustomer = false;
+                    }
+                },
+
+
+
+                clearSelectedCustomer() {
+                    this.selectedCustomer = null;
+                },
+
                 openAddCustomerModal() { this.addCustomerModal.show(); },
 
                 async quickCreateCustomer() {
                     try {
                         const res = await axios.post('/pos/customers/quick-create', this.newCustomer);
                         if (res.data.success) {
-                            alert('Customer Added');
+                            this.selectCustomer(res.data.customer);
                             this.addCustomerModal.hide();
                             this.newCustomer = { name: '', mobile: '' };
                         }
-                    } catch (e) { alert('Error'); }
+                    } catch (e) { alert('فشل إضافة العميل'); }
+                },
+
+                // --- HELD SALES LOGIC (C-04 DB Persistence) ---
+                async holdSale() {
+                    if (this.cart.length === 0) {
+                        alert('السلة فارغة!');
+                        return;
+                    }
+                    try {
+                        const res = await axios.post('{{ route("pos.hold") }}', {
+                            items: this.cart,
+                            customer_id: null, // TODO: selected customer
+                            warehouse_id: this.warehouseId,
+                            subtotal: this.cartSubtotal,
+                            tax: this.cartTax,
+                            total: this.cartTotal,
+                            notes: ''
+                        });
+                        if (res.data.success) {
+                            alert('تم تعليق الفاتورة: ' + res.data.held_sale.hold_number);
+                            this.cart = [];
+                            this.fetchHeldSales();
+                        }
+                    } catch (e) {
+                        alert('فشل تعليق الفاتورة: ' + (e.response?.data?.message || e.message));
+                    }
+                },
+
+                async fetchHeldSales() {
+                    try {
+                        const res = await axios.get('{{ route("pos.held") }}');
+                        this.heldSales = res.data;
+                        this.heldCount = this.heldSales.length;
+                    } catch (e) {
+                        console.error('Failed to fetch held sales:', e);
+                    }
+                },
+
+                showHeldSales() {
+                    this.fetchHeldSales();
+                    if (this.heldSalesModal) {
+                        this.heldSalesModal.show();
+                    }
+                },
+
+                async resumeSale(holdId) {
+                    try {
+                        const res = await axios.post('{{ route("pos.resume") }}', { hold_id: holdId });
+                        if (res.data.success) {
+                            // Load cart with resumed items
+                            this.cart = res.data.items || [];
+                            this.fetchHeldSales();
+                            if (this.heldSalesModal) {
+                                this.heldSalesModal.hide();
+                            }
+                            alert('تم استئناف الفاتورة');
+                        }
+                    } catch (e) {
+                        alert('فشل استئناف الفاتورة: ' + (e.response?.data?.error || e.message));
+                    }
                 },
 
                 // --- SHIFT LOGIC ---
-                showShiftModal() { this.shiftModal.show(); },
-                closeShift() {
-                    if (confirm('تأكيد إغلاق الوردية؟')) {
-                        alert('Closing Shift... (Redirect to Z-Report)');
-                        // window.location.href = '/pos/shifts/close/' + activeShiftId;
+                showShiftModal() {
+                    if (this.activeShiftId) this.fetchShiftStats();
+                    this.shiftModal.show();
+                },
+
+                async fetchShiftStats() {
+                    try {
+                        const res = await axios.get('{{ route("pos.shift.stats") }}');
+                        if (res.data.success) {
+                            this.activeShiftStats = res.data.shift;
+                        }
+                    } catch (e) { console.error('Failed to fetch shift stats'); }
+                },
+
+                async openShift() {
+                    this.isProcessing = true;
+                    try {
+                        const res = await axios.post('{{ route("pos.shift.open") }}', {
+                            opening_cash: this.openingCash
+                        });
+                        if (res.data.success) {
+                            this.activeShiftId = res.data.shift.id;
+                            this.shiftStartTime = new Date(res.data.shift.opened_at).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+                            alert('تم فتح الوردية بنجاح!');
+                            this.shiftModal.hide();
+                            location.reload(); // Refresh to update $activeShift in blade
+                        }
+                    } catch (e) {
+                        alert('فشل فتح الوردية: ' + (e.response?.data?.message || e.message));
+                    } finally {
+                        this.isProcessing = false;
+                    }
+                },
+
+                async closeShift() {
+                    if (this.closingCash < 0) {
+                        alert('رقم غير صحيح للنقدية');
+                        return;
+                    }
+                    if (!this.shiftPin) {
+                        alert('الرجاء إدخال رمز الإغلاق (PIN)');
+                        return;
+                    }
+                    if (!confirm('تأكيد إغلاق الوردية؟ سيتم ترحيل الفروقات إن وجدت.')) return;
+
+                    try {
+                        // F-03 FIX: Real API call for shift close
+                        const res = await axios.post('{{ route("pos.shift.close") }}', {
+                            closing_cash: this.closingCash,
+                            pin: this.shiftPin,
+                            notes: ''
+                        });
+
+                        if (res.data.success) {
+                            alert('تم إغلاق الوردية بنجاح!');
+                            // Redirect to shift report (Z-Report)
+                            if (res.data.report_url) {
+                                window.location.href = res.data.report_url;
+                            } else {
+                                window.location.href = '{{ route("dashboard") }}';
+                            }
+                        }
+                    } catch (e) {
+                        alert('فشل إغلاق الوردية: ' + (e.response?.data?.message || e.message));
+                    }
+                },
+
+                // --- PHASE 3: X-Report, Transactions, Cash Drawer ---
+                async showXReport() {
+                    this.xReportData = null; // Reset for loader
+                    if (this.xReportModal) this.xReportModal.show();
+                    try {
+                        const res = await axios.get('{{ route("pos.xReport") }}');
+                        if (res.data.success) {
+                            this.xReportData = res.data.data;
+                        }
+                    } catch (e) {
+                        alert('فشل تحميل التقرير: ' + (e.response?.data?.message || e.message));
+                        if (this.xReportModal) this.xReportModal.hide();
+                    }
+                },
+
+                async showLastTransactions() {
+                    try {
+                        const res = await axios.get('{{ route("pos.lastTransactions") }}');
+                        if (res.data.success) {
+                            const txs = res.data.data;
+                            if (txs.length === 0) {
+                                alert('لا توجد معاملات في هذه الوردية');
+                                return;
+                            }
+                            let list = "═══════ آخر المعاملات ═══════\n\n";
+                            txs.forEach(t => {
+                                list += `• ${t.created_at} | #${t.invoice_number} | ${t.customer_name}\n`;
+                                list += `  المبلغ: ${this.formatNumber(t.total)} EGP (${t.payment_method})\n\n`;
+                            });
+                            alert(list);
+                        }
+                    } catch (e) {
+                        alert('فشل تحميل المعاملات: ' + (e.response?.data?.message || e.message));
+                    }
+                },
+
+                async openCashDrawer() {
+                    const reason = prompt('سبب فتح الدرج (اختياري):');
+                    try {
+                        const res = await axios.post('{{ route("pos.drawer.open") }}', { reason });
+                        if (res.data.success) {
+                            alert('✅ ' + res.data.message);
+                        }
+                    } catch (e) {
+                        alert('فشل فتح الدرج: ' + (e.response?.data?.message || e.message));
+                    }
+                },
+
+                // Enhanced removeItem with deletion logging
+                async removeItem(index) {
+                    const item = this.cart[index];
+                    if (!item) return;
+
+                    // Log the deletion to backend for audit trail
+                    try {
+                        await axios.post('{{ route("pos.cart.logDeletion") }}', {
+                            product_id: item.id,
+                            product_name: item.name,
+                            quantity: item.qty,
+                            price: item.price,
+                            reason: null // Could add reason prompt for high-value items
+                        });
+                    } catch (e) {
+                        console.warn('Failed to log cart deletion', e);
+                    }
+
+                    this.cart.splice(index, 1);
+                },
+
+                // --- PHASE 3: Price Override ---
+                overrideItem: null,
+                overrideIndex: -1,
+                overrideNewPrice: 0,
+                overridePin: '',
+                overrideReason: '',
+                isProcessingOverride: false,
+
+                get isPriceLower() {
+                    return this.overrideItem && this.overrideNewPrice < this.overrideItem.original_price;
+                },
+
+                openPriceOverride(index) {
+                    const item = this.cart[index];
+                    this.overrideIndex = index;
+                    // Fallback to current price if original not set (legacy items)
+                    const original = item.original_price || item.price;
+
+                    this.overrideItem = { ...item, original_price: original };
+                    this.overrideNewPrice = item.price;
+                    this.overridePin = '';
+                    this.overrideReason = '';
+
+                    const modal = new bootstrap.Modal(document.getElementById('priceOverrideModal'));
+                    modal.show();
+                    this.priceOverrideModalInstance = modal;
+                },
+
+                async submitPriceOverride() {
+                    if (this.isPriceLower && !this.overridePin) {
+                        alert('مطلوب رمز المدير');
+                        return;
+                    }
+
+                    this.isProcessingOverride = true;
+                    try {
+                        // Backend validation
+                        const res = await axios.post('{{ route("pos.pin.priceOverride") }}', {
+                            pin: this.overridePin,
+                            product_id: this.overrideItem.id,
+                            original_price: this.overrideItem.original_price,
+                            override_price: this.overrideNewPrice,
+                            reason: this.overrideReason
+                        });
+
+                        if (res.data.success) {
+                            // Update cart
+                            const item = this.cart[this.overrideIndex];
+                            const calc = this.calculateLine(item.qty, parseFloat(this.overrideNewPrice), item.discount || 0, item.tax_rate);
+                            Object.assign(item, calc);
+
+                            // If price is lower, ensure we keep original_price for future checks
+                            if (!item.original_price) {
+                                item.original_price = this.overrideItem.original_price;
+                            }
+
+                            this.priceOverrideModalInstance.hide();
+                            this.playSuccess();
+                        }
+                    } catch (e) {
+                        alert('فشل تغيير السعر: ' + (e.response?.data?.message || e.message));
+                        this.playBeep();
+                    } finally {
+                        this.isProcessingOverride = false;
                     }
                 },
 
@@ -992,6 +2314,253 @@
                 handleGlobalKeys(e) {
                     if (e.key === 'F2') { e.preventDefault(); document.getElementById('product-search-input').focus(); }
                     if (e.key === 'F10') { e.preventDefault(); this.showPaymentModal(); }
+                    if (e.key === 'F8') { e.preventDefault(); this.printLastInvoice(); }
+                },
+
+                // --- PHASE 3: Refund Mode ---
+                setRefundMode(enable) {
+                    this.refundMode = enable;
+                    if (enable) {
+                        this.playBeep();
+                        // Show visual indicator
+                        document.body.style.borderTop = '4px solid #ef4444';
+                    } else {
+                        document.body.style.borderTop = 'none';
+                    }
+                },
+
+                // --- PHASE 3: Expense Modal ---
+                expenseAmount: 0,
+                expenseNotes: '',
+
+                openExpenseModal() {
+                    this.expenseAmount = '';
+                    this.expenseNotes = '';
+                    if (!this.expenseModal) {
+                        const el = document.getElementById('expenseModal');
+                        if (el) this.expenseModal = new bootstrap.Modal(el);
+                    }
+                    if (this.expenseModal) this.expenseModal.show();
+                    else alert('Error: Expense Modal element not found');
+                },
+
+                async saveExpense() {
+                    this.isProcessing = true;
+                    try {
+                        const res = await axios.post('{{ route("pos.expenses.store") }}', {
+                            amount: this.expenseAmount,
+                            notes: this.expenseNotes
+                        });
+
+                        if (res.data.success) {
+                            alert('✅ تم تسجيل المصروف بنجاح. رصيد الدرج المتوقع: ' + this.formatMoney(res.data.balance));
+                            this.expenseModal.hide();
+                            this.expenseAmount = '';
+                            this.expenseNotes = '';
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        alert('❌ فشل تسجيل المصروف: ' + (e.response?.data?.message || e.message));
+                    } finally {
+                        this.isProcessing = false;
+                    }
+                },
+
+                // --- PHASE 3.5: Delivery Reliability ---
+                async updateDeliveryStatus(id, status) {
+                    if (!confirm('تغيير حالة الطلب إلى ' + status + '؟')) return;
+
+                    try {
+                        const res = await axios.post('{{ route("pos.delivery.status") }}', { id, status });
+                        if (res.data.success) {
+                            // Fix: Remove from list immediately if delivered/cancelled
+                            if (['delivered', 'cancelled', 'returned'].includes(status)) {
+                                this.deliveryOrders = this.deliveryOrders.filter(o => o.id !== id);
+                            } else {
+                                this.fetchDeliveryOrders();
+                            }
+                            // alert('تم تحديث الحالة');
+                        }
+                    } catch (e) {
+                        alert('فشل تحديث الحالة: ' + (e.response?.data?.message || e.message));
+                    }
+                },
+
+                initDeliveryWatcher() {
+                    this.$watch('selectedCustomer', (val) => {
+                        if (this.isDeliveryMode && val) {
+                            if (!this.shippingAddress && val.address) {
+                                this.shippingAddress = val.address;
+                            }
+                        }
+                    });
+                },
+
+                // --- PHASE 3.5: Returns Logic ---
+                recentTransactions: [],
+                recentTransactionsModal: null,
+                returnModal: null,
+                returnInvoice: null,
+                returnItems: [], // {line_id, quantity, max_qty, price}
+                returnReason: '',
+                returnPin: '',
+
+                openRecentTransactions() {
+                    this.fetchRecentTransactions();
+                    if (this.recentTransactionsModal) this.recentTransactionsModal.show();
+                },
+
+                async fetchRecentTransactions() {
+                    this.isLoading = true;
+                    try {
+                        const res = await axios.get('{{ route("pos.lastTransactions") }}?limit=20');
+                        // Correctly handle the 'data' wrapper from POSController@lastTransactions
+                        this.recentTransactions = res.data.data || res.data;
+                    } catch (e) {
+                        console.error(e);
+                        alert('فشل تحميل العمليات الأخيرة');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                openReturnModal(invoice) {
+                    this.returnInvoice = invoice;
+                    // Fix: Use correct line mapping for invoice items
+                    const lines = invoice.lines || invoice.items || [];
+                    this.returnItems = lines.map(line => ({
+                        line_id: line.id,
+                        product_name: line.product ? (line.product.name || line.product_name) : (line.product_name || 'Unknown'),
+                        original_qty: line.quantity || line.qty,
+                        max_qty: line.remaining_quantity !== undefined ? line.remaining_quantity : (line.quantity || line.qty),
+                        return_qty: 0,
+                        price: line.unit_price || line.price || 0
+                    }));
+                    this.returnReason = '';
+                    this.returnPin = '';
+
+                    if (this.recentTransactionsModal) this.recentTransactionsModal.hide();
+                    if (this.returnModal) this.returnModal.show();
+                },
+
+                async submitReturn() {
+                    const itemsToReturn = this.returnItems
+                        .filter(i => i.return_qty > 0)
+                        .map(i => ({
+                            line_id: i.line_id,
+                            quantity: i.return_qty
+                        }));
+
+                    if (itemsToReturn.length === 0) {
+                        alert('الرجاء تحديد كميات للاسترجاع');
+                        return;
+                    }
+                    if (!this.returnPin) {
+                        alert('الرجاء إدخال رمز الإغلاق (PIN)');
+                        return;
+                    }
+
+                    if (!confirm('تأكيد عملية المرتجع؟')) return;
+
+                    this.isProcessing = true;
+                    try {
+                        const res = await axios.post('{{ route("pos.return") }}', {
+                            invoice_id: this.returnInvoice.id,
+                            items: itemsToReturn,
+                            reason: this.returnReason || 'POS Return',
+                            pin: this.returnPin
+                        });
+
+                        if (res.data.success) {
+                            alert('تم إرجاع الأصناف بنجاح\nرقم المرتجع: ' + (res.data.return?.number || ''));
+                            this.returnModal.hide();
+                            this.openRecentTransactions(); // Re-open list
+                        }
+                    } catch (e) {
+                        alert('فشل المرتجع: ' + (e.response?.data?.message || e.message));
+                    } finally {
+                        this.isProcessing = false;
+                    }
+                },
+
+                // --- PHASE 3: Fullscreen Toggle ---
+                toggleFullScreen() {
+                    if (!document.fullscreenElement) {
+                        document.documentElement.requestFullscreen().catch(err => {
+                            console.error('Fullscreen error:', err);
+                        });
+                        this.isFullscreen = true;
+                    } else {
+                        document.exitFullscreen();
+                        this.isFullscreen = false;
+                    }
+                },
+
+                // --- PHASE 3: Print Last Invoice (F8) ---
+                async printLastInvoice() {
+                    try {
+                        const res = await axios.get('{{ route("pos.lastTransactions") }}?limit=1');
+                        const transactions = res.data.data || res.data;
+                        if (transactions && transactions.length > 0) {
+                            const lastInvoice = transactions[0];
+                            window.open('/pos/receipt/' + lastInvoice.id, '_blank');
+                        } else {
+                            alert('لا توجد فواتير سابقة');
+                        }
+                    } catch (e) {
+                        alert('فشل جلب آخر فاتورة');
+                    }
+                },
+
+                // --- PHASE 3: Cart Discount ---
+                cartDiscount: 0,
+                applyCartDiscount(amount) {
+                    this.cartDiscount = parseFloat(amount) || 0;
+                },
+
+                // --- PHASE 3: Delivery Management ---
+                showDeliveryModal() {
+                    if (!this.deliveryModalInstance) {
+                        this.deliveryModalInstance = new bootstrap.Modal(document.getElementById('deliveryModal'));
+                    }
+                    this.fetchDeliveryOrders();
+                    this.deliveryModalInstance.show();
+                },
+
+                async fetchDeliveryOrders() {
+                    try {
+                        const res = await axios.get('{{ route("pos.delivery.list") }}');
+                        if (res.data.success) {
+                            this.deliveryOrders = res.data.data;
+                        }
+                    } catch (e) {
+                        console.error('Failed to fetch delivery orders:', e);
+                    }
+                },
+
+                async updateDeliveryStatus(id, status) {
+                    if (!confirm('تغيير حالة الطلب إلى ' + status + '؟')) return;
+
+                    try {
+                        const res = await axios.post('{{ route("pos.delivery.status") }}', { id, status });
+                        if (res.data.success) {
+                            // alert('تم تحديث الحالة');
+                            this.fetchDeliveryOrders();
+                        }
+                    } catch (e) {
+                        alert('فشل تحديث الحالة: ' + (e.response?.data?.message || e.message));
+                    }
+                },
+
+                getDeliveryStatusClass(status) {
+                    switch (status) {
+                        case 'ready': return 'bg-primary';
+                        case 'shipped': return 'bg-warning text-dark';
+                        case 'delivered': return 'bg-success';
+                        case 'returned': return 'bg-danger';
+                        case 'cancelled': return 'bg-secondary';
+                        default: return 'bg-secondary';
+                    }
                 }
             }
         }

@@ -57,8 +57,9 @@
                         class="form-select bg-dark text-white border-secondary border-opacity-25 shadow-none"
                         onchange="document.getElementById('filterForm').submit()">
                         <option value="">كل الحالات</option>
-                        @foreach(\Modules\HR\Models\Attendance::getStatusLabels() as $value => $label)
-                            <option value="{{ $value }}" {{ request('status') == $value ? 'selected' : '' }}>{{ $label }}</option>
+                        @foreach(\Modules\HR\Enums\AttendanceStatus::cases() as $status)
+                            <option value="{{ $status->value }}" {{ request('status') == $status->value ? 'selected' : '' }}>
+                                {{ $status->label() }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -124,9 +125,13 @@
                                 </td>
                                 <td class="px-4 py-3 text-center text-info small">{{ $record->duration_formatted }}</td>
                                 <td class="px-4 py-3 text-center">
-                                    <span
-                                        class="badge bg-{{ \Modules\HR\Models\Attendance::getStatusColors()[$record->status] ?? 'secondary' }} rounded-pill px-3 py-1 x-small fw-bold">
-                                        {{ \Modules\HR\Models\Attendance::getStatusLabels()[$record->status] ?? $record->status }}
+                                    @php
+                                        $statusEnum = $record->status instanceof \Modules\HR\Enums\AttendanceStatus ? $record->status : \Modules\HR\Enums\AttendanceStatus::tryFrom($record->status);
+                                        $color = $statusEnum ? $statusEnum->color() : 'secondary';
+                                        $label = $statusEnum ? $statusEnum->label() : $record->status;
+                                    @endphp
+                                    <span class="badge bg-{{ $color }} rounded-pill px-3 py-1 x-small fw-bold">
+                                        {{ $label }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 text-center text-secondary x-small opacity-75">{{ $record->notes ?? '-' }}
@@ -194,8 +199,8 @@
                             <label class="form-label text-secondary small fw-bold">الحالة</label>
                             <select name="status" class="form-select bg-dark text-white border-secondary border-opacity-25"
                                 required>
-                                @foreach(\Modules\HR\Models\Attendance::getStatusLabels() as $value => $label)
-                                    <option value="{{ $value }}">{{ $label }}</option>
+                                @foreach(\Modules\HR\Enums\AttendanceStatus::cases() as $status)
+                                    <option value="{{ $status->value }}">{{ $status->label() }}</option>
                                 @endforeach
                             </select>
                         </div>

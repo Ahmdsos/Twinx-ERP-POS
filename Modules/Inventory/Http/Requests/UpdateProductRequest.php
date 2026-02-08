@@ -18,8 +18,8 @@ class UpdateProductRequest extends FormRequest
         $productId = $this->route('product')->id;
 
         return [
-            'sku' => "sometimes|string|max:50|unique:products,sku,{$productId}",
-            'barcode' => "nullable|string|max:50|unique:products,barcode,{$productId}",
+            'sku' => "sometimes|string|alpha_dash|max:50|unique:products,sku,{$productId}",
+            'barcode' => "nullable|string|alpha_dash|max:50|unique:products,barcode,{$productId}",
             'name' => 'sometimes|string|max:255',
             'description' => 'nullable|string',
             'type' => ['sometimes', Rule::enum(ProductType::class)],

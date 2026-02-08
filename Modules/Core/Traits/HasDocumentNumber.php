@@ -39,9 +39,12 @@ trait HasDocumentNumber
         $year = date('Y');
 
         // Get the last document number for this year
+        // Use lockForUpdate() to prevent race conditions during concurrent creation
+        // This ensures only one request can read/increment at a time
         $lastDocument = static::query()
             ->where($this->getDocumentNumberField(), 'like', "{$prefix}-{$year}-%")
             ->orderByDesc($this->getDocumentNumberField())
+            ->lockForUpdate()
             ->first();
 
         if ($lastDocument) {

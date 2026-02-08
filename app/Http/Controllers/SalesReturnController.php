@@ -12,8 +12,12 @@ use Illuminate\Support\Facades\DB;
 
 class SalesReturnController extends Controller
 {
+    use \Modules\Core\Traits\HasTaxCalculations;
+
     public function index()
     {
+        \Illuminate\Support\Facades\Gate::authorize('sales.manage');
+
         $returns = SalesReturn::with(['customer', 'salesInvoice'])
             ->latest()
             ->paginate(15);
@@ -23,6 +27,8 @@ class SalesReturnController extends Controller
 
     public function create()
     {
+        \Illuminate\Support\Facades\Gate::authorize('sales.manage');
+
         $customers = Customer::all();
         $warehouses = Warehouse::all();
         // Products will serve as a lookup for the frontend
@@ -33,6 +39,8 @@ class SalesReturnController extends Controller
 
     public function store(Request $request)
     {
+        \Illuminate\Support\Facades\Gate::authorize('sales.manage');
+
         $validated = $request->validate([
             'customer_id' => 'required|exists:customers,id',
             'warehouse_id' => 'required|exists:warehouses,id',
@@ -60,26 +68,33 @@ class SalesReturnController extends Controller
             $taxTotal = 0;
 
             foreach ($validated['items'] as $item) {
-                $lineTotal = $item['quantity'] * $item['unit_price'];
-                $tax = 0; // Ideally fetch from product or frontend if passed
+                $product = Product::find($item['product_id']);
+
+                // INTEGRITY: Use central tax calculation
+                $calc = $this->calculateLineTax(
+                    (float) $item['quantity'],
+                    (float) $item['unit_price'],
+                    0, // No line discount on returns usually
+                    $product->tax_rate
+                );
 
                 $return->lines()->create([
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
-                    'unit_price' => $item['unit_price'],
-                    'line_total' => $lineTotal,
-                    'tax_amount' => $tax,
+                    'unit_price' => $calc['unit_price_net'],
+                    'line_total' => $calc['line_total'],
+                    'tax_amount' => $calc['tax_amount'],
                     'item_condition' => $item['condition'] ?? 'resalable',
                 ]);
 
-                $subtotal += $lineTotal;
-                $taxTotal += $tax;
+                $subtotal += $calc['subtotal'];
+                $taxTotal += $calc['tax_amount'];
             }
 
             $return->update([
-                'subtotal' => $subtotal,
-                'tax_amount' => $taxTotal,
-                'total_amount' => $subtotal + $taxTotal,
+                'subtotal' => round($subtotal, 2),
+                'tax_amount' => round($taxTotal, 2),
+                'total_amount' => round($subtotal + $taxTotal, 2),
             ]);
         });
 
@@ -89,12 +104,16 @@ class SalesReturnController extends Controller
 
     public function show(SalesReturn $salesReturn)
     {
+        \Illuminate\Support\Facades\Gate::authorize('sales.manage');
+
         $salesReturn->load(['customer', 'lines.product', 'warehouse']);
         return view('sales.returns.show', compact('salesReturn'));
     }
 
     public function approve(SalesReturn $salesReturn, \Modules\Inventory\Services\InventoryService $inventoryService, \Modules\Accounting\Services\JournalService $journalService)
     {
+        \Illuminate\Support\Facades\Gate::authorize('sales.manage');
+
         if ($salesReturn->status !== SalesReturnStatus::DRAFT) {
             return back()->with('error', 'هذا المرتجع معتمد بالفعل أو تم إلغاؤه');
         }
@@ -114,7 +133,7 @@ class SalesReturnController extends Controller
                         product: $line->product,
                         warehouse: $salesReturn->warehouse,
                         quantity: $line->quantity,
-                        unitCost: $line->unit_price,
+                        unitCost: $line->product->cost_price ?? 0, // FIXED: Use product cost, not sale price
                         type: \Modules\Inventory\Enums\MovementType::RETURN_IN,
                         reference: $salesReturn->return_number,
                         notes: 'Sales Return: ' . $salesReturn->return_number,
@@ -127,17 +146,22 @@ class SalesReturnController extends Controller
             // 2. Financial Side (AR + Revenue reversal)
             // Reverse of Invoice: Dr Sales (or Sales Returns), Dr Tax, Cr Accounts Receivable
 
-            $arAccount = \Modules\Accounting\Models\Account::where('code', '1201')->first(); // Receivables
-            $salesReturnAccount = \Modules\Accounting\Models\Account::where('code', '4102')->first()
-                ?? \Modules\Accounting\Models\Account::where('code', '4101')->first(); // Sales Returns or Sales Revenue
-            $taxAccount = \Modules\Accounting\Models\Account::where('code', '2105')->first(); // Tax Payable
+            // FIXED: Use Settings for account codes instead of hardcoded values
+            $arCode = \App\Models\Setting::getValue('acc_ar', '1201');
+            $salesReturnCode = \App\Models\Setting::getValue('acc_sales_return', '4102');
+            $taxCode = \App\Models\Setting::getValue('acc_tax_payable', '2201'); // Standardizing tax payable code
+
+            $arAccount = \Modules\Accounting\Models\Account::where('code', $arCode)->first();
+            $salesReturnAccount = \Modules\Accounting\Models\Account::where('code', $salesReturnCode)->first()
+                ?? \Modules\Accounting\Models\Account::where('code', '4101')->first(); // Fallback to Sales Revenue
+            $taxAccount = \Modules\Accounting\Models\Account::where('code', $taxCode)->first();
 
             if ($arAccount && $salesReturnAccount) {
                 $lines = [
                     // Debit Sales/Returns (Reduce Income)
                     [
                         'account_id' => $salesReturnAccount->id,
-                        'debit' => $salesReturn->subtotal,
+                        'debit' => round($salesReturn->subtotal, 2),
                         'credit' => 0,
                         'description' => 'Returns Value'
                     ],
@@ -145,7 +169,9 @@ class SalesReturnController extends Controller
                     [
                         'account_id' => $arAccount->id,
                         'debit' => 0,
-                        'credit' => $salesReturn->total_amount,
+                        'credit' => round($salesReturn->total_amount, 2),
+                        'subledger_type' => Customer::class,
+                        'subledger_id' => $salesReturn->customer_id,
                         'description' => 'Credit to Customer ' . $salesReturn->customer->name
                     ],
                 ];
@@ -154,7 +180,7 @@ class SalesReturnController extends Controller
                 if ($salesReturn->tax_amount > 0 && $taxAccount) {
                     $lines[] = [
                         'account_id' => $taxAccount->id,
-                        'debit' => $salesReturn->tax_amount,
+                        'debit' => round($salesReturn->tax_amount, 2),
                         'credit' => 0,
                         'description' => 'Tax Reversal'
                     ];

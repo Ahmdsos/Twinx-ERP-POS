@@ -44,6 +44,7 @@ class SalesInvoice extends Model
         'shipping_address',
         'warehouse_id',
         'pos_shift_id',
+        'created_by', // Phase 3: Allow cashier assignment
     ];
 
     protected $casts = [
@@ -71,6 +72,22 @@ class SalesInvoice extends Model
     }
 
     // ========================================
+    // Boot Events
+    // ========================================
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($invoice) {
+            // Phase 2.3: due_date must be >= invoice_date
+            if ($invoice->due_date && $invoice->invoice_date && $invoice->due_date < $invoice->invoice_date) {
+                throw new \RuntimeException("تاريخ الاستحقاق لا يمكن أن يكون قبل تاريخ الفاتورة");
+            }
+        });
+    }
+
+    // ========================================
     // Relationships
     // ========================================
 
@@ -92,6 +109,11 @@ class SalesInvoice extends Model
     public function lines(): HasMany
     {
         return $this->hasMany(SalesInvoiceLine::class);
+    }
+
+    public function returns(): HasMany
+    {
+        return $this->hasMany(SalesReturn::class);
     }
 
     public function journalEntry(): BelongsTo

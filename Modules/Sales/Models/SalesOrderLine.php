@@ -86,6 +86,11 @@ class SalesOrderLine extends Model
 
     public function calculateTotals(): void
     {
+        // Phase 2.3 Validation: Prevent discount > 100%
+        if ($this->discount_percent > 100) {
+            throw new \RuntimeException("نسبة الخصم لا يمكن أن تتجاوز 100%");
+        }
+
         $subtotal = $this->quantity * $this->unit_price;
 
         if ($this->discount_percent > 0) {

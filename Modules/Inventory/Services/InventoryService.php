@@ -317,20 +317,39 @@ class InventoryService
         string $direction
     ): void {
         $totalCost = abs($movement->total_cost);
+        $movementType = $movement->type;
+
+        // Inventory Account is always one side
+        $inventoryAccountId = $product->inventory_account_id;
+
+        // Determine the offset account based on movement type
+        $offsetAccountCode = match ($movementType) {
+            MovementType::INITIAL => \App\Models\Setting::getValue('acc_opening_balance', '3101'),
+            MovementType::ADJUSTMENT_IN, MovementType::ADJUSTMENT_OUT => \App\Models\Setting::getValue('acc_inventory_adj', '5201'),
+            MovementType::RETURN_IN, MovementType::SALE => \App\Models\Setting::getValue('acc_cogs', '5101'),
+            MovementType::PURCHASE => \App\Models\Setting::getValue('acc_purchase_suspense', '2101'),
+            default => \App\Models\Setting::getValue('acc_inventory_other', '5202'),
+        };
+
+        $offsetAccount = Account::where('code', $offsetAccountCode)->first();
+        if (!$offsetAccount) {
+            // Fallback to product's purchase account if specific setting fails
+            $offsetAccountId = $product->purchase_account_id;
+        } else {
+            $offsetAccountId = $offsetAccount->id;
+        }
 
         if ($direction === 'add') {
-            // DR Inventory, CR COGS/Purchases
+            // DR Inventory, CR Offset (e.g., ADJ_IN, INITIAL)
             $lines = [
-                ['account_id' => $product->inventory_account_id, 'debit' => $totalCost, 'credit' => 0],
-                ['account_id' => $product->purchase_account_id, 'debit' => 0, 'credit' => $totalCost],
+                ['account_id' => $inventoryAccountId, 'debit' => $totalCost, 'credit' => 0],
+                ['account_id' => $offsetAccountId, 'debit' => 0, 'credit' => $totalCost],
             ];
         } else {
-            // DR COGS, CR Inventory
-            $cogsCode = \App\Models\Setting::getValue('acc_cogs', '5101');
-            $cogsAccount = Account::where('code', $cogsCode)->first(); // Cost of Goods Sold
+            // DR Offset (e.g., ADJ_OUT, SALE), CR Inventory
             $lines = [
-                ['account_id' => $cogsAccount?->id ?? $product->purchase_account_id, 'debit' => $totalCost, 'credit' => 0],
-                ['account_id' => $product->inventory_account_id, 'debit' => 0, 'credit' => $totalCost],
+                ['account_id' => $offsetAccountId, 'debit' => $totalCost, 'credit' => 0],
+                ['account_id' => $inventoryAccountId, 'debit' => 0, 'credit' => $totalCost],
             ];
         }
 
@@ -342,13 +361,10 @@ class InventoryService
             'source_id' => $movement->id,
         ], $lines);
 
-        // Auto-post inventory journals
-        try {
-            $this->journalService->post($entry);
-        } catch (\Exception $e) {
-            // Log error but don't fail the transaction, as movement is critical
-            \Illuminate\Support\Facades\Log::error("Failed to post inventory journal: " . $e->getMessage());
-        }
+        // Auto-post inventory journals - MUST succeed for data integrity
+        // If posting fails, the entire transaction should rollback to prevent
+        // stock movement without corresponding accounting entry
+        $this->journalService->post($entry);
 
         $movement->update(['journal_entry_id' => $entry->id]);
     }

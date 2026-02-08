@@ -248,7 +248,8 @@
                                 <div class="input-group">
                                     <input type="number" step="0.5" name="tax_rate"
                                         class="form-control form-control-dark border-end-0 text-white placeholder-gray-600 focus-ring-purple"
-                                        value="{{ old('tax_rate', $product->tax_rate ?? 14) }}" placeholder="14">
+                                        value="{{ old('tax_rate', $product->tax_rate ?? \App\Models\Setting::getValue('default_tax_rate', 14)) }}"
+                                        placeholder="{{ \App\Models\Setting::getValue('default_tax_rate', 14) }}">
                                     <span class="input-group-text bg-dark-input border-start-0 text-gray-500">%</span>
                                 </div>
                             </div>

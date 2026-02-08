@@ -29,6 +29,8 @@ class Expense extends Model
         'journal_entry_id',
         'created_by',
         'approved_by',
+        'pos_shift_id',
+        'user_id',
     ];
 
     protected $casts = [
@@ -36,6 +38,7 @@ class Expense extends Model
         'amount' => 'decimal:2',
         'tax_amount' => 'decimal:2',
         'total_amount' => 'decimal:2',
+        'pos_shift_id' => 'integer',
     ];
 
     public function getDocumentPrefix(): string
@@ -50,7 +53,7 @@ class Expense extends Model
 
     public function category(): BelongsTo
     {
-        return $this->belongsTo(ExpenseCategory::class);
+        return $this->belongsTo(ExpenseCategory::class, 'category_id');
     }
 
     public function paymentAccount(): BelongsTo
@@ -61,6 +64,11 @@ class Expense extends Model
     public function journalEntry(): BelongsTo
     {
         return $this->belongsTo(JournalEntry::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function creator(): BelongsTo

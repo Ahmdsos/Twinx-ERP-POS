@@ -21,7 +21,7 @@ class StockReportService
     public function stockValuation(?int $warehouseId = null): array
     {
         $query = ProductStock::query()
-            ->with(['product', 'warehouse'])
+            ->with(['product.category', 'product.brand', 'warehouse'])
             ->where('quantity', '>', 0);
 
         if ($warehouseId) {
@@ -41,10 +41,13 @@ class StockReportService
                 'product_id' => $stock->product_id,
                 'sku' => $stock->product->sku,
                 'product_name' => $stock->product->name,
+                'category_name' => $stock->product->category?->name,
+                'brand_name' => $stock->product->brand?->name,
                 'warehouse_id' => $stock->warehouse_id,
                 'warehouse_name' => $stock->warehouse->name,
                 'quantity' => (float) $stock->quantity,
                 'average_cost' => round($stock->average_cost, 4),
+                'selling_price' => (float) $stock->product->selling_price,
                 'total_value' => round($value, 2),
             ];
 
@@ -72,7 +75,7 @@ class StockReportService
     public function lowStock(?int $warehouseId = null): array
     {
         $query = Product::query()
-            ->with(['stocks.warehouse'])
+            ->with(['category', 'brand', 'stocks.warehouse'])
             ->where('is_active', true)
             ->where('reorder_level', '>', 0);
 
@@ -90,6 +93,8 @@ class StockReportService
                         'product_id' => $product->id,
                         'sku' => $product->sku,
                         'product_name' => $product->name,
+                        'category_name' => $product->category?->name,
+                        'brand_name' => $product->brand?->name,
                         'warehouse_id' => $stock->warehouse_id,
                         'warehouse_name' => $stock->warehouse->name,
                         'current_stock' => (float) $stock->quantity,

@@ -57,7 +57,7 @@ class PosShift extends Model
 
     public function expenses(): HasMany
     {
-        return $this->hasMany(\Modules\Accounting\Models\Expense::class, 'pos_shift_id');
+        return $this->hasMany(\Modules\Finance\Models\Expense::class, 'pos_shift_id');
     }
 
     public function returns(): HasMany
@@ -103,6 +103,7 @@ class PosShift extends Model
 
         // Close any existing open shifts for this user
         $existingShifts = static::open()->forUser($userId)->get();
+        /** @var self $shift */
         foreach ($existingShifts as $shift) {
             $shift->close($shift->opening_cash + $shift->total_cash, 'System Auto-Close'); // Force close
         }

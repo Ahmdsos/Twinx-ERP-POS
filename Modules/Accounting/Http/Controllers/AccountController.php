@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace Modules\Accounting\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Accounting\Models\Account;
 use Modules\Accounting\Enums\AccountType;
@@ -149,8 +150,6 @@ class AccountController extends Controller
         $runningBalance = $openingBalance;
 
         $ledgerEntries = $transactions->map(function ($line) use (&$runningBalance, $account) {
-            // For asset/expense accounts: debit increases, credit decreases
-            // For liability/equity/revenue: credit increases, debit decreases
             if (in_array($account->type->value, ['asset', 'expense'])) {
                 $runningBalance += $line->debit - $line->credit;
             } else {
@@ -169,7 +168,6 @@ class AccountController extends Controller
             ];
         });
 
-        // Summary stats
         $totalDebit = $transactions->sum('debit');
         $totalCredit = $transactions->sum('credit');
         $closingBalance = $runningBalance;
@@ -186,9 +184,6 @@ class AccountController extends Controller
         ));
     }
 
-    /**
-     * Calculate opening balance before start date
-     */
     private function calculateOpeningBalance(Account $account, string $startDate): float
     {
         $lines = $account->journalLines()
@@ -210,9 +205,6 @@ class AccountController extends Controller
         return $balance;
     }
 
-    /**
-     * Show edit form
-     */
     public function edit(Account $account)
     {
         $types = AccountType::cases();
@@ -224,9 +216,6 @@ class AccountController extends Controller
         return view('accounting.accounts.edit', compact('account', 'types', 'parentAccounts'));
     }
 
-    /**
-     * Update account
-     */
     public function update(Request $request, Account $account)
     {
         $validated = $request->validate([
@@ -246,9 +235,6 @@ class AccountController extends Controller
             ->with('success', 'تم تحديث الحساب بنجاح');
     }
 
-    /**
-     * Delete account
-     */
     public function destroy(Account $account)
     {
         if ($account->journalLines()->exists()) {

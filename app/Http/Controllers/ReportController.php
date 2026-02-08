@@ -3,16 +3,29 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Modules\Reports\Services\ReportService;
+use Modules\Reporting\Services\FinancialReportService;
+use Modules\Reporting\Services\StockReportService;
+use Modules\Reporting\Services\SalesReportService;
+use Modules\Reporting\Services\PurchaseReportService;
 use Carbon\Carbon;
 
 class ReportController extends Controller
 {
-    protected $reportService;
+    protected FinancialReportService $financialReportService;
+    protected StockReportService $stockReportService;
+    protected SalesReportService $salesReportService;
+    protected PurchaseReportService $purchaseReportService;
 
-    public function __construct(ReportService $reportService)
-    {
-        $this->reportService = $reportService;
+    public function __construct(
+        FinancialReportService $financialReportService,
+        StockReportService $stockReportService,
+        SalesReportService $salesReportService,
+        PurchaseReportService $purchaseReportService
+    ) {
+        $this->financialReportService = $financialReportService;
+        $this->stockReportService = $stockReportService;
+        $this->salesReportService = $salesReportService;
+        $this->purchaseReportService = $purchaseReportService;
     }
 
     public function index()
@@ -28,9 +41,35 @@ class ReportController extends Controller
 
         $data = [];
         if ($reportType === 'pl') {
-            $data = $this->reportService->getProfitAndLoss($startDate, $endDate);
+            $modernData = $this->financialReportService->profitAndLoss(
+                Carbon::parse($startDate),
+                Carbon::parse($endDate)
+            );
+            // Map to legacy format for back-compatibility with views
+            $data = [
+                'revenue' => [
+                    'total' => $modernData['revenue']['total'],
+                    'details' => collect($modernData['revenue']['details'])->map(fn($i) => (object) $i)
+                ],
+                'expenses' => [
+                    'total' => $modernData['expenses']['total'],
+                    'details' => collect($modernData['expenses']['details'])->map(fn($i) => (object) $i)
+                ],
+                'net_profit' => $modernData['summary']['net_income']
+            ];
         } else {
-            $data = $this->reportService->getBalanceSheet($endDate);
+            $modernData = $this->financialReportService->balanceSheet(Carbon::parse($endDate));
+            // Map to legacy format
+            $data = [
+                'assets' => collect($modernData['assets']['details'])->map(fn($i) => (object) $i)->groupBy('parent_id'),
+                'liabilities' => collect($modernData['liabilities']['details'])->map(fn($i) => (object) $i)->groupBy('parent_id'),
+                'equity' => collect($modernData['equity']['details'])->map(fn($i) => (object) $i)->groupBy('parent_id'),
+                'totals' => [
+                    'assets' => $modernData['assets']['total'],
+                    'liabilities' => $modernData['liabilities']['total'],
+                    'equity' => $modernData['equity']['total'],
+                ]
+            ];
         }
 
         return view('reports.financial.profit-loss', compact('data', 'startDate', 'endDate', 'reportType'));
@@ -41,7 +80,10 @@ class ReportController extends Controller
         $startDate = $request->input('start_date', Carbon::now()->startOfYear()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
 
-        $data = $this->reportService->getSalesByProduct($startDate, $endDate);
+        $data = collect($this->salesReportService->salesByProduct(
+            Carbon::parse($startDate),
+            Carbon::parse($endDate)
+        ))->map(fn($i) => (object) $i);
 
         return view('reports.sales.by-product', compact('data', 'startDate', 'endDate'));
     }
@@ -51,7 +93,10 @@ class ReportController extends Controller
         $startDate = $request->input('start_date', Carbon::now()->startOfYear()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
 
-        $data = $this->reportService->getSalesByCustomer($startDate, $endDate);
+        $data = collect($this->salesReportService->salesByCustomer(
+            Carbon::parse($startDate),
+            Carbon::parse($endDate)
+        ))->map(fn($i) => (object) $i);
 
         return view('reports.sales.by-customer', compact('data', 'startDate', 'endDate'));
     }
@@ -61,16 +106,33 @@ class ReportController extends Controller
         $startDate = $request->input('start_date', Carbon::now()->startOfYear()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
 
-        $data = $this->reportService->getPurchasesBySupplier($startDate, $endDate);
+        $data = collect($this->purchaseReportService->purchasesBySupplier(
+            Carbon::parse($startDate),
+            Carbon::parse($endDate)
+        ))->map(fn($i) => (object) $i);
 
         return view('reports.purchases.by-supplier', compact('data', 'startDate', 'endDate'));
     }
 
     public function inventory()
     {
-        $stockValue = $this->reportService->getStockValuation();
+        $modernData = $this->stockReportService->stockValuation();
 
-        $totalCostValue = $stockValue->sum('total_cost_value');
+        // Map to legacy expected format
+        $stockValue = collect($modernData['items'])->map(fn($item) => (object) [
+            'id' => $item['product_id'],
+            'name' => $item['product_name'],
+            'sku' => $item['sku'],
+            'category_name' => $item['category_name'],
+            'brand_name' => $item['brand_name'],
+            'stock_quantity' => $item['quantity'],
+            'cost_price' => $item['average_cost'],
+            'selling_price' => $item['selling_price'],
+            'total_cost_value' => $item['total_value'],
+            'total_retail_value' => $item['quantity'] * ($item['average_cost'] * 1.5) // Approximate retail if not tracked
+        ]);
+
+        $totalCostValue = $modernData['summary']['total_value'];
         $totalRetailValue = $stockValue->sum('total_retail_value');
 
         return view('reports.inventory.valuation', compact('stockValue', 'totalCostValue', 'totalRetailValue'));
@@ -78,7 +140,18 @@ class ReportController extends Controller
 
     public function lowStock()
     {
-        $lowStockItems = $this->reportService->getLowStockAlerts();
+        $modernData = $this->stockReportService->lowStock();
+
+        // Map to legacy format
+        $lowStockItems = collect($modernData['items'])->map(fn($item) => (object) [
+            'id' => $item['product_id'],
+            'name' => $item['product_name'],
+            'sku' => $item['sku'],
+            'category_name' => $item['category_name'],
+            'brand_name' => $item['brand_name'],
+            'current_stock' => $item['current_stock'],
+            'reorder_level' => $item['min_level']
+        ]);
 
         return view('reports.inventory.low-stock', compact('lowStockItems'));
     }

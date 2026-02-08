@@ -232,7 +232,7 @@ class FinancialReportService
                 $breakdown[] = [
                     'code' => $account->code,
                     'name' => $account->name,
-                    'amount' => round($balance, 2),
+                    'period_balance' => round($balance, 2),
                 ];
             }
         }
@@ -254,7 +254,7 @@ class FinancialReportService
                 $breakdown[] = [
                     'code' => $account->code,
                     'name' => $account->name,
-                    'amount' => round($balance, 2),
+                    'period_balance' => round($balance, 2),
                 ];
             }
         }

@@ -34,15 +34,18 @@ class POSController extends Controller
     protected JournalService $journalService;
     protected InventoryService $inventoryService;
     protected POSService $posService;
+    protected \Modules\Finance\Services\ExpenseService $expenseService;
 
     public function __construct(
         JournalService $journalService,
         InventoryService $inventoryService,
-        POSService $posService
+        POSService $posService,
+        \Modules\Finance\Services\ExpenseService $expenseService
     ) {
         $this->journalService = $journalService;
         $this->inventoryService = $inventoryService;
         $this->posService = $posService;
+        $this->expenseService = $expenseService;
     }
 
     /**
@@ -782,7 +785,7 @@ class POSController extends Controller
         }
 
         // Get expenses and returns for the current shift
-        $expenses = \Modules\Accounting\Models\Expense::where('pos_shift_id', $activeShift->id)->get();
+        $expenses = \Modules\Finance\Models\Expense::where('pos_shift_id', $activeShift->id)->get();
         // Returns logic: We need to know which returns affected CASH.
         // For now, assume all returns are CASH (deducted from drawer).
         // TODO: Future enhancement to track return payment method.
@@ -811,10 +814,6 @@ class POSController extends Controller
             'total_card' => (float) $activeShift->total_card,
             'total_credit' => (float) $activeShift->total_credit,
 
-            'items_sold' => (float) 0, // Expensive to calc on the fly, simplified for speed or implement query if needed.
-            // Let's keep items_sold query if it's fast enough, but counters are preferred.
-            // Rethink: The old query summed quantities. Let's keep it for now but optimize later.
-            // actually, let's use a query for items_sold, it's safer than adding another counter now.
             'items_sold' => \Modules\Sales\Models\SalesInvoice::where('pos_shift_id', $activeShift->id)
                 ->join('sales_invoice_lines', 'sales_invoices.id', '=', 'sales_invoice_lines.sales_invoice_id')
                 ->sum('sales_invoice_lines.quantity'),
@@ -850,21 +849,18 @@ class POSController extends Controller
         }
 
         try {
-            // Use default Expense Account (e.g. Petty Cash / Drawer operations)
-            // If checking settings: \App\Models\Setting::getValue('acc_expense_default')
-            // For now, find first expense category or create 'General'
+            // Use default Expense Category
             $category = \Modules\Finance\Models\ExpenseCategory::firstOrCreate(
                 ['name' => 'نثريات تشغيل'],
-                ['code' => 'EXP-GEN', 'type' => 'operational']
+                ['code' => 'EXP-GEN', 'is_active' => true]
             );
 
-            // Create Expense
-            \Modules\Accounting\Models\Expense::create([
+            // Record Expense via Service (Handles GL Posting)
+            $expense = $this->expenseService->recordExpense([
                 'expense_date' => now(),
                 'category_id' => $category->id,
-                'payment_account_id' => 1, // TODO: Use dynamic 'Cash' account from settings or shift drawer
+                'payment_account_id' => 1, // Cash account
                 'amount' => $request->amount,
-                'tax_amount' => 0,
                 'total_amount' => $request->amount,
                 'payee' => 'POS Ops',
                 'notes' => $request->notes . ' (Shift #' . $activeShift->id . ')',
@@ -876,8 +872,8 @@ class POSController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Expense saved',
-                'balance' => $activeShift->refresh()->expected_cash // potential to return updated balance
+                'message' => 'Expense saved and posted to GL',
+                'balance' => $activeShift->refresh()->expected_cash
             ]);
 
         } catch (\Exception $e) {
@@ -1021,13 +1017,15 @@ class POSController extends Controller
             'category_id' => 'nullable|integer',
         ]);
 
-        $expense = \Modules\Accounting\Models\Expense::create([
+        $expense = \Modules\Finance\Models\Expense::create([
             'expense_date' => now(),
             'amount' => $request->amount,
             'notes' => $request->notes,
             'user_id' => auth()->id(),
             'pos_shift_id' => \App\Models\PosShift::getActiveShift()?->id,
             'category_id' => $request->category_id,
+            'total_amount' => $request->amount, // Finance model requires total_amount
+            'status' => 'approved',
         ]);
 
         return response()->json(['success' => true, 'message' => 'تم تسجيل المصروف بنجاح', 'expense' => $expense]);

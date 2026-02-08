@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace Modules\Accounting\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Accounting\Models\JournalEntry;
 use Modules\Accounting\Models\JournalEntryLine;
@@ -252,7 +253,7 @@ class JournalEntryController extends Controller
      */
     public function reverse(Request $request, JournalEntry $journalEntry)
     {
-        if (!$journalEntry->canBeReversed()) {
+        if (!$journalEntry->canBeversed()) {
             return back()->with('error', 'لا يمكن عكس هذا القيد');
         }
 

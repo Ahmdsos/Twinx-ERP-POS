@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace Modules\Core\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\InvoiceEmail;
@@ -12,10 +13,10 @@ use Modules\Inventory\Models\Product;
 use Modules\Sales\Models\Customer;
 
 /**
- * Notification Controller
- * Handles email notifications and alerts
+ * NotificationsController
+ * Handles email notifications and alerts at the Core module level
  */
-class NotificationController extends Controller
+class NotificationsController extends Controller
 {
     /**
      * Send invoice to customer via email

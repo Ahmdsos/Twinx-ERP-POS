@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\AccountController;
+use Modules\Accounting\Http\Controllers\AccountController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SupplierController;
@@ -22,7 +22,7 @@ use App\Http\Controllers\SupplierPaymentController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\CourierController;
 use App\Http\Controllers\ReportController;
-use App\Http\Controllers\JournalEntryController;
+use Modules\Accounting\Http\Controllers\JournalEntryController;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\POSController;
 use App\Http\Controllers\ProductImageController;

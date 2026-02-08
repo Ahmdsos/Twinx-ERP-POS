@@ -22,3 +22,15 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Build artifacts / installers
+dist/
+win-unpacked/
+*.exe
+*.msi
+*.dmg
+*.AppImage
+out/
+release/
+release-builds/
+

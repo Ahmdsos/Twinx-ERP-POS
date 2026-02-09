@@ -130,9 +130,14 @@
     <div class="client-info">
         <div>
             <h3 style="margin-top: 0">بيانات العميل</h3>
-            <p><strong>الاسم:</strong> {{ $quotation->customer->name }}</p>
-            <p><strong>العنوان:</strong> {{ $quotation->customer->address ?? '-' }}</p>
-            <p><strong>الهاتف:</strong> {{ $quotation->customer->phone ?? '-' }}</p>
+            @if($quotation->customer)
+                <p><strong>الاسم:</strong> {{ $quotation->customer->name }}</p>
+                <p><strong>العنوان:</strong> {{ $quotation->customer->address ?? '-' }}</p>
+                <p><strong>الهاتف:</strong> {{ $quotation->customer->phone ?? '-' }}</p>
+            @else
+                <p><strong>الفئة المستهدفة:</strong> {{ $quotation->target_customer_type_label }}</p>
+                <p style="color: #666; font-size: 0.9em;">(هذا العرض ساري لجميع عملاء هذه الفئة)</p>
+            @endif
         </div>
     </div>
 

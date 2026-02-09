@@ -266,29 +266,101 @@
 
         <!-- Page Content -->
         <main class="content px-4 pb-5 flex-grow-1">
-            <!-- Flash Messages -->
-            @if(session('success'))
-                <x-alert type="success" class="mb-4 shadow-sm border-0">{{ session('success') }}</x-alert>
-            @endif
-            @if(session('error'))
-                <x-alert type="danger" class="mb-4 shadow-sm border-0">{{ session('error') }}</x-alert>
-            @endif
-            @if ($errors->any())
-                <x-alert type="danger" class="mb-4 shadow-sm border-0">
-                    <ul class="mb-0 ps-3">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </x-alert>
-            @endif
-
             @yield('content')
         </main>
     </div>
 
     <script src="{{ asset('assets/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('assets/vendor/jquery/jquery.min.js') }}"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        $(document).ready(function () {
+            // SweetAlert2 Configuration
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                background: '#1e293b',
+                color: '#fff',
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                    toast.addEventListener('mouseleave', Swal.resumeTimer)
+                }
+            });
+
+            // Global Flash Messages
+            @if(session('success'))
+                Toast.fire({
+                    icon: 'success',
+                    title: "{{ session('success') }}"
+                });
+            @endif
+
+            @if(session('error'))
+                Swal.fire({
+                    icon: 'error',
+                    title: 'خطأ',
+                    text: "{{ session('error') }}",
+                    background: '#1e293b',
+                    color: '#fff',
+                    confirmButtonColor: '#3b82f6',
+                    confirmButtonText: 'موافق'
+                });
+            @endif
+
+            @if($errors->any())
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'تنبيه',
+                    html: '<div class="text-start"><ul class="mb-0">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>',
+                    background: '#1e293b',
+                    color: '#fff',
+                    confirmButtonColor: '#3b82f6',
+                    confirmButtonText: 'موافق'
+                });
+            @endif
+
+            // Global Confirm Helper
+            window.confirmAction = function(options) {
+                return Swal.fire({
+                    title: options.title || 'هل أنت متأكد؟',
+                    text: options.text || 'لن تتمكن من التراجع عن هذا الإجراء!',
+                    icon: options.icon || 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: options.confirmColor || '#3b82f6',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: options.confirmText || 'نعم، أؤكد',
+                    cancelButtonText: options.cancelText || 'إلغاء',
+                    background: '#1e293b',
+                    color: '#fff',
+                    reverseButtons: true
+                });
+            };
+
+            // Auto-intercept forms with data-confirm
+            $(document).on('submit', 'form[data-confirm]', function(e) {
+                e.preventDefault();
+                const form = this;
+                const message = $(form).data('confirm');
+                const title = $(form).data('confirm-title') || 'تأكيد الإجراء';
+                
+                window.confirmAction({
+                    title: title,
+                    text: message,
+                    confirmText: 'نعم، استمر',
+                    confirmColor: '#3b82f6'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
     @stack('scripts')
 </body>
 

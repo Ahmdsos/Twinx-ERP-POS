@@ -90,9 +90,10 @@
         <div class="row mb-5">
             <div class="col-6">
                 <h5 class="fw-bold border-bottom pb-2">بيانات العميل</h5>
-                <p class="mb-1"><strong>الاسم:</strong> {{ $salesInvoice->customer->name ?? 'عابر' }}</p>
-                <p class="mb-1"><strong>الهاتف:</strong> {{ $salesInvoice->customer->phone ?? '-' }}</p>
-                <p class="mb-1"><strong>العنوان:</strong> {{ $salesInvoice->customer->billing_address ?? '-' }}</p>
+                <p class="mb-1"><strong>الاسم:</strong> {{ optional($salesInvoice->customer)->name ?? 'عابر' }}</p>
+                <p class="mb-1"><strong>الهاتف:</strong> {{ optional($salesInvoice->customer)->phone ?? '-' }}</p>
+                <p class="mb-1"><strong>العنوان:</strong>
+                    {{ optional($salesInvoice->customer)->billing_address ?? '-' }}</p>
             </div>
             <div class="col-6">
                 <!-- Additional Info -->

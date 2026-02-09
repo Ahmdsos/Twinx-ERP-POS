@@ -21,7 +21,7 @@ return new class extends Migration {
             $table->id();
             $table->string('name');
             $table->string('code')->unique(); // Ensure code is unique
-            $table->string('type')->default('individual'); // Basic string, handled by app validation
+            $table->string('type')->default('consumer'); // Basic string, handled by app validation
             $table->string('email')->nullable()->unique();
             $table->string('phone')->nullable();
             $table->string('mobile')->nullable();

@@ -269,51 +269,63 @@
     @endcan
 
     <!-- HR Module -->
-    <li class="nav-item mb-1">
-        <a class="nav-link d-flex justify-content-between align-items-center collapsed" data-bs-toggle="collapse"
-            href="#hrMenu" role="button" aria-expanded="false">
-            <div class="d-flex align-items-center">
-                <i class="bi bi-people me-3 fs-5"></i>
-                <span class="fw-medium">الموارد البشرية</span>
+    @if(auth()->user()->canAny(['hr.view', 'hr.employees.view', 'hr.payroll.view', 'hr.leave.view', 'couriers.manage']))
+        <li class="nav-item mb-1">
+            <a class="nav-link d-flex justify-content-between align-items-center collapsed" data-bs-toggle="collapse"
+                href="#hrMenu" role="button" aria-expanded="false">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-people me-3 fs-5"></i>
+                    <span class="fw-medium">الموارد البشرية</span>
+                </div>
+                <i class="bi bi-chevron-down small transition-icon opacity-50"></i>
+            </a>
+            <div class="collapse {{ request()->is('hr*') ? 'show' : '' }}" id="hrMenu">
+                <ul class="nav flex-column ms-3 mt-1 border-secondary border-opacity-10 ps-3"
+                    style="border-right: 1px solid rgba(255,255,255,0.1);">
+                    @can('hr.view')
+                        <li class="nav-item">
+                            <a class="nav-link py-2 fs-6 {{ request()->routeIs('hr.dashboard') ? 'text-white fw-bold' : '' }}"
+                                href="{{ route('hr.dashboard') }}">
+                                لوحة التحكم
+                            </a>
+                        </li>
+                    @endcan
+                    @can('hr.employees.view')
+                        <li class="nav-item">
+                            <a class="nav-link py-2 fs-6 {{ request()->routeIs('hr.employees.*') ? 'text-white fw-bold' : '' }}"
+                                href="{{ route('hr.employees.index') }}">
+                                إدارة الموظفين
+                            </a>
+                        </li>
+                    @endcan
+                    @can('hr.leave.view')
+                        <li class="nav-item">
+                            <a class="nav-link py-2 fs-6 {{ request()->routeIs('hr.leaves.*') ? 'text-white fw-bold' : '' }}"
+                                href="{{ route('hr.leaves.index') }}">
+                                إدارة الإجازات
+                            </a>
+                        </li>
+                    @endcan
+                    @can('hr.payroll.view')
+                        <li class="nav-item">
+                            <a class="nav-link py-2 fs-6 {{ request()->routeIs('hr.payroll.*') ? 'text-white fw-bold' : '' }}"
+                                href="{{ route('hr.payroll.index') }}">
+                                مسيرات الرواتب
+                            </a>
+                        </li>
+                    @endcan
+                    @can('couriers.manage')
+                        <li class="nav-item">
+                            <a class="nav-link py-2 fs-6 {{ request()->routeIs('hr.delivery.*') ? 'text-white fw-bold' : '' }}"
+                                href="{{ route('hr.delivery.index') }}">
+                                إدارة التوصيل
+                            </a>
+                        </li>
+                    @endcan
+                </ul>
             </div>
-            <i class="bi bi-chevron-down small transition-icon opacity-50"></i>
-        </a>
-        <div class="collapse {{ request()->is('hr*') ? 'show' : '' }}" id="hrMenu">
-            <ul class="nav flex-column ms-3 mt-1 border-secondary border-opacity-10 ps-3"
-                style="border-right: 1px solid rgba(255,255,255,0.1);">
-                <li class="nav-item">
-                    <a class="nav-link py-2 fs-6 {{ request()->routeIs('hr.dashboard') ? 'text-white fw-bold' : '' }}"
-                        href="{{ route('hr.dashboard') }}">
-                        لوحة التحكم
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link py-2 fs-6 {{ request()->routeIs('hr.employees.*') ? 'text-white fw-bold' : '' }}"
-                        href="{{ route('hr.employees.index') }}">
-                        إدارة الموظفين
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link py-2 fs-6 {{ request()->routeIs('hr.leaves.*') ? 'text-white fw-bold' : '' }}"
-                        href="{{ route('hr.leaves.index') }}">
-                        إدارة الإجازات
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link py-2 fs-6 {{ request()->routeIs('hr.payroll.*') ? 'text-white fw-bold' : '' }}"
-                        href="{{ route('hr.payroll.index') }}">
-                        مسيرات الرواتب
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link py-2 fs-6 {{ request()->routeIs('hr.delivery.*') ? 'text-white fw-bold' : '' }}"
-                        href="{{ route('hr.delivery.index') }}">
-                        إدارة التوصيل
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </li>
+        </li>
+    @endif
 
 
     <!-- Divider -->

@@ -133,29 +133,29 @@
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                    <td>
-                        <select name="lines[${index}][product_id]" class="form-select form-select-dark product-select" required onchange="updatePrice(this)">
-                            <option value="">اختر المنتج...</option>
-                            ${products.map(p => `<option value="${p.id}" data-price="${p.cost_price}">${p.name} (${p.sku})</option>`).join('')}
-                        </select>
-                    </td>
-                    <td>
-                        <input type="number" name="lines[${index}][quantity]" class="form-control form-control-dark text-center qty-input" 
-                            value="1" min="1" step="any" required oninput="calculateRow(this)">
-                    </td>
-                    <td>
-                        <input type="number" step="0.01" name="lines[${index}][unit_price]" class="form-control form-control-dark text-center price-input" 
-                            value="0.00" min="0" required oninput="calculateRow(this)">
-                    </td>
-                    <td>
-                        <input type="text" class="form-control form-control-dark text-center total-input" value="0.00" readonly>
-                    </td>
-                    <td class="text-end">
-                        <button type="button" class="btn btn-icon-glass text-danger hover-danger" onclick="removeRow(this)">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </td>
-                `;
+                        <td>
+                            <select name="lines[${index}][product_id]" class="form-select form-select-dark product-select" required onchange="updatePrice(this)">
+                                <option value="">اختر المنتج...</option>
+                                ${products.map(p => `<option value="${p.id}" data-price="${p.cost_price}">${p.name} (${p.sku})</option>`).join('')}
+                            </select>
+                        </td>
+                        <td>
+                            <input type="number" name="lines[${index}][quantity]" class="form-control form-control-dark text-center qty-input" 
+                                value="1" min="1" step="any" required oninput="calculateRow(this)">
+                        </td>
+                        <td>
+                            <input type="number" step="0.01" name="lines[${index}][unit_price]" class="form-control form-control-dark text-center price-input" 
+                                value="0.00" min="0" required oninput="calculateRow(this)">
+                        </td>
+                        <td>
+                            <input type="text" class="form-control form-control-dark text-center total-input" value="0.00" readonly>
+                        </td>
+                        <td class="text-end">
+                            <button type="button" class="btn btn-icon-glass text-danger hover-danger" onclick="removeRow(this)">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    `;
             tbody.appendChild(tr);
         }
 

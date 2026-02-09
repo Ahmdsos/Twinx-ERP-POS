@@ -55,6 +55,10 @@ class ExpenseService
         }
 
         // Journal Lines
+        $taxAmount = (float) ($expense->tax_amount ?? 0);
+        $taxCode = \App\Models\Setting::getValue('acc_tax_receivable', \App\Models\Setting::getValue('acc_tax_payable', '2201'));
+        $taxAccount = \Modules\Accounting\Models\Account::where('code', $taxCode)->first();
+
         $lines = [
             [
                 'account_id' => $expenseCategory->account_id,
@@ -65,10 +69,19 @@ class ExpenseService
             [
                 'account_id' => $expense->payment_account_id,
                 'debit' => 0,
-                'credit' => $expense->amount,
+                'credit' => $expense->total_amount,
                 'description' => $expense->notes ?? "Expense: {$expense->reference_number}",
             ]
         ];
+
+        if ($taxAmount > 0 && $taxAccount) {
+            $lines[] = [
+                'account_id' => $taxAccount->id,
+                'debit' => $taxAmount,
+                'credit' => 0,
+                'description' => "Tax on Expense: {$expense->reference_number}",
+            ];
+        }
 
         // Create Entry
         $entry = $this->journalService->create([

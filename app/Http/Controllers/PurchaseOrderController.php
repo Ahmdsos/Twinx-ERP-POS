@@ -20,6 +20,13 @@ use Modules\Inventory\Models\Warehouse;
  */
 class PurchaseOrderController extends Controller
 {
+    protected $purchasingService;
+
+    public function __construct(\Modules\Purchasing\Services\PurchasingService $purchasingService)
+    {
+        $this->purchasingService = $purchasingService;
+    }
+
     /**
      * Display list of purchase orders
      */
@@ -92,24 +99,7 @@ class PurchaseOrderController extends Controller
             'lines.*.discount_percent' => 'nullable|numeric|min:0|max:100',
         ]);
 
-        // Create PO header
-        $po = new PurchaseOrder();
-        $po->generateDocumentNumber();
-        $po->supplier_id = $validated['supplier_id'];
-        $po->warehouse_id = $validated['warehouse_id'];
-        $po->order_date = $validated['order_date'];
-        $po->expected_date = $validated['expected_date'] ?? null;
-        $po->reference = $validated['reference'] ?? null;
-        $po->notes = $validated['notes'] ?? null;
-        $po->terms = $validated['terms'] ?? null;
-        $po->status = PurchaseOrderStatus::DRAFT;
-        $po->save();
-
-        // Create lines
-        $this->createLines($po, $validated['lines']);
-
-        // Calculate totals
-        $po->recalculateTotals();
+        $po = $this->purchasingService->createPurchaseOrder($validated, $validated['lines']);
 
         return redirect()->route('purchase-orders.show', $po)
             ->with('success', 'تم إنشاء أمر الشراء بنجاح: ' . $po->po_number);
@@ -170,27 +160,14 @@ class PurchaseOrderController extends Controller
             'notes' => 'nullable|string',
             'terms' => 'nullable|string',
             'lines' => 'required|array|min:1',
+            'lines.*.id' => 'nullable|exists:purchase_order_lines,id',
             'lines.*.product_id' => 'required|exists:products,id',
             'lines.*.quantity' => 'required|numeric|min:0.01',
             'lines.*.unit_price' => 'required|numeric|min:0',
             'lines.*.discount_percent' => 'nullable|numeric|min:0|max:100',
         ]);
 
-        // Update header
-        $purchaseOrder->update([
-            'supplier_id' => $validated['supplier_id'],
-            'warehouse_id' => $validated['warehouse_id'],
-            'order_date' => $validated['order_date'],
-            'expected_date' => $validated['expected_date'] ?? null,
-            'reference' => $validated['reference'] ?? null,
-            'notes' => $validated['notes'] ?? null,
-            'terms' => $validated['terms'] ?? null,
-        ]);
-
-        // Delete old lines and recreate
-        $purchaseOrder->lines()->delete();
-        $this->createLines($purchaseOrder, $validated['lines']);
-        $purchaseOrder->recalculateTotals();
+        $this->purchasingService->updatePurchaseOrder($purchaseOrder, $validated, $validated['lines']);
 
         return redirect()->route('purchase-orders.show', $purchaseOrder)
             ->with('success', 'تم تحديث أمر الشراء بنجاح');
@@ -240,38 +217,5 @@ class PurchaseOrderController extends Controller
             'cost_price' => $product->cost_price,
             'unit' => $product->unit?->name ?? '-',
         ]);
-    }
-
-    /**
-     * Helper to create PO lines
-     */
-    private function createLines(PurchaseOrder $po, array $lines): void
-    {
-        foreach ($lines as $line) {
-            $product = Product::find($line['product_id']);
-            $quantity = (float) $line['quantity'];
-            $unitPrice = (float) $line['unit_price'];
-            $discountPercent = (float) ($line['discount_percent'] ?? 0);
-
-            $lineSubtotal = $quantity * $unitPrice;
-            $discountAmount = $lineSubtotal * ($discountPercent / 100);
-            $lineTotal = $lineSubtotal - $discountAmount;
-
-            // Calculate tax if product has tax rate
-            $taxRate = $product->tax_rate ?? 0;
-            $taxAmount = $lineTotal * ($taxRate / 100);
-
-            PurchaseOrderLine::create([
-                'purchase_order_id' => $po->id,
-                'product_id' => $product->id,
-                'quantity' => $quantity,
-                'unit_price' => $unitPrice,
-                'discount_percent' => $discountPercent,
-                'discount_amount' => $discountAmount,
-                'tax_rate' => $taxRate,
-                'tax_amount' => $taxAmount,
-                'line_total' => $lineTotal + $taxAmount,
-            ]);
-        }
     }
 }

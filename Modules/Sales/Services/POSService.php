@@ -80,7 +80,12 @@ class POSService
             }
 
             // MATH TRUTH: Total = Net Subtotal + Total Tax - Global Discount + Delivery Fee
-            $total = (float) round($subtotal + $totalTax - $globalDiscount + $deliveryFee, 2);
+            // MATH TRUTH: Total = Net Subtotal + Total Tax - Global Discount + Delivery Fee
+            $total = $subtotal + $totalTax - $globalDiscount;
+            if ($deliveryFee > 0) {
+                $total += $deliveryFee;
+            }
+            $total = (float) round($total, 2);
 
             // Calculate total paid across all payment methods
             $amountPaid = collect($data['payments'])->sum('amount');
@@ -302,11 +307,16 @@ class POSService
         if ($method === 'credit' || $amount <= 0)
             return;
 
-        $defaultCashAccount = Setting::getValue('acc_cash_id', 1);
-        $defaultBankAccount = Setting::getValue('acc_bank_id', 2);
+        $cashCode = Setting::getValue('acc_cash', '1101');
+        $bankCode = Setting::getValue('acc_bank', '1110');
 
-        $paymentAccountId = $paymentData['account_id'] ??
-            (($method === 'card' || $method === 'bank') ? $defaultBankAccount : $defaultCashAccount);
+        $paymentAccountId = $paymentData['account_id'] ?? null;
+
+        if (!$paymentAccountId) {
+            $lookUpCode = ($method === 'card' || $method === 'bank') ? $bankCode : $cashCode;
+            $account = Account::where('code', $lookUpCode)->first();
+            $paymentAccountId = $account ? $account->id : 1;
+        }
 
         $payment = CustomerPayment::create([
             'customer_id' => $invoice->customer_id,
@@ -486,8 +496,8 @@ class POSService
         $salesCode = Setting::getValue('acc_sales_revenue', '4101');
         $taxCode = Setting::getValue('acc_tax_payable', '2201');
         $shippingCode = Setting::getValue('acc_shipping_revenue', '4201');
-        $discountCode = '4301'; // Sales Discounts
-        $pendingDeliveryCode = '1202'; // Pending Delivery Settlement
+        $discountCode = Setting::getValue('acc_sales_discount', '4301');
+        $pendingDeliveryCode = Setting::getValue('acc_pending_delivery', '1202');
 
         $cashAccount = Account::where('code', $cashCode)->first();
         $bankAccount = Account::where('code', $bankCode)->first();
@@ -598,6 +608,30 @@ class POSService
                 'credit' => round($deliveryFee, 2),
                 'description' => 'Shipping Revenue'
             ];
+        }
+
+        // --- BALANCING (Change / Overpayment) ---
+        // Fix for "Journal Entry Not Balanced" when user pays more than total (e.g. Change)
+        $totalDebits = collect($lines)->sum('debit');
+        $totalCredits = collect($lines)->sum('credit');
+
+        // Allow for floating point variations
+        if (round($totalDebits, 2) > round($totalCredits, 2)) {
+            $difference = round($totalDebits - $totalCredits, 2);
+
+            // If difference exists, it's likely "Change" given back to customer
+            // We should Credit the Cash/Change account (Money Out) to balance
+            $changeCode = Setting::getValue('acc_pos_change', $cashCode);
+            $changeAccount = Account::where('code', $changeCode)->first();
+
+            if ($changeAccount) {
+                $lines[] = [
+                    'account_id' => $changeAccount->id,
+                    'debit' => 0,
+                    'credit' => $difference,
+                    'description' => 'POS Change / Overpayment'
+                ];
+            }
         }
 
         // Final Verification: The JournalService->create will call validateBalance

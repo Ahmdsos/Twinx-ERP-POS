@@ -107,7 +107,7 @@
 
                                     <form action="{{ route('settings.backup.restore', $backup['name']) }}" method="POST"
                                         class="d-inline"
-                                        onsubmit="return confirm('⚠️ مقارنة سريعة:\nالنسخة الحالية: {{ App\Http\Controllers\BackupController::formatBytes($currentSystemSize) }}\nالنسخة المختارة: {{ $backup['size'] }}\n\nسيتم استبدال قاعدة البيانات بالكامل. هل أنت متأكد؟');">
+                                        data-confirm="⚠️ مقارنة سريعة:\nالنسخة الحالية: {{ App\Http\Controllers\BackupController::formatBytes($currentSystemSize) }}\nالنسخة المختارة: {{ $backup['size'] }}\n\nسيتم استبدال قاعدة البيانات بالكامل. هل أنت متأكد؟">
                                         @csrf
                                         <button type="submit" class="btn btn-sm btn-danger px-3 fw-bold" title="استعادة النظام">
                                             <i class="bi bi-arrow-counterclockwise me-1"></i> استعادة
@@ -115,7 +115,7 @@
                                     </form>
 
                                     <form action="{{ route('settings.backup.destroy', $backup['name']) }}" method="POST"
-                                        class="d-inline" onsubmit="return confirm('هل أنت متأكد من حذف هذه النسخة؟');">
+                                        class="d-inline" data-confirm="هل أنت متأكد من حذف هذه النسخة؟">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit"

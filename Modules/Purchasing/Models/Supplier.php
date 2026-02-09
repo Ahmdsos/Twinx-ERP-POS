@@ -108,6 +108,18 @@ class Supplier extends Model
     // Business Methods
     // ========================================
 
+    /**
+     * Get the real financial balance from the GL Ledger (Truth)
+     * Sum Credits (Owed) - Sum Debits (Paid/Adjusted)
+     */
+    public function getLedgerBalance(): float
+    {
+        return (float) \Modules\Accounting\Models\JournalEntryLine::where('subledger_type', self::class)
+            ->where('subledger_id', $this->id)
+            ->selectRaw('SUM(credit) - SUM(debit) as balance')
+            ->value('balance') ?? 0;
+    }
+
     public function getTotalPurchases(): float
     {
         return $this->purchaseInvoices()
@@ -117,8 +129,8 @@ class Supplier extends Model
 
     public function getOutstandingBalance(): float
     {
-        return $this->purchaseInvoices()
-            ->whereIn('status', ['pending', 'partial'])
-            ->sum('balance_due');
+        // Now using Ledger balance as the primary truth if possible, 
+        // fall back to invoice sum if it's strictly for allocation UI
+        return $this->getLedgerBalance();
     }
 }

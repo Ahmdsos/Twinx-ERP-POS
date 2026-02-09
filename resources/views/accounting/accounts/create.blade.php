@@ -28,9 +28,15 @@
                                 placeholder="مثال: 1101" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label text-gray-300">اسم الحساب <span class="text-danger">*</span></label>
+                            <label class="form-label text-gray-300">اسم الحساب (English) <span
+                                    class="text-danger">*</span></label>
                             <input type="text" name="name" class="form-control bg-transparent text-white border-secondary"
-                                placeholder="اسم الحساب" required>
+                                placeholder="Example: Sales" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-info">اسم الحساب (عربي) <span class="text-danger">*</span></label>
+                            <input type="text" name="name_ar" class="form-control bg-transparent text-white border-info"
+                                placeholder="مثال: المبيعات" required>
                         </div>
 
                         <div class="col-md-6">

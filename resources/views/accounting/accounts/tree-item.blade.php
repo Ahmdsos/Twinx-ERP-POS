@@ -11,7 +11,8 @@
             <!-- Code & Name -->
             <span class="font-monospace text-warning small">{{ $account['code'] }}</span>
             <span class="fw-bold {{ count($account['children']) > 0 ? 'text-white' : 'text-white-50' }}">
-                {{ $account['name'] }}
+                {{ $account['name'] }} @if(isset($account['name_ar'])) - <span
+                class="text-info">{{ $account['name_ar'] }}</span> @endif
             </span>
 
             <!-- Tags -->
@@ -33,7 +34,7 @@
             </a>
             @if(count($account['children']) == 0 && $account['balance'] == 0)
                 <form action="{{ route('accounts.destroy', $account['id']) }}" method="POST"
-                    onsubmit="return confirm('حذف الحساب؟')" class="d-inline">
+                    data-confirm="هل أنت متأكد من حذف هذا الحساب؟" class="d-inline">
                     @csrf @method('DELETE')
                     <button type="submit" class="btn btn-sm btn-icon-glass text-danger" title="حذف">
                         <i class="bi bi-trash"></i>

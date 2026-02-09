@@ -31,7 +31,7 @@
                 <a href="{{ route('suppliers.edit', $supplier->id) }}" class="btn btn-outline-light">
                     <i class="bi bi-pencil me-2"></i>تعديل
                 </a>
-                <form action="{{ route('suppliers.destroy', $supplier->id) }}" method="POST" onsubmit="return confirm('هل أنت متأكد؟');">
+                <form action="{{ route('suppliers.destroy', $supplier->id) }}" method="POST" data-confirm="هل أنت متأكد من حذف هذا المورد؟">
                     @csrf @method('DELETE')
                     <button type="submit" class="btn btn-outline-danger border-0">
                         <i class="bi bi-trash"></i>

@@ -48,7 +48,7 @@
 
                     @if($delivery->status === \Modules\Sales\Enums\DeliveryStatus::SHIPPED)
                         <form action="{{ route('deliveries.complete', $delivery->id) }}" method="POST"
-                            onsubmit="return confirm('تأكيد تسليم الشحنة للعميل نهائياً؟')">
+                            data-confirm="تأكيد تسليم الشحنة للعميل نهائياً؟">
                             @csrf
                             <button type="submit" class="btn btn-primary fw-bold px-4 hover-scale rounded-0 h-100">
                                 <i class="bi bi-check2-circle me-2"></i> تم التسليم

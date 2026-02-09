@@ -24,6 +24,7 @@ class Quotation extends Model
     protected $fillable = [
         'quotation_number',
         'customer_id',
+        'target_customer_type',
         'quotation_date',
         'valid_until',
         'status',
@@ -81,6 +82,11 @@ class Quotation extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function customers(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Customer::class, 'quotation_customer');
     }
 
     public function lines(): HasMany
@@ -209,5 +215,17 @@ class Quotation extends Model
     public function markAsConverted(): bool
     {
         return $this->update(['status' => QuotationStatus::CONVERTED]);
+    }
+
+    /**
+     * Get label for target customer type
+     */
+    public function getTargetCustomerTypeLabelAttribute(): string
+    {
+        if (empty($this->target_customer_type)) {
+            return '-';
+        }
+
+        return \Modules\Sales\Enums\CustomerType::tryFrom($this->target_customer_type)?->label() ?? ucfirst($this->target_customer_type);
     }
 }

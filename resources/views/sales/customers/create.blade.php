@@ -41,8 +41,8 @@
                             <div class="col-md-4">
                                 <label class="form-label text-gray-400 x-small fw-bold">نوع العميل</label>
                                 <select name="type" class="form-select form-select-dark focus-ring-indigo">
-                                    <option value="individual" {{ old('type') == 'individual' ? 'selected' : '' }}>فرد
-                                        (Consumer)</option>
+                                    <option value="consumer" {{ old('type') == 'consumer' ? 'selected' : '' }}>فرد (Consumer)
+                                    </option>
                                     <option value="company" {{ old('type') == 'company' ? 'selected' : '' }}>شركة (Company)
                                     </option>
                                     <option value="distributor" {{ old('type') == 'distributor' ? 'selected' : '' }}>موزع

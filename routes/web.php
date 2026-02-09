@@ -52,7 +52,7 @@ Route::post('login', function () {
         'password' => 'required',
     ]);
 
-    if (auth()->attempt($credentials)) {
+    if (\Illuminate\Support\Facades\Auth::attempt($credentials)) {
         request()->session()->regenerate();
         return redirect()->intended('dashboard');
     }
@@ -61,14 +61,18 @@ Route::post('login', function () {
 })->name('login.submit');
 
 Route::post('logout', function () {
-    auth()->logout();
+    \Illuminate\Support\Facades\Auth::logout();
     request()->session()->invalidate();
     request()->session()->regenerateToken();
     return redirect('/login');
 })->name('logout');
 
+// Activation Routes
+Route::get('activate', [App\Http\Controllers\ActivationController::class, 'index'])->name('system.activate');
+Route::post('activate', [App\Http\Controllers\ActivationController::class, 'activate'])->name('system.activate.submit');
+
 // Protected Routes
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'license'])->group(function () {
 
     // Redirect root to dashboard
     Route::get('/', fn() => redirect()->route('dashboard'));
@@ -88,6 +92,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/products/search', [POSController::class, 'searchProducts'])->name('products.search');
         Route::get('/customers/search', [POSController::class, 'searchCustomers'])->name('customers.search');
         Route::get('/customers/{id}/brief', [POSController::class, 'getCustomerBrief'])->name('customers.brief');
+        Route::get('/customers/{customer}/quotation-prices', [App\Http\Controllers\Api\POSPriceController::class, 'getCustomerPrices'])->name('customers.quotation-prices');
         Route::post('/customers/quick-create', [POSController::class, 'quickCreateCustomer'])->name('customers.quick-create');
         Route::post('/checkout', [POSController::class, 'checkout'])->name('checkout');
         Route::get('/receipt/{invoice}', [POSController::class, 'receipt'])->name('receipt');
@@ -145,16 +150,22 @@ Route::middleware(['auth'])->group(function () {
     // EXPORT ROUTES (Excel, PDF)
     // ==========================================
     Route::prefix('export')->name('export.')->group(function () {
-        // Products
-        Route::get('/products/excel', [ExportController::class, 'productsExcel'])->name('products.excel');
+        // Main entities
+        Route::get('/products', [ExportController::class, 'products'])->name('products');
+        Route::get('/customers', [ExportController::class, 'customers'])->name('customers');
+        Route::get('/suppliers', [ExportController::class, 'suppliers'])->name('suppliers');
+
+        // Single Sheet Inventory Sub-entities
+        Route::get('/categories', [ExportController::class, 'categories'])->name('categories');
+        Route::get('/brands', [ExportController::class, 'brands'])->name('brands');
+        Route::get('/units', [ExportController::class, 'units'])->name('units');
+        Route::get('/warehouses', [ExportController::class, 'warehouses'])->name('warehouses');
+
+        // Layouts/Templates
+        Route::get('/inventory/template', [ExportController::class, 'inventoryTemplate'])->name('inventory.template');
+        Route::get('/inventory/json-sample', [ExportController::class, 'inventoryJsonSample'])->name('inventory.json-sample');
         Route::get('/products/pdf', [ExportController::class, 'productsPdf'])->name('products.pdf');
-
-        // Customers
-        Route::get('/customers/excel', [ExportController::class, 'customersExcel'])->name('customers.excel');
         Route::get('/customers/pdf', [ExportController::class, 'customersPdf'])->name('customers.pdf');
-
-        // Suppliers
-        Route::get('/suppliers/excel', [ExportController::class, 'suppliersExcel'])->name('suppliers.excel');
         Route::get('/suppliers/pdf', [ExportController::class, 'suppliersPdf'])->name('suppliers.pdf');
     });
 
@@ -221,6 +232,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['can:sales.manage'])->group(function () {
 
         // Customers - Full Resource + Statement
+        Route::get('customers/export', [CustomerController::class, 'export'])->name('customers.export'); // Custom route before resource
         Route::resource('customers', CustomerController::class);
         Route::get('customers/{customer}/statement', [CustomerController::class, 'statement'])->name('customers.statement');
         Route::get('customers/{customer}/credit-history', [CustomerController::class, 'creditHistory'])->name('customers.credit-history');
@@ -236,6 +248,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('quotations/{quotation}/accept', [QuotationController::class, 'accept'])->name('quotations.accept');
         Route::post('quotations/{quotation}/reject', [QuotationController::class, 'reject'])->name('quotations.reject');
         Route::post('quotations/{quotation}/convert', [QuotationController::class, 'convert'])->name('quotations.convert');
+        Route::post('quotations/{quotation}/expire', [QuotationController::class, 'expire'])->name('quotations.expire');
         Route::get('quotations/{quotation}/print', [QuotationController::class, 'print'])->name('quotations.print');
 
         // Sales Orders - Full Resource + Actions
@@ -277,6 +290,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['can:purchases.manage'])->group(function () {
 
         // Suppliers - Full Resource
+        Route::get('suppliers/export', [SupplierController::class, 'export'])->name('suppliers.export'); // Custom route before resource
         Route::resource('suppliers', SupplierController::class);
         Route::get('suppliers-import', [SupplierController::class, 'importForm'])->name('suppliers.import.form');
         Route::get('suppliers-import/sample', [SupplierController::class, 'importSample'])->name('suppliers.import.sample');
@@ -312,19 +326,24 @@ Route::middleware(['auth'])->group(function () {
     // ==========================================
     Route::middleware(['can:inventory.manage'])->group(function () {
 
-        // Products - Full Resource
-        Route::resource('products', ProductController::class);
+        // Products (Custom routes MUST be before resource)
+        Route::get('products/export', [ProductController::class, 'export'])->name('products.export');
         Route::get('products-import', [ProductController::class, 'importForm'])->name('products.import.form');
         Route::get('products-import/sample', [ProductController::class, 'importSample'])->name('products.import.sample');
         Route::post('products-import', [ProductController::class, 'import'])->name('products.import');
 
+        // Products - Full Resource
+        Route::resource('products', ProductController::class);
+
         // Categories - Full Resource
+        Route::get('categories/export', [CategoryController::class, 'export'])->name('categories.export');
         Route::resource('categories', CategoryController::class);
         Route::get('categories-import', [CategoryController::class, 'importForm'])->name('categories.import.form');
         Route::get('categories-import/sample', [CategoryController::class, 'importSample'])->name('categories.import.sample');
         Route::post('categories-import', [CategoryController::class, 'import'])->name('categories.import');
 
         // Warehouses - Full Resource
+        Route::get('warehouses/export', [WarehouseController::class, 'export'])->name('warehouses.export');
         Route::resource('warehouses', WarehouseController::class);
         Route::get('warehouses-import', [WarehouseController::class, 'importForm'])->name('warehouses.import.form');
         Route::get('warehouses-import/sample', [WarehouseController::class, 'importSample'])->name('warehouses.import.sample');
@@ -334,6 +353,10 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('units', UnitController::class)->except(['show', 'create', 'edit']);
 
         // Brands - Full Resource
+        Route::get('brands/export', [BrandController::class, 'export'])->name('brands.export');
+        Route::get('brands-import', [BrandController::class, 'importForm'])->name('brands.import.form');
+        Route::get('brands-import/sample', [BrandController::class, 'importSample'])->name('brands.import.sample');
+        Route::post('brands-import', [BrandController::class, 'import'])->name('brands.import');
         Route::resource('brands', BrandController::class);
 
         // Stock Management
@@ -385,6 +408,7 @@ Route::middleware(['auth'])->group(function () {
         // ==========================================
         Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
         Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');
+        Route::post('settings/reset', [SettingsController::class, 'systemReset'])->name('settings.reset');
 
         // Backup Management
         Route::prefix('settings/backup')->name('settings.backup.')->group(function () {
@@ -452,23 +476,58 @@ Route::middleware(['auth'])->group(function () {
     // ==========================================
     // HR MODULE
     // ==========================================
-    Route::middleware(['can:hr.manage'])->prefix('hr')->name('hr.')->group(function () {
-        // Employees
-        Route::resource('employees', \Modules\HR\Http\Controllers\EmployeeController::class);
+    Route::prefix('hr')->name('hr.')->group(function () {
 
-        // Payroll
-        Route::resource('payroll', \Modules\HR\Http\Controllers\PayrollController::class);
-        Route::post('payroll/generate', [\Modules\HR\Http\Controllers\PayrollController::class, 'generate'])->name('payroll.generate');
-        Route::post('payroll/{payroll}/post', [\Modules\HR\Http\Controllers\PayrollController::class, 'post'])->name('payroll.post');
-        Route::post('payroll/{payroll}/recalculate', [\Modules\HR\Http\Controllers\PayrollController::class, 'recalculate'])->name('payroll.recalculate');
-        Route::put('payroll/items/{item}', [\Modules\HR\Http\Controllers\PayrollController::class, 'updateItem'])->name('payroll.items.update');
+        // ==========================================
+        // EMPLOYEES
+        // ==========================================
+        Route::middleware(['can:hr.employees.view'])->group(function () {
+            Route::get('employees', [\Modules\HR\Http\Controllers\EmployeeController::class, 'index'])->name('employees.index');
+            Route::get('employees/{employee}', [\Modules\HR\Http\Controllers\EmployeeController::class, 'show'])->name('employees.show');
+        });
 
-        // Leaves
-        Route::get('leaves', [\Modules\HR\Http\Controllers\LeaveController::class, 'index'])->name('leaves.index');
-        Route::post('leaves/{leave}/approve', [\Modules\HR\Http\Controllers\LeaveController::class, 'approve'])->name('leaves.approve');
-        Route::post('leaves/{leave}/reject', [\Modules\HR\Http\Controllers\LeaveController::class, 'reject'])->name('leaves.reject');
-        // Note: Store route is nested in employee check employee controller or add generic store if needed
-        Route::post('employees/{employee}/leaves', [\Modules\HR\Http\Controllers\LeaveController::class, 'store'])->name('leaves.store');
+        Route::middleware(['can:hr.employees.manage'])->group(function () {
+            Route::get('employees/create', [\Modules\HR\Http\Controllers\EmployeeController::class, 'create'])->name('employees.create');
+            Route::post('employees', [\Modules\HR\Http\Controllers\EmployeeController::class, 'store'])->name('employees.store');
+            Route::get('employees/{employee}/edit', [\Modules\HR\Http\Controllers\EmployeeController::class, 'edit'])->name('employees.edit');
+            Route::put('employees/{employee}', [\Modules\HR\Http\Controllers\EmployeeController::class, 'update'])->name('employees.update');
+            Route::delete('employees/{employee}', [\Modules\HR\Http\Controllers\EmployeeController::class, 'destroy'])->name('employees.destroy');
+        });
+
+        // ==========================================
+        // PAYROLL
+        // ==========================================
+        Route::middleware(['can:hr.payroll.view'])->group(function () {
+            Route::get('payroll', [\Modules\HR\Http\Controllers\PayrollController::class, 'index'])->name('payroll.index');
+            Route::get('payroll/{payroll}', [\Modules\HR\Http\Controllers\PayrollController::class, 'show'])->name('payroll.show');
+        });
+
+        Route::middleware(['can:hr.payroll.manage'])->group(function () {
+            Route::get('payroll/create', [\Modules\HR\Http\Controllers\PayrollController::class, 'create'])->name('payroll.create');
+            Route::post('payroll', [\Modules\HR\Http\Controllers\PayrollController::class, 'store'])->name('payroll.store');
+            Route::get('payroll/{payroll}/edit', [\Modules\HR\Http\Controllers\PayrollController::class, 'edit'])->name('payroll.edit');
+            Route::put('payroll/{payroll}', [\Modules\HR\Http\Controllers\PayrollController::class, 'update'])->name('payroll.update');
+            Route::delete('payroll/{payroll}', [\Modules\HR\Http\Controllers\PayrollController::class, 'destroy'])->name('payroll.destroy');
+
+            // Actions
+            Route::post('payroll/generate', [\Modules\HR\Http\Controllers\PayrollController::class, 'generate'])->name('payroll.generate');
+            Route::post('payroll/{payroll}/post', [\Modules\HR\Http\Controllers\PayrollController::class, 'post'])->name('payroll.post');
+            Route::post('payroll/{payroll}/recalculate', [\Modules\HR\Http\Controllers\PayrollController::class, 'recalculate'])->name('payroll.recalculate');
+            Route::put('payroll/items/{item}', [\Modules\HR\Http\Controllers\PayrollController::class, 'updateItem'])->name('payroll.items.update');
+        });
+
+        // ==========================================
+        // LEAVES
+        // ==========================================
+        Route::middleware(['can:hr.leave.view'])->group(function () {
+            Route::get('leaves', [\Modules\HR\Http\Controllers\LeaveController::class, 'index'])->name('leaves.index');
+        });
+
+        Route::middleware(['can:hr.leave.manage'])->group(function () {
+            Route::post('leaves/{leave}/approve', [\Modules\HR\Http\Controllers\LeaveController::class, 'approve'])->name('leaves.approve');
+            Route::post('leaves/{leave}/reject', [\Modules\HR\Http\Controllers\LeaveController::class, 'reject'])->name('leaves.reject');
+            Route::post('employees/{employee}/leaves', [\Modules\HR\Http\Controllers\LeaveController::class, 'store'])->name('leaves.store');
+        });
     });
 });
 

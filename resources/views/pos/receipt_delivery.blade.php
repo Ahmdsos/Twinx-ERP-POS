@@ -138,7 +138,8 @@
             <img src="{{ asset('storage/' . \App\Models\Setting::getValue('company_logo')) }}" class="logo" alt="Logo">
         @endif
         <div style="font-size: 16px; font-weight: bold;">
-            {{ \App\Models\Setting::getValue('company_name', config('app.name')) }}</div>
+            {{ \App\Models\Setting::getValue('company_name', config('app.name')) }}
+        </div>
         <div style="font-size: 10px;">{{ \App\Models\Setting::getValue('company_address', '') }}</div>
         <div style="font-size: 10px;">{{ \App\Models\Setting::getValue('company_phone', '') }}</div>
     </div>
@@ -230,6 +231,30 @@
             <span>الإجمالي:</span>
             <span>{{ number_format($invoice->total, 2) }}</span>
         </div>
+
+        <div class="total-row" style="margin-top: 5px;">
+            <span>المدفوع:</span>
+            <span>{{ number_format($invoice->paid_amount, 2) }}</span>
+        </div>
+
+        @php
+            $change = max(0, $invoice->paid_amount - $invoice->total);
+            $balance = max(0, $invoice->total - $invoice->paid_amount);
+        @endphp
+
+        @if($change > 0)
+            <div class="total-row" style="margin-top:5px; border-top: 1px dotted #000; padding-top:2px;">
+                <span>الباقي للعميل:</span>
+                <span style="font-weight: bold; font-size: 14px;">{{ number_format($change, 2) }}</span>
+            </div>
+        @endif
+
+        @if($balance > 0)
+            <div class="total-row">
+                <span>المتبقي (آجل):</span>
+                <span style="font-weight: bold;">{{ number_format($balance, 2) }}</span>
+            </div>
+        @endif
     </div>
 
     <div class="signatures">

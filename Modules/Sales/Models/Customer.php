@@ -81,6 +81,11 @@ class Customer extends Model
         return $this->hasMany(SalesInvoice::class);
     }
 
+    public function quotations(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Quotation::class, 'quotation_customer');
+    }
+
     public function payments(): HasMany
     {
         return $this->hasMany(CustomerPayment::class);

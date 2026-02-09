@@ -8,9 +8,19 @@ use Modules\Inventory\Models\Product;
 use Modules\Inventory\Models\Category;
 use Modules\Sales\Models\Customer;
 use Modules\Purchasing\Models\Supplier;
+use App\Exports\InventoryTemplateExport;
+use App\Exports\ProductsExport;
+use App\Exports\ProductsSheet;
+use App\Exports\CategoriesExport;
+use App\Exports\BrandsExport;
+use App\Exports\UnitsExport;
+use App\Exports\WarehousesExport;
+use App\Exports\CustomersExport;
+use App\Exports\SuppliersExport;
+use App\Services\ImportExportService;
 
 /**
- * ExportController - Handles Excel and PDF exports for all entities
+ * ExportController - Handles Excel, CSV and PDF exports for all entities
  * 
  * Provides export functionality for Products, Customers, Suppliers
  * Supports both Excel (CSV) and PDF formats
@@ -22,64 +32,16 @@ class ExportController extends Controller
     // ===========================
 
     /**
-     * Export products to Excel (CSV)
+     * Export products to Excel or CSV
      */
-    public function productsExcel(Request $request)
+    public function products(Request $request, ImportExportService $service)
     {
-        $products = Product::with(['category', 'unit'])
-            ->orderBy('name')
-            ->get();
+        $format = $request->get('format', 'xlsx');
+        $filename = 'products_' . date('Y-m-d_H-i') . '.' . $format;
 
-        $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="products_' . date('Y-m-d') . '.csv"',
-        ];
+        $export = ($format === 'xlsx') ? new ProductsExport : new ProductsSheet();
 
-        $callback = function () use ($products) {
-            $file = fopen('php://output', 'w');
-            // UTF-8 BOM for Excel Arabic support
-            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
-
-            // Header row
-            fputcsv($file, [
-                'الكود (SKU)',
-                'الباركود',
-                'اسم المنتج',
-                'التصنيف',
-                'الوحدة',
-                'سعر التكلفة',
-                'سعر البيع',
-                'نسبة الضريبة',
-                'الحد الأدنى',
-                'العلامة التجارية',
-                'الضمان (شهور)',
-                'الوزن',
-                'الحالة',
-            ]);
-
-            // Data rows
-            foreach ($products as $product) {
-                fputcsv($file, [
-                    $product->sku,
-                    $product->barcode ?? '',
-                    $product->name,
-                    $product->category?->name ?? '',
-                    $product->unit?->name ?? '',
-                    $product->cost_price,
-                    $product->selling_price,
-                    $product->tax_rate . '%',
-                    $product->min_stock,
-                    $product->brand ?? '',
-                    $product->warranty_months ?? 0,
-                    $product->weight ? $product->weight . ' ' . $product->weight_unit : '',
-                    $product->is_active ? 'نشط' : 'غير نشط',
-                ]);
-            }
-
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        return $service->export($export, $filename);
     }
 
     /**
@@ -163,45 +125,14 @@ class ExportController extends Controller
     // ===========================
 
     /**
-     * Export customers to Excel (CSV)
+     * Export customers to Excel or CSV
      */
-    public function customersExcel(Request $request)
+    public function customers(Request $request, ImportExportService $service)
     {
-        $customers = Customer::orderBy('name')->get();
+        $format = $request->get('format', 'xlsx');
+        $filename = 'customers_' . date('Y-m-d_H-i') . '.' . $format;
 
-        $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="customers_' . date('Y-m-d') . '.csv"',
-        ];
-
-        $callback = function () use ($customers) {
-            $file = fopen('php://output', 'w');
-            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
-
-            fputcsv($file, [
-                'الكود',
-                'اسم العميل',
-                'البريد الإلكتروني',
-                'الهاتف',
-                'العنوان',
-                'الحالة',
-            ]);
-
-            foreach ($customers as $customer) {
-                fputcsv($file, [
-                    $customer->code ?? '',
-                    $customer->name,
-                    $customer->email ?? '',
-                    $customer->phone ?? '',
-                    $customer->address ?? '',
-                    $customer->is_active ? 'نشط' : 'غير نشط',
-                ]);
-            }
-
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        return $service->export(new CustomersExport, $filename);
     }
 
     /**
@@ -266,45 +197,14 @@ class ExportController extends Controller
     // ===========================
 
     /**
-     * Export suppliers to Excel (CSV)
+     * Export suppliers to Excel or CSV
      */
-    public function suppliersExcel(Request $request)
+    public function suppliers(Request $request, ImportExportService $service)
     {
-        $suppliers = Supplier::orderBy('name')->get();
+        $format = $request->get('format', 'xlsx');
+        $filename = 'suppliers_' . date('Y-m-d_H-i') . '.' . $format;
 
-        $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="suppliers_' . date('Y-m-d') . '.csv"',
-        ];
-
-        $callback = function () use ($suppliers) {
-            $file = fopen('php://output', 'w');
-            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
-
-            fputcsv($file, [
-                'الكود',
-                'اسم المورد',
-                'البريد الإلكتروني',
-                'الهاتف',
-                'العنوان',
-                'الحالة',
-            ]);
-
-            foreach ($suppliers as $supplier) {
-                fputcsv($file, [
-                    $supplier->code ?? '',
-                    $supplier->name,
-                    $supplier->email ?? '',
-                    $supplier->phone ?? '',
-                    $supplier->address ?? '',
-                    $supplier->is_active ? 'نشط' : 'غير نشط',
-                ]);
-            }
-
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        return $service->export(new SuppliersExport, $filename);
     }
 
     /**
@@ -362,5 +262,174 @@ class ExportController extends Controller
         $html .= '</tbody></table></body></html>';
 
         return response($html)->header('Content-Type', 'text/html; charset=UTF-8');
+    }
+
+    /**
+     * Export blank inventory template (multi-sheet)
+     */
+    public function inventoryTemplate()
+    {
+        return \Maatwebsite\Excel\Facades\Excel::download(new InventoryTemplateExport, 'twinx_inventory_template.xlsx');
+    }
+
+    /**
+     * Export a sample JSON for unified inventory import
+     */
+    public function inventoryJsonSample()
+    {
+        $filename = 'twinx_inventory_comprehensive_sample.json';
+        $sampleData = [
+            'system_info' => [
+                'exported_at' => now()->toDateTimeString(),
+                'version' => '1.2.0',
+                'description' => 'Comprehensive Inventory Schema Snapshot'
+            ],
+            'categories' => [
+                [
+                    'id' => 1,
+                    'name' => 'Electronics',
+                    'slug' => 'electronics',
+                    'parent_id' => null,
+                    'description' => 'Gadgets and hardware',
+                    'sort_order' => 1,
+                    'is_active' => true
+                ]
+            ],
+            'brands' => [
+                [
+                    'id' => 1,
+                    'name' => 'Samsung',
+                    'description' => 'Global electronics brand',
+                    'website' => 'https://samsung.com',
+                    'is_active' => true
+                ]
+            ],
+            'units' => [
+                [
+                    'id' => 1,
+                    'name' => 'Piece',
+                    'abbreviation' => 'pcs',
+                    'is_base' => true,
+                    'base_unit_id' => null,
+                    'conversion_factor' => 1.0,
+                    'is_active' => true
+                ]
+            ],
+            'warehouses' => [
+                [
+                    'id' => 1,
+                    'code' => 'WH-MAIN',
+                    'name' => 'Main Warehouse',
+                    'address' => '123 Industrial Rd',
+                    'phone' => '01000000000',
+                    'email' => 'wh@example.com',
+                    'manager_id' => 1,
+                    'is_default' => true,
+                    'is_active' => true
+                ]
+            ],
+            'products' => [
+                [
+                    'id' => 1,
+                    'sku' => 'PROD-COMP-001',
+                    'barcode' => '6281000000001',
+                    'name' => 'Sample Master Product',
+                    'description' => 'Full detail sample product',
+                    'type' => 'goods', // goods or service
+                    'category_id' => 1,
+                    'brand_id' => 1,
+                    'unit_id' => 1,
+                    'purchase_unit_id' => 1,
+                    'cost_price' => 1000.00,
+                    'selling_price' => 1500.00,
+                    'min_selling_price' => 1400.00,
+                    'reorder_level' => 10,
+                    'reorder_quantity' => 20,
+                    'min_stock' => 5,
+                    'max_stock' => 100,
+                    'sales_account_id' => null,
+                    'purchase_account_id' => null,
+                    'inventory_account_id' => null,
+                    'is_active' => true,
+                    'is_sellable' => true,
+                    'is_purchasable' => true,
+                    // Logistics
+                    'weight' => 1.5,
+                    'weight_unit' => 'kg',
+                    'length' => 20.0,
+                    'width' => 10.0,
+                    'height' => 5.0,
+                    'dimension_unit' => 'cm',
+                    'manufacturer' => 'Samsung Corp',
+                    'manufacturer_part_number' => 'MPN-X1',
+                    'country_of_origin' => 'Vietnam',
+                    'hs_code' => '851712',
+                    'lead_time_days' => 7,
+                    'is_returnable' => true,
+                    // Pricing Tiers
+                    'price_distributor' => 1200.00,
+                    'price_wholesale' => 1300.00,
+                    'price_half_wholesale' => 1350.00,
+                    'price_quarter_wholesale' => 1400.00,
+                    'price_special' => 1100.00,
+                    // Attributes & Meta
+                    'color' => 'Black',
+                    'size' => 'Large',
+                    'tags' => ['hardware', 'new', 'premium'],
+                    'seo_title' => 'Sample Master Product - Buy Now',
+                    'seo_description' => 'High quality sample product for testing.',
+                    // Warranty & Expiry
+                    'warranty_months' => 12,
+                    'warranty_type' => 'Manufacturer',
+                    'expiry_date' => '2027-12-31',
+                    'shelf_life_days' => 365,
+                    'track_batches' => false,
+                    'track_serials' => true,
+                    // Complex Mappings
+                    'stocks' => [
+                        '1' => 75, // [Warehouse ID] => [Quantity]
+                    ],
+                    'images_list' => [
+                        ['path' => 'products/sample_1.jpg', 'is_primary' => true, 'sort_order' => 0],
+                        ['path' => 'products/sample_2.jpg', 'is_primary' => false, 'sort_order' => 1]
+                    ]
+                ]
+            ],
+        ];
+
+        return response()->json($sampleData)
+            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+    }
+
+    // ===========================
+    // Inventory Sub-entities Export
+    // ===========================
+
+    public function categories(Request $request, ImportExportService $service)
+    {
+        $format = $request->get('format', 'xlsx');
+        $filename = 'categories_' . date('Y-m-d_H-i') . '.' . $format;
+        return $service->export(new CategoriesExport, $filename);
+    }
+
+    public function brands(Request $request, ImportExportService $service)
+    {
+        $format = $request->get('format', 'xlsx');
+        $filename = 'brands_' . date('Y-m-d_H-i') . '.' . $format;
+        return $service->export(new BrandsExport, $filename);
+    }
+
+    public function units(Request $request, ImportExportService $service)
+    {
+        $format = $request->get('format', 'xlsx');
+        $filename = 'units_' . date('Y-m-d_H-i') . '.' . $format;
+        return $service->export(new UnitsExport, $filename);
+    }
+
+    public function warehouses(Request $request, ImportExportService $service)
+    {
+        $format = $request->get('format', 'xlsx');
+        $filename = 'warehouses_' . date('Y-m-d_H-i') . '.' . $format;
+        return $service->export(new WarehousesExport, $filename);
     }
 }

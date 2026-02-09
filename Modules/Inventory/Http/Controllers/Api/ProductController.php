@@ -176,4 +176,34 @@ class ProductController extends Controller
             ],
         ]);
     }
+    /**
+     * Export products to Excel
+     */
+    public function export(\App\Services\ImportExportService $importExportService)
+    {
+        return $importExportService->export(new \App\Exports\ProductsExport, 'products_' . date('Y-m-d_H-i') . '.xlsx');
+    }
+
+    /**
+     * Import products from Excel
+     */
+    public function import(Request $request, \App\Services\ImportExportService $importExportService)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv',
+        ]);
+
+        try {
+            $importExportService->import(new \App\Imports\ProductsImport, $request->file('file'));
+            return response()->json([
+                'success' => true,
+                'message' => 'Products imported successfully',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Import failed: ' . $e->getMessage(),
+            ], 422);
+        }
+    }
 }

@@ -16,6 +16,29 @@
                 </div>
             </div>
             <div class="d-flex gap-3">
+                <div class="dropdown">
+                    <button
+                        class="btn btn-dark-glass d-flex align-items-center gap-2 border-0 text-gray-300 hover-text-white dropdown-toggle"
+                        type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-cloud-download"></i>
+                        <span class="d-none d-md-block">تصدير</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-dark bg-slate-900 border-white-10 shadow-neon"
+                        aria-labelledby="exportDropdown">
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2"
+                                href="{{ route('export.warehouses', ['format' => 'xlsx']) }}">
+                                <i class="bi bi-file-earmark-spreadsheet text-success"></i> Excel (.xlsx)
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2"
+                                href="{{ route('export.warehouses', ['format' => 'csv']) }}">
+                                <i class="bi bi-file-earmark-code text-info"></i> CSV (.csv)
+                            </a>
+                        </li>
+                    </ul>
+                </div>
                 <a href="{{ route('warehouses.import.form') }}"
                     class="btn btn-dark-glass d-flex align-items-center gap-2 border-0 text-gray-300 hover-text-white">
                     <i class="bi bi-cloud-upload"></i>
@@ -109,11 +132,11 @@
                                 </div>
                                 <div class="d-flex align-items-center gap-3 text-gray-400 small">
                                     <i class="bi bi-person-circle text-amber-400"></i>
-                                    <span>{{ $warehouse->manager ?? 'غير محدد' }}</span>
+                                    <span>{{ $warehouse->manager->name ?? 'غير محدد' }}</span>
                                 </div>
                             </div>
 
-                        <div class="bg-slate-900 bg-opacity-50 rounded-3 p-3 mb-4 border border-white-5">
+                            <div class="bg-slate-900 bg-opacity-50 rounded-3 p-3 mb-4 border border-white-5">
                                 <div class="row text-center">
                                     <div class="col-6 border-end border-white-10">
                                         <p class="text-gray-500 x-small text-uppercase mb-1">قيمة الممتلكات</p>
@@ -158,7 +181,7 @@
                                         </li>
                                         <li>
                                             <form action="{{ route('warehouses.destroy', $warehouse) }}" method="POST"
-                                                onsubmit="return confirm('هل أنت متأكد من الحذف؟')">
+                                                data-confirm="هل أنت متأكد من حذف هذا المستودع؟">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit"

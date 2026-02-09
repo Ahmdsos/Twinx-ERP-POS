@@ -88,14 +88,14 @@ class SalesInvoiceController extends Controller
         $deliveryOrder = null;
 
         if ($request->filled('delivery_order_id')) {
-            $deliveryOrder = DeliveryOrder::with(['salesOrder.customer', 'lines.product'])
+            $deliveryOrder = DeliveryOrder::with(['salesOrder.customer', 'customer', 'lines.product'])
                 ->findOrFail($request->delivery_order_id);
         }
 
         // Get delivered orders without invoice
         $deliveredOrders = DeliveryOrder::where('status', DeliveryStatus::DELIVERED)
             ->whereDoesntHave('salesOrder.invoices')
-            ->with('salesOrder.customer')
+            ->with(['salesOrder.customer', 'customer'])
             ->orderByDesc('delivery_date')
             ->get();
 

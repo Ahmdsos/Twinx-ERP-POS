@@ -317,7 +317,7 @@
 
             submitForm() {
                 if(!this.warehouseId) {
-                    alert('يرجى اختيار المخزن');
+                    Swal.fire({ icon: 'warning', title: 'تنبيه', text: 'يرجى اختيار المخزن قبل الحفظ', background: '#1e293b', color: '#fff' });
                     return;
                 }
                 document.getElementById('order-form').submit();

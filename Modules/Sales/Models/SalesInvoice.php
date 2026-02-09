@@ -160,13 +160,14 @@ class SalesInvoice extends Model
         // Assuming line_total is (Qty * UnitPrice) - LineDiscount + Tax.
 
         $subtotal = $grossTotal - $taxAmount; // Back-calculate Net Subtotal
-        $total = $grossTotal - ($this->discount_amount ?? 0); // Gross - Global Discount
+        $total = $grossTotal - ($this->discount_amount ?? 0) + ($this->delivery_fee ?? 0);
 
         $this->update([
             'subtotal' => $subtotal,
             'tax_amount' => $taxAmount,
             'total' => $total,
-            'balance_due' => $total - $this->paid_amount,
+            // Calculate balance due based on total and paid amount
+            'balance_due' => max(0, $total - $this->paid_amount),
         ]);
     }
 

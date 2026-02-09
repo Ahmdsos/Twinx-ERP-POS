@@ -31,6 +31,17 @@ class RolesAndPermissionsSeeder extends Seeder
             'users.manage',
             'hr.manage',
             'couriers.manage',
+
+            // HR & Payroll
+            'hr.view',
+            'hr.employees.view',
+            'hr.employees.manage',
+            'hr.attendance.view',
+            'hr.attendance.manage',
+            'hr.payroll.view',
+            'hr.payroll.manage',
+            'hr.leave.view',
+            'hr.leave.manage',
         ];
 
         foreach ($permissions as $permission) {

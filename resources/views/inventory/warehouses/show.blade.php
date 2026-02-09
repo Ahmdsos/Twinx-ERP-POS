@@ -63,7 +63,7 @@
                             <!-- Delete button (only if no stock) -->
                             @if($warehouse->stocks_count == 0 && !$warehouse->is_default)
                                 <form action="{{ route('warehouses.destroy', $warehouse) }}" method="POST"
-                                    onsubmit="return confirm('هل أنت متأكد من حذف هذا المستودع؟')">
+                                    data-confirm="هل أنت متأكد من حذف هذا المستودع؟">
                                     @csrf
                                     @method('DELETE')
                                     <button class="btn btn-glass-danger d-flex align-items-center gap-2 px-4 py-3">

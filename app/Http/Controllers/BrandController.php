@@ -68,4 +68,46 @@ class BrandController extends Controller
 
         return redirect()->route('brands.index')->with('success', 'تم حذف العلامة التجارية بنجاح');
     }
+    /**
+     * Export brands to Excel
+     */
+    public function export()
+    {
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\BrandsExport, 'brands.xlsx');
+    }
+
+    /**
+     * Show import form
+     */
+    public function importForm()
+    {
+        return view('inventory.brands.import');
+    }
+
+    /**
+     * Download sample file
+     */
+    public function importSample()
+    {
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\BrandsExport, 'brands_sample.xlsx');
+    }
+
+    /**
+     * Process import
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv',
+        ]);
+
+        try {
+            \Maatwebsite\Excel\Facades\Excel::import(new \App\Imports\BrandsImport, $request->file('file'));
+
+            return redirect()->route('brands.index')
+                ->with('success', 'تم استيراد العلامات التجارية بنجاح.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'حدث خطأ أثناء الاستيراد: ' . $e->getMessage());
+        }
+    }
 }

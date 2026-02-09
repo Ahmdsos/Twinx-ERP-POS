@@ -34,6 +34,7 @@ class Account extends Model
     protected $fillable = [
         'code',
         'name',
+        'name_ar',
         'type',
         'parent_id',
         'description',
@@ -42,6 +43,38 @@ class Account extends Model
         'is_system',
         'balance',
     ];
+
+    /**
+     * The "booted" method of the model.
+     */
+    protected static function booted()
+    {
+        static::deleting(function ($account) {
+            // 1. Block System Accounts
+            if ($account->is_system) {
+                throw new \RuntimeException("Cannot delete system account: [{$account->code}] {$account->name}");
+            }
+
+            // 2. Block accounts used in Settings (SSOT Protection)
+            $isUsedInSettings = \App\Models\Setting::where('group', 'accounting')
+                ->where('value', $account->code)
+                ->exists();
+
+            if ($isUsedInSettings) {
+                throw new \RuntimeException("Cannot delete account [{$account->code}]: It is currently linked in system settings.");
+            }
+
+            // 3. Block accounts with children (Hierarchy Protection)
+            if ($account->children()->exists()) {
+                throw new \RuntimeException("Cannot delete account [{$account->code}]: It has sub-accounts.");
+            }
+
+            // 4. Block accounts with transactions (Ledger Protection)
+            if ($account->journalLines()->exists()) {
+                throw new \RuntimeException("Cannot delete account [{$account->code}]: It has transaction history.");
+            }
+        });
+    }
 
     protected $casts = [
         'type' => AccountType::class,
@@ -169,6 +202,17 @@ class Account extends Model
         }
 
         return $depth;
+    }
+
+    /**
+     * Get display name (English - Arabic)
+     */
+    public function getDisplayNameAttribute(): string
+    {
+        if ($this->name_ar) {
+            return "{$this->name} - {$this->name_ar}";
+        }
+        return $this->name;
     }
 
     /**

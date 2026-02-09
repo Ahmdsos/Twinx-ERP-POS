@@ -79,6 +79,7 @@ class SalesOrderController extends Controller
             ->get();
 
         // Tax settings from database (stored as percent, e.g., 20 for 20%)
+        \App\Models\Setting::clearCache(); // Force fresh truth
         $taxRatePercent = (float) \App\Models\Setting::getValue('default_tax_rate', 14);
         $taxRate = $taxRatePercent / 100; // Convert to decimal for JS
 
@@ -204,44 +205,19 @@ class SalesOrderController extends Controller
             'lines.*.notes' => 'nullable|string',
         ]);
 
-        // Update order header
-        $salesOrder->update([
-            'customer_id' => $validated['customer_id'],
-            'warehouse_id' => $validated['warehouse_id'],
-            'order_date' => $validated['order_date'],
-            'expected_date' => $validated['expected_date'] ?? null,
-            'notes' => $validated['notes'] ?? null,
-            'customer_notes' => $validated['customer_notes'] ?? null,
-            'shipping_address' => $validated['shipping_address'] ?? null,
-            'shipping_method' => $validated['shipping_method'] ?? null,
-        ]);
+        // Prepare lines data
+        $lines = collect($validated['lines'])->map(function ($line) {
+            return [
+                'product_id' => $line['product_id'],
+                'quantity' => $line['quantity'],
+                'unit_price' => $line['unit_price'],
+                'discount_percent' => $line['discount_percent'] ?? 0,
+                'notes' => $line['notes'] ?? null,
+            ];
+        })->toArray();
 
-        // Delete old lines and create new ones
-        $salesOrder->lines()->delete();
-
-        foreach ($validated['lines'] as $lineData) {
-            $product = Product::find($lineData['product_id']);
-            $quantity = $lineData['quantity'];
-            $unitPrice = $lineData['unit_price'];
-            $discountPercent = $lineData['discount_percent'] ?? 0;
-            $discountAmount = ($unitPrice * $quantity) * ($discountPercent / 100);
-            $lineTotal = ($unitPrice * $quantity) - $discountAmount;
-
-            $salesOrder->lines()->create([
-                'product_id' => $lineData['product_id'],
-                'quantity' => $quantity,
-                'unit_price' => $unitPrice,
-                'discount_percent' => $discountPercent,
-                'discount_amount' => $discountAmount,
-                'tax_percent' => 0, // TODO: Implement tax
-                'tax_amount' => 0,
-                'line_total' => $lineTotal,
-                'notes' => $lineData['notes'] ?? null,
-            ]);
-        }
-
-        // Recalculate totals
-        $salesOrder->recalculateTotals();
+        // Delegate update to SalesService (Atomic update)
+        $this->salesService->updateSalesOrder($salesOrder, $validated, $lines);
 
         return redirect()->route('sales-orders.show', $salesOrder)
             ->with('success', 'تم تحديث أمر البيع بنجاح');

@@ -15,11 +15,88 @@
                     <p class="mb-0 text-gray-400 small">قاعدة بيانات الأصناف والمخزون</p>
                 </div>
             </div>
-            <a href="{{ route('products.create') }}"
-                class="btn btn-action-purple d-flex align-items-center gap-2 shadow-lg">
-                <i class="bi bi-plus-lg"></i>
-                <span class="fw-bold">إضافة منتج جديد</span>
-            </a>
+            <div class="d-flex gap-2">
+                <a href="/inventory_guide.html" target="_blank"
+                    class="btn btn-purple-glass d-flex align-items-center gap-2 shadow-lg" title="دليل الاستخدام">
+                    <i class="bi bi-question-circle"></i>
+                    <span class="fw-bold d-none d-md-inline">دليل الاستخدام</span>
+                </a>
+                <div class="dropdown">
+                    <button class="btn btn-purple-glass d-flex align-items-center gap-2 shadow-lg dropdown-toggle"
+                        type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-download"></i>
+                        <span class="fw-bold d-none d-md-inline">تصدير</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-dark bg-slate-900 border-white-10 shadow-neon"
+                        aria-labelledby="exportDropdown">
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2"
+                                href="{{ route('products.export', ['format' => 'xlsx']) }}">
+                                <i class="bi bi-file-earmark-spreadsheet text-success"></i> Excel (.xlsx)
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2"
+                                href="{{ route('products.export', ['format' => 'json']) }}">
+                                <i class="bi bi-filetype-json text-warning"></i> JSON (Unified)
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2"
+                                href="{{ route('products.export', ['format' => 'csv']) }}">
+                                <i class="bi bi-file-earmark-code text-info"></i> Pro Editor (.csv)
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <button type="button" class="btn btn-purple-glass d-flex align-items-center gap-2 shadow-lg"
+                    data-bs-toggle="modal" data-bs-target="#importModal">
+                    <i class="bi bi-upload"></i>
+                    <span class="fw-bold d-none d-md-inline">استيراد</span>
+                </button>
+                <a href="{{ route('products.create') }}"
+                    class="btn btn-action-purple d-flex align-items-center gap-2 shadow-lg">
+                    <i class="bi bi-plus-lg"></i>
+                    <span class="fw-bold">إضافة منتج جديد</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Import Modal -->
+        <div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content bg-slate-900 border border-purple-500 border-opacity-20 shadow-neon">
+                    <div class="modal-header border-bottom border-white-10">
+                        <h5 class="modal-title text-white fw-bold">
+                            <i class="bi bi-file-earmark-spreadsheet text-purple-400 me-2"></i> استيراد المنتجات
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                    </div>
+                    <form action="{{ route('products.import') }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        <div class="modal-body">
+                            <div class="alert alert-info bg-opacity-10 border-info border-opacity-20 text-info small">
+                                <i class="bi bi-info-circle me-1"></i>
+                                يمكنك رفع ملف <strong>Excel/CSV</strong> للمنتجات فقط، أو ملف <strong>JSON</strong> لتحديث
+                                الـ 5 صفحات معاً (أقسام، ماركات، وحدات، مخازن، منتجات).
+                            </div>
+                            <div class="mb-3">
+                                <label for="importFile" class="form-label text-gray-300">ملف التحديث
+                                    (Excel/CSV/JSON)</label>
+                                <input class="form-control form-control-dark" type="file" id="importFile" name="file"
+                                    required accept=".xlsx,.xls,.csv,.json">
+                            </div>
+                        </div>
+                        <div class="modal-footer border-top border-white-10">
+                            <button type="button" class="btn btn-ghost text-gray-400" data-bs-dismiss="modal">إلغاء</button>
+                            <button type="submit" class="btn btn-action-purple">
+                                <i class="bi bi-upload me-1"></i> بدء الاستيراد
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
 
         <!-- Filters Section (Glass) -->
@@ -74,12 +151,51 @@
                     </label>
                 </div>
 
+                <!-- Stock Status -->
+                <div class="col-md-2">
+                    <label class="form-label text-purple-400 x-small fw-bold text-uppercase ps-1">حالة المخزون</label>
+                    <select name="stock_status"
+                        class="form-select form-select-dark text-white cursor-pointer hover:bg-white-5">
+                        <option value="">-- الكل --</option>
+                        <option value="in_stock" {{ request('stock_status') == 'in_stock' ? 'selected' : '' }}>متوفر (>0)
+                        </option>
+                        <option value="out_of_stock" {{ request('stock_status') == 'out_of_stock' ? 'selected' : '' }}>نفد (0)
+                        </option>
+                        <option value="low_stock" {{ request('stock_status') == 'low_stock' ? 'selected' : '' }}>نواقص (Low)
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Sort By -->
+                <div class="col-md-2">
+                    <label class="form-label text-purple-400 x-small fw-bold text-uppercase ps-1">ترتيب حسب</label>
+                    <select name="sort_by" class="form-select form-select-dark text-white cursor-pointer hover:bg-white-5">
+                        <option value="name" {{ request('sort_by') == 'name' ? 'selected' : '' }}>الاسم</option>
+                        <option value="id" {{ request('sort_by') == 'id' ? 'selected' : '' }}>الرقم (ID)</option>
+                        <option value="sku" {{ request('sort_by') == 'sku' ? 'selected' : '' }}>SKU</option>
+                        <option value="barcode" {{ request('sort_by') == 'barcode' ? 'selected' : '' }}>الباركود</option>
+                        <option value="selling_price" {{ request('sort_by') == 'selling_price' ? 'selected' : '' }}>سعر البيع
+                        </option>
+                        <option value="total_stock_qty" {{ request('sort_by') == 'total_stock_qty' ? 'selected' : '' }}>الكمية
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Sort Dir -->
+                <div class="col-md-1">
+                    <label class="form-label text-purple-400 x-small fw-bold text-uppercase ps-1">الاتجاه</label>
+                    <select name="sort_dir" class="form-select form-select-dark text-white cursor-pointer hover:bg-white-5">
+                        <option value="asc" {{ request('sort_dir') == 'asc' ? 'selected' : '' }}>تصاعدي</option>
+                        <option value="desc" {{ request('sort_dir') == 'desc' ? 'selected' : '' }}>تنازلي</option>
+                    </select>
+                </div>
+
                 <!-- Submit -->
                 <div class="col-md d-flex align-items-end">
                     <button type="submit" class="btn btn-purple-glass w-100 fw-bold">
                         <i class="bi bi-funnel"></i> تصفية
                     </button>
-                    @if(request()->anyFilled(['search', 'category_id', 'brand_id', 'active_only']))
+                    @if(request()->anyFilled(['search', 'category_id', 'brand_id', 'stock_status', 'sort_by']))
                         <a href="{{ route('products.index') }}" class="btn btn-outline-light ms-2" title="مسح الفلاتر">
                             <i class="bi bi-x-lg"></i>
                         </a>
@@ -194,7 +310,7 @@
 
                                         @if($stock <= 0)
                                             <form action="{{ route('products.destroy', $product->id) }}" method="POST"
-                                                class="d-inline" onsubmit="return confirm('هل أنت متأكد من الحذف؟');">
+                                                class="d-inline" data-confirm="هل أنت متأكد من حذف هذا المنتج؟">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-sm btn-icon-glass text-danger" title="حذف">

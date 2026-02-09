@@ -183,13 +183,15 @@
                     <span>
                         @php
                             $labels = [
-                                'individual' => 'فرد',
-                                'company' => 'شركة',
-                                'distributor' => 'موزع',
-                                'wholesale' => 'جملة',
-                                'half_wholesale' => 'نص جملة',
-                                'quarter_wholesale' => 'ربع جملة',
-                                'vip' => 'VIP'
+                                'consumer' => 'فرد (Consumer)',
+                                'company' => 'شركة (Company)',
+                                'distributor' => 'موزع معتمد (Distributor)',
+                                'wholesale' => 'تاجر جملة (Wholesale)',
+                                'half_wholesale' => 'نص جملة (Half Wholesale)',
+                                'quarter_wholesale' => 'ربع جملة (Quarter Wholesale)',
+                                'technician' => 'فني / مقاول (Technician)',
+                                'employee' => 'موظف (Employee)',
+                                'vip' => 'عميل مميز (VIP)'
                             ];
                             echo $labels[$invoice->customer->type] ?? $invoice->customer->type;
                         @endphp
@@ -291,13 +293,13 @@
             @foreach($invoice->paymentAllocations as $allocation)
                 <div class="totals-row" style="margin-top: 2px;">
                     <span>مدفوع ({{ 
-                                match ($allocation->payment->payment_method) {
+                                        match ($allocation->payment->payment_method) {
                         'cash' => 'نقد',
                         'card' => 'شبكة',
                         'credit' => 'آجل',
                         default => $allocation->payment->payment_method
                     }
-                            }}):</span>
+                                    }}):</span>
                     <span>{{ number_format($allocation->amount, 2) }}</span>
                 </div>
             @endforeach

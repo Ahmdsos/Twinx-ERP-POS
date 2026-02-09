@@ -26,9 +26,13 @@ class SettingsController extends Controller
             'currency' => Setting::getGroup('currency'),
             'email' => Setting::getGroup('email'),
             'backup' => Setting::getGroup('backup'),
+            'accounting' => Setting::getGroup('accounting'),
         ];
 
-        return view('settings.index', compact('settings'));
+        // Fetch all non-header accounts for mapping
+        $accounts = \Modules\Accounting\Models\Account::active()->postable()->orderBy('code')->get();
+
+        return view('settings.index', compact('settings', 'accounts'));
     }
 
     /**
@@ -131,7 +135,180 @@ class SettingsController extends Controller
         Setting::setValue('backup_path', $request->input('backup_path', 'backups'), 'backup');
         Setting::setValue('backup_notify', $request->has('backup_notify'), 'backup');
 
+        // Save Accounting Integration settings
+        $accountingKeys = [
+            'acc_ar',
+            'acc_ap',
+            'acc_cash',
+            'acc_bank',
+            'acc_sales_revenue',
+            'acc_tax_payable',
+            'acc_tax_receivable',
+            'acc_sales_discount',
+            'acc_sales_return',
+            'acc_shipping_revenue',
+            'acc_pending_delivery',
+            'acc_tax_receivable',
+            'acc_purchase_discount',
+            'acc_pos_change',
+            'acc_inventory',
+            'acc_cogs',
+            'acc_inventory_adj',
+            'acc_purchase_suspense',
+            'acc_inventory_other',
+            'acc_salaries_exp',
+            'acc_salaries_payable',
+            'acc_opening_balance'
+        ];
+
+        foreach ($accountingKeys as $key) {
+            if ($request->has($key)) {
+                Setting::setValue($key, $request->input($key), 'accounting');
+            }
+        }
+
         return redirect()->route('settings.index')
             ->with('success', 'تم حفظ الإعدادات بنجاح');
+    }
+
+    /**
+     * Perform a safe system reset (Wipe transactions, keep COA)
+     */
+    public function systemReset(Request $request)
+    {
+        $request->validate([
+            'pin' => 'required|string',
+        ]);
+
+        $adminPin = Setting::getValue('pos_manager_pin', 'pos') ?: Setting::getValue('pos_refund_pin', 'pos') ?: '1234';
+
+        if ($request->pin !== $adminPin) {
+            return back()->withErrors(['pin' => 'رمز التحقق (PIN) غير صحيح']);
+        }
+
+        try {
+            // Disable Foreign Key Checks (MUST happen before transaction for SQLite)
+            if (\Illuminate\Support\Facades\DB::getDriverName() === 'sqlite') {
+                \Illuminate\Support\Facades\DB::statement('PRAGMA foreign_keys = OFF');
+            } else {
+                \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS = 0');
+            }
+
+            \Illuminate\Support\Facades\DB::transaction(function () {
+                $tables = [
+                    'journal_entry_lines',
+                    'journal_entries',
+
+                    // Sales & Customers
+                    'sales_invoice_lines',
+                    'sales_invoices',  // Corrected
+                    'sales_order_lines',
+                    'sales_orders',      // Corrected
+                    'sales_return_lines',
+                    'sales_returns',    // Corrected
+                    'delivery_order_lines',
+                    'delivery_orders', // Wrapped in Sales
+                    'quotation_lines',
+                    'quotations',          // Corrected
+                    'customer_payment_allocations',
+                    'customer_payments',
+                    'pos_held_sales',
+                    'pos_shifts',
+                    'customers',
+
+                    // Purchases & Suppliers
+                    'purchase_invoice_lines',
+                    'purchase_invoices', // Corrected
+                    'purchase_order_lines',
+                    'purchase_orders',     // Corrected
+                    'purchase_return_lines',
+                    'purchase_returns',   // Corrected
+                    'grn_lines',
+                    'grns',                           // Added
+                    'supplier_payment_allocations',
+                    'supplier_payments',
+                    'suppliers',
+
+                    // Inventory & Products
+                    'stock_movements',
+                    'product_stock',
+                    'product_images',
+                    'product_batches',
+                    'product_serials',
+                    'products',
+                    'brands',
+                    'categories',
+                    'units',  // Units might be master data but often user-defined
+
+                    // Logistics
+                    'couriers',
+                    'shipments',
+                    'shipment_status_histories',
+
+                    // HR & Expenses
+                    'expenses',
+                    'payroll_items',
+                    'payrolls',
+                    'hr_leaves',
+                    'hr_documents',
+
+                    // Finance
+                    'treasury_transactions',
+
+                    // Logs
+                    'activity_logs',
+                    'security_audit_logs',
+                    'price_override_logs',
+                    'notifications',
+                    'personal_access_tokens'
+                ];
+
+                foreach ($tables as $table) {
+                    if (\Illuminate\Support\Facades\Schema::hasTable($table)) {
+                        \Illuminate\Support\Facades\DB::table($table)->truncate();
+                    }
+                }
+
+                // Reset balances and stock
+                \Illuminate\Support\Facades\DB::table('accounts')->update(['balance' => 0]);
+
+                // Products table doesn't hold stock, it's in product_stock (truncated above)
+
+                if (\Illuminate\Support\Facades\Schema::hasTable('product_batches')) {
+                    \Illuminate\Support\Facades\DB::table('product_batches')->truncate();
+                }
+
+                if (\Illuminate\Support\Facades\Schema::hasTable('product_serials')) {
+                    \Illuminate\Support\Facades\DB::table('product_serials')->truncate();
+                }
+            });
+
+            // Re-enable Foreign Key Checks (After transaction)
+            if (\Illuminate\Support\Facades\DB::getDriverName() === 'sqlite') {
+                \Illuminate\Support\Facades\DB::statement('PRAGMA foreign_keys = ON');
+            } else {
+                \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS = 1');
+            }
+
+
+            // Log activity
+            // Log activity
+            if (class_exists('\App\Models\ActivityLog')) {
+                \App\Models\ActivityLog::create([
+                    'user_id' => auth()->id(),
+                    'user_name' => auth()->user()?->name ?? 'Admin',
+                    'action' => 'system_reset',
+                    'description' => 'تم تصفير بيانات السيستم بالكامل بنجاح بواسطة المدير',
+                    'ip_address' => request()->ip(),
+                    'user_agent' => request()->userAgent(),
+                ]);
+            }
+
+            return redirect()->route('settings.index')
+                ->with('success', 'تم تصفير بيانات السيستم بنجاح (مع الحفاظ على دليل الحسابات)');
+
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'فشل التصفير: ' . $e->getMessage()]);
+        }
     }
 }

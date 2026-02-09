@@ -37,9 +37,10 @@
                         <tr class="table-row-hover">
                             <td class="px-4 py-3 font-monospace text-info fs-5">{{ $account->code }}</td>
                             <td class="py-3">
-                                <div class="fw-bold fs-5">{{ $account->name }}</div>
+                                <div class="fw-bold fs-5">{{ $account->display_name }}</div>
                                 @if($account->parent)
-                                    <div class="small text-white-50">يندرج تحت: {{ $account->parent->name }}</div>
+                                    <div class="small text-white-50">يندرج تحت:
+                                        {{ $account->parent->display_name ?? $account->parent->name }}</div>
                                 @endif
                             </td>
                             <td class="py-3">

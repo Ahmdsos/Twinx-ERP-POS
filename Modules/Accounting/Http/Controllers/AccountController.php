@@ -75,6 +75,7 @@ class AccountController extends Controller
             'id' => $account->id,
             'code' => $account->code,
             'name' => $account->name,
+            'name_ar' => $account->name_ar,
             'type' => $account->type->value,
             'balance' => $account->balance ?? 0,
             'is_active' => $account->is_active,
@@ -107,6 +108,7 @@ class AccountController extends Controller
         $validated = $request->validate([
             'code' => 'required|string|max:20|unique:accounts,code',
             'name' => 'required|string|max:255',
+            'name_ar' => 'required|string|max:255',
             'type' => 'required|string',
             'parent_id' => 'nullable|exists:accounts,id',
             'description' => 'nullable|string',
@@ -221,6 +223,7 @@ class AccountController extends Controller
         $validated = $request->validate([
             'code' => 'required|string|max:20|unique:accounts,code,' . $account->id,
             'name' => 'required|string|max:255',
+            'name_ar' => 'required|string|max:255',
             'type' => 'required|string',
             'parent_id' => 'nullable|exists:accounts,id',
             'description' => 'nullable|string',
@@ -237,13 +240,14 @@ class AccountController extends Controller
 
     public function destroy(Account $account)
     {
-        if ($account->journalLines()->exists()) {
-            return back()->with('error', 'لا يمكن حذف حساب له قيود');
+        try {
+            $account->delete();
+            return redirect()->route('accounts.index')
+                ->with('success', 'تم حذف الحساب بنجاح');
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        } catch (\Exception $e) {
+            return back()->with('error', 'حدث خطأ أثناء حذف الحساب');
         }
-
-        $account->delete();
-
-        return redirect()->route('accounts.index')
-            ->with('success', 'تم حذف الحساب بنجاح');
     }
 }

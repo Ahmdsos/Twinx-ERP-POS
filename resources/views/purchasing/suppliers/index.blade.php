@@ -15,11 +15,37 @@
                     <p class="mb-0 text-gray-400 small">قاعدة بيانات شركاء التوريد</p>
                 </div>
             </div>
-            <a href="{{ route('suppliers.create') }}"
-                class="btn btn-action-cyan d-flex align-items-center gap-2 shadow-lg">
-                <i class="bi bi-plus-lg"></i>
-                <span class="fw-bold">إضافة مورد جديد</span>
-            </a>
+            <div class="d-flex gap-2">
+                <div class="dropdown">
+                    <button class="btn btn-success-glass d-flex align-items-center gap-2 shadow-lg dropdown-toggle" 
+                        type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-download"></i>
+                        <span class="fw-bold d-none d-md-inline">تصدير</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-dark bg-slate-900 border-white-10 shadow-neon" aria-labelledby="exportDropdown">
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('export.suppliers', ['format' => 'xlsx']) }}">
+                                <i class="bi bi-file-earmark-spreadsheet text-success"></i> Excel (.xlsx)
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('export.suppliers', ['format' => 'csv']) }}">
+                                <i class="bi bi-file-earmark-code text-info"></i> CSV (.csv)
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <a href="{{ route('suppliers.import.form') }}"
+                    class="btn btn-cyan-glass d-flex align-items-center gap-2 shadow-lg">
+                    <i class="bi bi-cloud-upload"></i>
+                    <span class="fw-bold d-none d-md-inline">استيراد</span>
+                </a>
+                <a href="{{ route('suppliers.create') }}"
+                    class="btn btn-action-cyan d-flex align-items-center gap-2 shadow-lg">
+                    <i class="bi bi-plus-lg"></i>
+                    <span class="fw-bold">إضافة مورد جديد</span>
+                </a>
+            </div>
         </div>
 
         <!-- Stats Section -->
@@ -171,7 +197,7 @@
                                         <a href="{{ route('suppliers.edit', $supplier->id) }}" class="btn-icon-glass" title="تعديل">
                                             <i class="bi bi-pencil"></i>
                                         </a>
-                                        <form action="{{ route('suppliers.destroy', $supplier->id) }}" method="POST" class="d-inline" onsubmit="return confirm('هل أنت متأكد من الحذف؟');">
+                                        <form action="{{ route('suppliers.destroy', $supplier->id) }}" method="POST" class="d-inline" data-confirm="هل أنت متأكد من حذف هذا المورد؟">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn-icon-glass text-danger hover-danger" title="حذف">

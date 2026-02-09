@@ -73,13 +73,20 @@
 
                     {{-- Convert to Order (if Accepted) --}}
                     @if($quotation->status === \Modules\Sales\Enums\QuotationStatus::ACCEPTED)
-                        <form action="{{ route('quotations.convert', $quotation->id) }}" method="POST" class="d-inline"
-                            onsubmit="return confirm('تحويل العرض إلى أمر بيع؟')">
-                            @csrf
-                            <button type="submit" class="btn btn-success fw-bold px-4 hover-scale">
-                                <i class="bi bi-box-seam me-2"></i> تحويل لأمر بيع
+                        @if($quotation->customer_id)
+                            <form action="{{ route('quotations.convert', $quotation->id) }}" method="POST" class="d-inline"
+                                data-confirm="هل أنت متأكد من تحويل العرض إلى أمر بيع؟" data-confirm-title="تحويل لأمر بيع">
+                                @csrf
+                                <button type="submit" class="btn btn-success fw-bold px-4 hover-scale">
+                                    <i class="bi bi-box-seam me-2"></i> تحويل لأمر بيع
+                                </button>
+                            </form>
+                        @else
+                            <button type="button" class="btn btn-secondary disabled fw-bold px-4"
+                                title="لا يمكن التحويل مباشرة لأنه موجه لفئة كاملة">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i> تحويل (فئة)
                             </button>
-                        </form>
+                        @endif
                     @endif
                 </div>
 
@@ -90,12 +97,22 @@
                         <i class="bi bi-gear-fill me-2"></i> إجراءات
                     </button>
                     <ul class="dropdown-menu dropdown-menu-dark shadow-2xl border border-white/10">
-                        @if(in_array($quotation->status, [\Modules\Sales\Enums\QuotationStatus::DRAFT, \Modules\Sales\Enums\QuotationStatus::SENT]))
+                        @if(in_array($quotation->status, [\Modules\Sales\Enums\QuotationStatus::DRAFT, \Modules\Sales\Enums\QuotationStatus::SENT, \Modules\Sales\Enums\QuotationStatus::ACCEPTED]))
                             <li>
                                 <form action="{{ route('quotations.reject', $quotation->id) }}" method="POST"
-                                    onsubmit="return confirm('رفض العرض؟')">
+                                    data-confirm="سيتم رفض هذا العرض نهائياً، هل تود الاستمرار؟"
+                                    data-confirm-title="رفض عرض السعر">
                                     @csrf
                                     <button class="dropdown-item text-danger"><i class="bi bi-x-circle me-2"></i> رفض
+                                        العرض</button>
+                                </form>
+                            </li>
+                            <li>
+                                <form action="{{ route('quotations.expire', $quotation->id) }}" method="POST"
+                                    data-confirm="بمجرد الإغلاق، لن يظهر هذا العرض في قائمة الأسعار الخاصة بالنقاط البيعية. استمرار؟"
+                                    data-confirm-title="إغلاق العرض">
+                                    @csrf
+                                    <button class="dropdown-item text-warning"><i class="bi bi-hourglass-bottom me-2"></i> إغلاق
                                         العرض</button>
                                 </form>
                             </li>
@@ -105,7 +122,8 @@
                         </li>
                         <li>
                             <form action="{{ route('quotations.destroy', $quotation->id) }}" method="POST"
-                                onsubmit="return confirm('حذف نهائي؟')">
+                                data-confirm="تحذير: هذا الإجراء سيقوم بحذف العرض نهائياً من قاعدة البيانات. هل أنت متأكد؟"
+                                data-confirm-title="حذف عرض السعر">
                                 @csrf @method('DELETE')
                                 <button class="dropdown-item text-danger"><i class="bi bi-trash me-2"></i> حذف</button>
                             </form>
@@ -218,28 +236,46 @@
                     <div class="absolute-glow top-0 end-0 bg-blue-500/10"></div>
                     <h5 class="fw-bold text-white mb-4 border-bottom border-white/10 pb-3">معلومات العميل</h5>
 
-                    <div class="d-flex align-items-center gap-3 mb-4">
-                        <div class="avatar-circle bg-gradient-to-br from-gray-700 to-gray-800 text-white rounded-circle d-flex align-items-center justify-content-center shadow-lg"
-                            style="width: 50px; height: 50px;">
-                            <span class="fs-5 fw-bold">{{ substr($quotation->customer->name, 0, 1) }}</span>
+                    @if($quotation->customer)
+                        <div class="d-flex align-items-center gap-3 mb-4">
+                            <div class="avatar-circle bg-gradient-to-br from-gray-700 to-gray-800 text-white rounded-circle d-flex align-items-center justify-content-center shadow-lg"
+                                style="width: 50px; height: 50px;">
+                                <span class="fs-5 fw-bold">{{ substr($quotation->customer->name, 0, 1) }}</span>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold text-white mb-0">{{ $quotation->customer->name }}</h5>
+                                <small class="text-gray-400">{{ $quotation->customer->phone ?? 'لا يوجد هاتف' }}</small>
+                            </div>
                         </div>
-                        <div>
-                            <h5 class="fw-bold text-white mb-0">{{ $quotation->customer->name }}</h5>
-                            <small class="text-gray-400">{{ $quotation->customer->phone ?? 'لا يوجد هاتف' }}</small>
-                        </div>
-                    </div>
 
-                    <div class="vstack gap-3 text-gray-300 small">
-                        <div class="d-flex justify-content-between">
-                            <span class="text-gray-500">العنوان:</span>
-                            <span class="text-end">{{ $quotation->customer->address ?? '-' }}</span>
+                        <div class="vstack gap-3 text-gray-300 small">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-gray-500">العنوان:</span>
+                                <span class="text-end">{{ $quotation->customer->address ?? '-' }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-gray-500">النوع:</span>
+                                <span
+                                    class="badge bg-white/5 border border-white/10">{{ $quotation->customer->type_label }}</span>
+                            </div>
                         </div>
-                        <div class="d-flex justify-content-between">
-                            <span class="text-gray-500">النوع:</span>
-                            <span
-                                class="badge bg-white/5 border border-white/10">{{ $quotation->customer->type_label }}</span>
+                    @else
+                        <div class="d-flex align-items-center gap-3 mb-4">
+                            <div class="avatar-circle bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-circle d-flex align-items-center justify-content-center shadow-lg"
+                                style="width: 50px; height: 50px;">
+                                <i class="bi bi-people-fill fs-4"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold text-white mb-0">استهداف نوع عملاء</h5>
+                                <small class="text-cyan-400 fw-bold">{{ $quotation->target_customer_type_label }}</small>
+                            </div>
                         </div>
-                    </div>
+                        <div class="alert alert-info bg-indigo-500/10 border-indigo-500/20 text-indigo-300 small mb-0">
+                            <i class="bi bi-info-circle me-2"></i>
+                            هذا العرض موجه لجميع العملاء المصنفين تحت نوع
+                            <strong>({{ $quotation->target_customer_type_label }})</strong>.
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Meta Info -->

@@ -61,7 +61,7 @@
                                      <a href="{{ route('expense-categories.edit', $category) }}" class="btn btn-sm btn-glass text-warning" title="تعديل">
                                         <i class="bi bi-pencil-square fs-6"></i>
                                     </a>
-                                    <form action="{{ route('expense-categories.destroy', $category) }}" method="POST" onsubmit="return confirm('هل أنت متأكد من الحذف؟')">
+                                    <form action="{{ route('expense-categories.destroy', $category) }}" method="POST" data-confirm="هل أنت متأكد من حذف هذا التصنيف؟">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-glass text-danger hover-damn" title="حذف">
                                             <i class="bi bi-trash fs-6"></i>

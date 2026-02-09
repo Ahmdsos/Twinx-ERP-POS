@@ -45,7 +45,7 @@
                                                        name="permissions[]" value="{{ $perm->name }}" id="perm_{{ $perm->id }}"
                                                        {{ $role->hasPermissionTo($perm->name) ? 'checked' : '' }}>
                                                 <label class="form-check-label text-white-50" for="perm_{{ $perm->id }}">
-                                                    {{ explode('.', $perm->name)[1] ?? $perm->name }}
+                                                    {{ str_replace($category . '.', '', $perm->name) }}
                                                 </label>
                                             </div>
                                         @endforeach

@@ -70,6 +70,61 @@ class PurchasingService
                 ]);
             }
 
+            $po->recalculateTotals();
+            return $po->fresh(['lines', 'supplier']);
+        });
+    }
+
+    /**
+     * Update an existing purchase order
+     */
+    public function updatePurchaseOrder(PurchaseOrder $po, array $data, array $lines): PurchaseOrder
+    {
+        return DB::transaction(function () use ($po, $data, $lines) {
+            $po->update([
+                'supplier_id' => $data['supplier_id'],
+                'warehouse_id' => $data['warehouse_id'] ?? $po->warehouse_id,
+                'order_date' => $data['order_date'] ?? $po->order_date,
+                'expected_date' => $data['expected_date'] ?? $po->expected_date,
+                'reference' => $data['reference'] ?? $po->reference,
+                'notes' => $data['notes'] ?? $po->notes,
+                'terms' => $data['terms'] ?? $po->terms,
+                'currency' => $data['currency'] ?? $po->currency,
+                'exchange_rate' => $data['exchange_rate'] ?? $po->exchange_rate,
+            ]);
+
+            $currentLineIds = [];
+
+            foreach ($lines as $lineData) {
+                $lineId = $lineData['id'] ?? null;
+                $product = Product::find($lineData['product_id']);
+
+                $attributes = [
+                    'product_id' => $lineData['product_id'],
+                    'quantity' => $lineData['quantity'],
+                    'unit_price' => $lineData['unit_price'] ?? $product->cost_price,
+                    'discount_percent' => $lineData['discount_percent'] ?? 0,
+                    'tax_percent' => $lineData['tax_percent'] ?? $product->tax_rate ?? 0,
+                    'unit_id' => $lineData['unit_id'] ?? $product->unit_id,
+                    'description' => $lineData['description'] ?? null,
+                ];
+
+                if ($lineId) {
+                    $line = $po->lines()->find($lineId);
+                    if ($line) {
+                        $line->update($attributes);
+                        $currentLineIds[] = $line->id;
+                    }
+                } else {
+                    $newLine = $po->lines()->create($attributes);
+                    $currentLineIds[] = $newLine->id;
+                }
+            }
+
+            // Remove lines not present in the update
+            $po->lines()->whereNotIn('id', $currentLineIds)->delete();
+
+            $po->recalculateTotals();
             return $po->fresh(['lines', 'supplier']);
         });
     }

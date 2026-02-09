@@ -265,9 +265,42 @@ class LedgerService
 
         // Revenue is credit-normal, Expenses are debit-normal
         if ($type === AccountType::REVENUE) {
-            return round($totalCredit - $totalDebit, 2);
+            return round($totalDebit - $totalCredit, 2);
+        } elseif ($type === AccountType::EXPENSE) {
+            return round($totalDebit - $totalCredit, 2);
         }
 
-        return round($totalDebit - $totalCredit, 2);
+        return 0; // Default return if type is neither revenue nor expense
+    }
+
+    /**
+     * Get the calculated balance from the ledger (Single Source of Truth)
+     */
+    public function getCalculatedBalance(int $accountId, ?Carbon $asOfDate = null): float
+    {
+        $result = $this->calculateBalance($accountId, null, $asOfDate);
+        return (float) ($result['balance'] ?? 0);
+    }
+
+    /**
+     * Verify the integrity of a single account's stored balance
+     * @return array [is_valid, stored_balance, calculated_balance, delta]
+     */
+    public function verifyAccountIntegrity(int $accountId): array
+    {
+        $account = Account::findOrFail($accountId);
+        $calculatedResult = $this->calculateBalance($accountId);
+
+        $storedBalance = (float) $account->balance;
+        $calculatedBalance = (float) $calculatedResult['balance'];
+
+        $isValid = abs($storedBalance - $calculatedBalance) < 0.001;
+
+        return [
+            'is_valid' => $isValid,
+            'stored_balance' => $storedBalance,
+            'calculated_balance' => $calculatedBalance,
+            'delta' => round($calculatedBalance - $storedBalance, 2)
+        ];
     }
 }

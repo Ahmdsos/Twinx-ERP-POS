@@ -58,7 +58,7 @@
                                 <span>تعديل</span>
                             </a>
                             <form action="{{ route('categories.destroy', $category) }}" method="POST"
-                                onsubmit="return confirm('هل أنت متأكد من الحذف؟')">
+                                data-confirm="هل أنت متأكد من حذف هذا التصنيف؟">
                                 @csrf
                                 @method('DELETE')
                                 <button class="btn btn-glass-danger d-flex align-items-center gap-2 px-4 py-3">

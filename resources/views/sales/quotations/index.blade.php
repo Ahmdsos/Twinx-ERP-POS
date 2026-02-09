@@ -173,7 +173,15 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <span class="fw-bold text-white">{{ $quotation->customer?->name ?? 'غير محدد' }}</span>
+                                    @if($quotation->customer)
+                                        <span class="fw-bold text-white">{{ $quotation->customer->name }}</span>
+                                    @elseif($quotation->target_customer_type)
+                                        <span class="badge bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                                            جميع عملاء: {{ $quotation->target_customer_type_label }}
+                                        </span>
+                                    @else
+                                        <span class="text-gray-500">غير محدد</span>
+                                    @endif
                                 </td>
                                 <td>
                                     <div class="d-flex flex-column">

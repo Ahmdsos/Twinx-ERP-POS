@@ -43,7 +43,7 @@
                         </a>
 
                         <form action="{{ route('sales-orders.confirm', $salesOrder->id) }}" method="POST" class="d-inline"
-                            onsubmit="return confirm('هل أنت متأكد من تأكيد أمر البيع؟ لن يمكنك التعديل بعد ذلك.')">
+                            data-confirm="هل أنت متأكد من تأكيد أمر البيع؟ لن يمكنك التعديل بعد ذلك.">
                             @csrf
                             <button type="submit" class="btn btn-success fw-bold px-4 hover-scale">
                                 <i class="bi bi-check-circle-fill me-2"></i> تأكيد الأمر
@@ -54,7 +54,7 @@
                     {{-- Actions for CONFIRMED status --}}
                     @if($salesOrder->status === \Modules\Sales\Enums\SalesOrderStatus::CONFIRMED)
                         <form action="{{ route('sales-orders.deliver', $salesOrder->id) }}" method="POST" class="d-inline"
-                            onsubmit="return confirm('تأكيد صرف المخزون؟')">
+                            data-confirm="تأكيد صرف المخزون؟">
                             @csrf
                             <button type="submit" class="btn btn-warning fw-bold px-4 hover-scale text-black">
                                 <i class="bi bi-box-seam me-2"></i> إنشاء إذن صرف
@@ -65,7 +65,7 @@
                     {{-- Actions for Invoicing (Confirmed, Partial, Delivered) --}}
                     @if(in_array($salesOrder->status, [\Modules\Sales\Enums\SalesOrderStatus::CONFIRMED, \Modules\Sales\Enums\SalesOrderStatus::PARTIAL, \Modules\Sales\Enums\SalesOrderStatus::DELIVERED]))
                         <form action="{{ route('sales-orders.invoice', $salesOrder->id) }}" method="POST" class="d-inline"
-                            onsubmit="return confirm('إنشاء فاتورة مبيعات؟')">
+                            data-confirm="إنشاء فاتورة مبيعات؟">
                             @csrf
                             <button type="submit" class="btn btn-primary fw-bold px-4 hover-scale">
                                 <i class="bi bi-receipt me-2"></i> إصدار فاتورة
@@ -96,7 +96,7 @@
                             </li>
                             <li>
                                 <form action="{{ route('sales-orders.cancel', $salesOrder->id) }}" method="POST"
-                                    onsubmit="return confirm('هل أنت متأكد من إلغاء الأمر؟')">
+                                    data-confirm="هل أنت متأكد من إلغاء الأمر؟">
                                     @csrf
                                     <button class="dropdown-item text-danger"><i class="bi bi-x-circle me-2"></i> إلغاء
                                         الأمر</button>
@@ -104,7 +104,7 @@
                             </li>
                             <li>
                                 <form action="{{ route('sales-orders.destroy', $salesOrder->id) }}" method="POST"
-                                    onsubmit="return confirm('حذف نهائي؟')">
+                                    data-confirm="حذف نهائي؟">
                                     @csrf @method('DELETE')
                                     <button class="dropdown-item text-danger"><i class="bi bi-trash me-2"></i> حذف</button>
                                 </form>
@@ -117,7 +117,7 @@
                             </li>
                             <li>
                                 <form action="{{ route('sales-orders.cancel', $salesOrder->id) }}" method="POST"
-                                    onsubmit="return confirm('هل أنت متأكد من إلغاء الأمر؟')">
+                                    data-confirm="هل أنت متأكد من إلغاء هذا الطلب؟">
                                     @csrf
                                     <button class="dropdown-item text-danger"><i class="bi bi-x-circle me-2"></i> إلغاء
                                         الأمر</button>

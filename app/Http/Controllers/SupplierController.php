@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Modules\Purchasing\Models\Supplier;
+use App\Exports\SuppliersExport;
+use App\Imports\SuppliersImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 /**
  * SupplierController
@@ -86,10 +89,10 @@ class SupplierController extends Controller
      */
     public function show(Supplier $supplier)
     {
-        // Get financial summary using correct relationship names
+        // Truth: Get financial summary from Ledger
         $totalPurchases = $supplier->purchaseInvoices()->sum('total') ?? 0;
-        $totalPaid = $supplier->payments()->sum('amount') ?? 0;
-        $balance = $totalPurchases - $totalPaid;
+        $balance = $supplier->getLedgerBalance();
+        $totalPaid = max(0, $totalPurchases - $balance); // Approximation for simple display
 
         $recentInvoices = $supplier->purchaseInvoices()
             ->latest('invoice_date')
@@ -164,61 +167,53 @@ class SupplierController extends Controller
         $startDate = $request->get('start_date', now()->startOfMonth()->toDateString());
         $endDate = $request->get('end_date', now()->toDateString());
 
-        // Get opening balance (before start date)
-        $openingBalance = $supplier->purchaseInvoices()
-            ->whereDate('invoice_date', '<', $startDate)
-            ->sum('balance_due');
+        // Truth: Get opening balance (Sum Credits - Sum Debits) before start date from Ledger
+        $openingBalance = (float) \Modules\Accounting\Models\JournalEntryLine::where('subledger_type', Supplier::class)
+            ->where('subledger_id', $supplier->id)
+            ->whereHas('journalEntry', function ($q) use ($startDate) {
+                $q->whereDate('entry_date', '<', $startDate)
+                    ->where('status', \Modules\Accounting\Enums\JournalStatus::POSTED);
+            })
+            ->selectRaw('SUM(credit) - SUM(debit) as balance')
+            ->value('balance') ?? 0;
 
-        // Get invoices in date range
-        $invoices = $supplier->purchaseInvoices()
-            ->whereDate('invoice_date', '>=', $startDate)
-            ->whereDate('invoice_date', '<=', $endDate)
-            ->orderBy('invoice_date')
+        // Get ledger lines in date range
+        $ledgerLines = \Modules\Accounting\Models\JournalEntryLine::with('journalEntry')
+            ->where('subledger_type', Supplier::class)
+            ->where('subledger_id', $supplier->id)
+            ->whereHas('journalEntry', function ($q) use ($startDate, $endDate) {
+                $q->whereDate('entry_date', '>=', $startDate)
+                    ->whereDate('entry_date', '<=', $endDate)
+                    ->where('status', \Modules\Accounting\Enums\JournalStatus::POSTED);
+            })
             ->get();
 
-        // Get payments in date range
-        $payments = $supplier->payments()
-            ->whereDate('payment_date', '>=', $startDate)
-            ->whereDate('payment_date', '<=', $endDate)
-            ->orderBy('payment_date')
-            ->get();
-
-        // Combine and sort transactions
-        $transactions = collect();
-
-        foreach ($invoices as $inv) {
-            $transactions->push([
-                'date' => $inv->invoice_date,
-                'type' => 'invoice',
-                'reference' => $inv->invoice_number ?? $inv->number ?? 'INV-' . $inv->id,
-                'description' => 'فاتورة مشتريات',
-                'debit' => $inv->total,
-                'credit' => 0,
-            ]);
-        }
-
-        foreach ($payments as $pmt) {
-            $transactions->push([
-                'date' => $pmt->payment_date,
-                'type' => 'payment',
-                'reference' => $pmt->receipt_number ?? 'PMT-' . $pmt->id,
-                'description' => 'دفعة للمورد',
-                'debit' => 0,
-                'credit' => $pmt->amount,
-            ]);
-        }
-
-        $transactions = $transactions->sortBy('date');
+        // Map ledger lines to transaction format
+        $transactions = $ledgerLines->map(function ($line) {
+            $entry = $line->journalEntry;
+            return [
+                'date' => $entry->entry_date,
+                // If debit > 0, it's a reduction (Payment/Return)
+                // If credit > 0, it's an increase (Invoice/Adjustment)
+                'type' => $line->credit > 0 ? 'invoice' : 'payment',
+                'reference' => $entry->reference ?? 'JE-' . $entry->id,
+                'description' => $line->description ?? $entry->description,
+                'debit' => $line->debit,   // Payment/Debit (Reduces Liability)
+                'credit' => $line->credit, // Invoice/Credit (Increases Liability)
+            ];
+        })->sortBy('date');
 
         // Calculate running balance
         $balance = $openingBalance;
-        $transactions = $transactions->map(function ($item) use (&$balance) {
-            $balance += $item['debit'] - $item['credit'];
+        $transactionsContent = collect();
+        foreach ($transactions as $item) {
+            $balance += ($item['credit'] - $item['debit']);
             $item['balance'] = $balance;
-            return $item;
-        });
+            $transactionsContent->push($item);
+        }
 
         $closingBalance = $balance;
+        $transactions = $transactionsContent;
 
         return view('purchasing.suppliers.statement', compact(
             'supplier',
@@ -233,76 +228,46 @@ class SupplierController extends Controller
     /**
      * Show import form
      */
+    /**
+     * Export suppliers to Excel
+     */
+    public function export()
+    {
+        return Excel::download(new SuppliersExport, 'suppliers.xlsx');
+    }
+
+    /**
+     * Show import form
+     */
     public function importForm()
     {
         return view('purchasing.suppliers.import');
     }
 
     /**
-     * Download sample CSV
-     */
-    public function importSample()
-    {
-        $headers = ['code', 'name', 'email', 'phone', 'address', 'tax_number', 'contact_person', 'payment_terms'];
-        $sample = ['SUP-001', 'مورد تجريبي', 'supplier@example.com', '01000000000', 'العنوان', '', 'محمد', '30'];
-
-        $content = \App\Services\CsvImportService::generateSampleCsv($headers, $sample);
-
-        return response($content)
-            ->header('Content-Type', 'text/csv; charset=UTF-8')
-            ->header('Content-Disposition', 'attachment; filename="suppliers_sample.csv"');
-    }
-
-    /**
-     * Process CSV import
+     * Process import
      */
     public function import(Request $request)
     {
         $request->validate([
-            'csv_file' => 'required|file|mimes:csv,txt|max:5120',
+            'file' => 'required|mimes:xlsx,xls,csv',
         ]);
 
-        $importService = new \App\Services\CsvImportService();
-        $rows = $importService->parseFile($request->file('csv_file'));
-
-        $rules = [
-            'code' => 'required|string|max:50',
-            'name' => 'required|string|max:255',
-            'email' => 'nullable|email',
-        ];
-
-        \DB::beginTransaction();
         try {
-            foreach ($rows as $row) {
-                $validated = $importService->validateRow($row, $rules, $row['_line']);
-
-                if ($validated) {
-                    Supplier::updateOrCreate(
-                        ['code' => $validated['code']],
-                        [
-                            'name' => $validated['name'],
-                            'email' => $validated['email'] ?? null,
-                            'phone' => $row['phone'] ?? null,
-                            'address' => $row['address'] ?? null,
-                            'tax_number' => $row['tax_number'] ?? null,
-                            'contact_person' => $row['contact_person'] ?? null,
-                            'payment_terms' => $row['payment_terms'] ?? 30,
-                            'is_active' => true,
-                        ]
-                    );
-                }
-            }
-
-            \DB::commit();
-            $results = $importService->getResults();
+            Excel::import(new SuppliersImport, $request->file('file'));
 
             return redirect()->route('suppliers.index')
-                ->with('success', "تم استيراد {$results['success_count']} مورد بنجاح" .
-                    ($results['error_count'] > 0 ? " ({$results['error_count']} أخطاء)" : ''));
-
+                ->with('success', 'تم استيراد الموردين بنجاح.');
         } catch (\Exception $e) {
-            \DB::rollBack();
-            return back()->with('error', 'خطأ في الاستيراد: ' . $e->getMessage());
+            return back()->with('error', 'حدث خطأ أثناء الاستيراد: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Download sample file
+     */
+    public function importSample()
+    {
+        return Excel::download(new SuppliersExport, 'suppliers_sample.xlsx');
     }
 }

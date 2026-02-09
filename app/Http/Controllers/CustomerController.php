@@ -8,8 +8,54 @@ use Modules\Sales\Models\Customer;
 /**
  * CustomerController - Customer management web UI
  */
+use App\Exports\CustomersExport;
+use App\Imports\CustomersImport;
+use Maatwebsite\Excel\Facades\Excel;
+
 class CustomerController extends Controller
 {
+    /**
+     * Export customers to Excel
+     */
+    public function export()
+    {
+        return Excel::download(new CustomersExport, 'customers.xlsx');
+    }
+
+    /**
+     * Show import form
+     */
+    public function importForm()
+    {
+        return view('sales.customers.import');
+    }
+
+    /**
+     * Process import
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv',
+        ]);
+
+        try {
+            Excel::import(new CustomersImport, $request->file('file'));
+
+            return redirect()->route('customers.index')
+                ->with('success', 'تم استيراد العملاء بنجاح.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'حدث خطأ أثناء الاستيراد: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Download sample file
+     */
+    public function importSample()
+    {
+        return Excel::download(new CustomersExport, 'customers_sample.xlsx');
+    }
     /**
      * List all customers
      */
@@ -50,7 +96,7 @@ class CustomerController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'type' => 'in:individual,company,distributor,wholesale,half_wholesale,quarter_wholesale,technician,employee,vip',
+            'type' => 'in:consumer,company,distributor,wholesale,half_wholesale,quarter_wholesale,technician,employee,vip',
             'email' => 'nullable|email|unique:customers,email',
             'phone' => 'nullable|string|max:20',
             'mobile' => 'nullable|string|max:20',
@@ -103,7 +149,7 @@ class CustomerController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'type' => 'in:individual,company,distributor,wholesale,half_wholesale,quarter_wholesale,technician,employee,vip',
+            'type' => 'in:consumer,company,distributor,wholesale,half_wholesale,quarter_wholesale,technician,employee,vip',
             'email' => 'nullable|email|unique:customers,email,' . $customer->id,
             'phone' => 'nullable|string|max:20',
             'mobile' => 'nullable|string|max:20',
@@ -284,100 +330,4 @@ class CustomerController extends Controller
 
         return view('sales.customers.credit-history', compact('customer', 'invoices', 'stats'));
     }
-
-    /**
-     * Show import form
-     */
-    public function importForm()
-    {
-        return view('sales.customers.import');
-    }
-
-    /**
-     * Download sample CSV
-     */
-    public function importSample()
-    {
-        $headers = ['name', 'type', 'email', 'phone', 'mobile', 'billing_address', 'billing_city', 'tax_number', 'payment_terms', 'credit_limit'];
-        $sample = ['عميل تجريبي', 'individual', 'test@example.com', '01000000000', '01111111111', 'العنوان', 'القاهرة', '', '30', '10000'];
-
-        $content = \App\Services\CsvImportService::generateSampleCsv($headers, $sample);
-
-        return response($content)
-            ->header('Content-Type', 'text/csv; charset=UTF-8')
-            ->header('Content-Disposition', 'attachment; filename="customers_sample.csv"');
-    }
-
-    /**
-     * Process CSV import
-     */
-    public function import(Request $request)
-    {
-        $request->validate([
-            'csv_file' => 'required|file|mimes:csv,txt|max:5120',
-        ]);
-
-        $importService = new \App\Services\CsvImportService();
-        $rows = $importService->parseFile($request->file('csv_file'));
-
-        $rules = [
-            'name' => 'required|string|max:255',
-            'email' => 'nullable|email',
-            'phone' => 'nullable|string|max:20',
-        ];
-
-        \DB::beginTransaction();
-        try {
-            foreach ($rows as $row) {
-                $validated = $importService->validateRow($row, $rules, $row['_line']);
-
-                if ($validated) {
-                    // Check if customer exists by email
-                    $existingCustomer = null;
-                    if (!empty($row['email'])) {
-                        $existingCustomer = Customer::where('email', $row['email'])->first();
-                    }
-
-                    if ($existingCustomer) {
-                        $existingCustomer->update([
-                            'name' => $validated['name'],
-                            'phone' => $validated['phone'] ?? $existingCustomer->phone,
-                            'mobile' => $row['mobile'] ?? $existingCustomer->mobile,
-                            'billing_address' => $row['billing_address'] ?? $existingCustomer->billing_address,
-                            'billing_city' => $row['billing_city'] ?? $existingCustomer->billing_city,
-                            'tax_number' => $row['tax_number'] ?? $existingCustomer->tax_number,
-                            'payment_terms' => $row['payment_terms'] ?? $existingCustomer->payment_terms,
-                            'credit_limit' => $row['credit_limit'] ?? $existingCustomer->credit_limit,
-                        ]);
-                    } else {
-                        Customer::create([
-                            'name' => $validated['name'],
-                            'type' => $row['type'] ?? 'individual',
-                            'email' => $validated['email'] ?? null,
-                            'phone' => $validated['phone'] ?? null,
-                            'mobile' => $row['mobile'] ?? null,
-                            'billing_address' => $row['billing_address'] ?? null,
-                            'billing_city' => $row['billing_city'] ?? null,
-                            'tax_number' => $row['tax_number'] ?? null,
-                            'payment_terms' => $row['payment_terms'] ?? 30,
-                            'credit_limit' => $row['credit_limit'] ?? 0,
-                            'is_active' => true,
-                        ]);
-                    }
-                }
-            }
-
-            \DB::commit();
-            $results = $importService->getResults();
-
-            return redirect()->route('customers.index')
-                ->with('success', "تم استيراد {$results['success_count']} عميل بنجاح" .
-                    ($results['error_count'] > 0 ? " ({$results['error_count']} أخطاء)" : ''));
-
-        } catch (\Exception $e) {
-            \DB::rollBack();
-            return back()->with('error', 'خطأ في الاستيراد: ' . $e->getMessage());
-        }
-    }
 }
-

@@ -54,7 +54,7 @@
                                     <option value="" class="text-gray-500">-- اختر أمر التسليم --</option>
                                     @foreach($deliveredOrders as $order)
                                         <option value="{{ $order->id }}" {{ (isset($deliveryOrder) && $deliveryOrder->id == $order->id) ? 'selected' : '' }} class="text-white bg-gray-900">
-                                            #{{ $order->delivery_number }} | {{ $order->salesOrder->customer->name }} |
+                                            #{{ $order->delivery_number }} | {{ optional($order->salesOrder)->customer->name ?? $order->customer->name ?? 'Unknown' }} |
                                             {{ $order->delivery_date->format('Y-m-d') }}
                                         </option>
                                     @endforeach
@@ -123,9 +123,9 @@
                             <div class="d-flex align-items-center gap-3">
                                 <div class="avatar-xs bg-purple-500 rounded-circle text-white d-flex align-items-center justify-content-center fw-bold"
                                     style="width: 40px; height: 40px;">
-                                    {{ substr($deliveryOrder->salesOrder->customer->name, 0, 1) }}
+                                    {{ substr(optional($deliveryOrder->salesOrder)->customer->name ?? $deliveryOrder->customer->name ?? '?', 0, 1) }}
                                 </div>
-                                <h6 class="text-white mb-0">{{ $deliveryOrder->salesOrder->customer->name }}</h6>
+                                <h6 class="text-white mb-0">{{ optional($deliveryOrder->salesOrder)->customer->name ?? $deliveryOrder->customer->name ?? 'Unknown Customer' }}</h6>
                             </div>
                         </div>
 

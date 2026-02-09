@@ -49,7 +49,7 @@ class SalesSeeder extends Seeder
             ],
             [
                 'name' => 'أحمد محمود - تجارة جملة',
-                'type' => 'individual',
+                'type' => 'consumer',
                 'email' => 'ahmed.mahmoud@gmail.com',
                 'mobile' => '0102-765-4321',
                 'billing_address' => '15 سوق العتبة',

@@ -8,14 +8,18 @@ use Modules\Inventory\Models\Category;
 use Modules\Inventory\Models\Unit;
 use App\Models\Brand;
 use Modules\Inventory\Models\Warehouse;
-use Modules\Inventory\Models\ProductStock;
 use Modules\Inventory\Enums\ProductType;
 use Modules\Inventory\Enums\MovementType;
 use Modules\Inventory\Services\InventoryService;
+use App\Services\ImportExportService;
+use App\Exports\ProductsExport;
+use App\Exports\ProductsSheet;
+use App\Imports\ProductsImport;
+use App\Imports\ProductsSheetImport;
 
 /**
  * ProductController - Product management web UI
- * 
+ *
  * Field mapping (form -> database):
  * - sale_price -> selling_price
  * - min_stock_level -> min_stock
@@ -37,17 +41,20 @@ class ProductController extends Controller
     {
         $query = Product::query()
             ->with(['category', 'unit', 'brand'])
-            ->orderBy('name');
+            ->withSum('stock as total_stock_qty', 'quantity');
 
+        // Search Filter
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('sku', 'like', "%{$search}%")
                     ->orWhere('name', 'like', "%{$search}%")
-                    ->orWhere('barcode', 'like', "%{$search}%");
+                    ->orWhere('barcode', 'like', "%{$search}%")
+                    ->orWhere('id', 'like', "%{$search}%");
             });
         }
 
+        // Category & Brand Filters
         if ($request->filled('category_id')) {
             $query->where('category_id', $request->category_id);
         }
@@ -56,11 +63,37 @@ class ProductController extends Controller
             $query->where('brand_id', $request->brand_id);
         }
 
+        // Stock Status Filter
+        if ($request->filled('stock_status')) {
+            $status = $request->stock_status;
+            if ($status === 'in_stock') {
+                $query->having('total_stock_qty', '>', 0);
+            } elseif ($status === 'out_of_stock') {
+                $query->having(function ($q) {
+                    $q->where('total_stock_qty', '<=', 0)->orWhereNull('total_stock_qty');
+                });
+            } elseif ($status === 'low_stock') {
+                $query->whereRaw('total_stock_qty <= reorder_level');
+            }
+        }
+
+        // Activity Filter
         if ($request->boolean('active_only', true)) {
             $query->where('is_active', true);
         }
 
-        $products = $query->paginate(25);
+        // Advanced Sorting
+        $sortBy = $request->get('sort_by', 'name');
+        $sortDir = $request->get('sort_dir', 'asc');
+
+        $allowedSorts = ['id', 'sku', 'barcode', 'name', 'selling_price', 'cost_price', 'total_stock_qty'];
+        if (in_array($sortBy, $allowedSorts)) {
+            $query->orderBy($sortBy, $sortDir === 'desc' ? 'desc' : 'asc');
+        } else {
+            $query->orderBy('name', 'asc');
+        }
+
+        $products = $query->paginate(25)->withQueryString();
         $categories = Category::orderBy('name')->get();
         $brands = Brand::orderBy('name')->get();
 
@@ -248,7 +281,6 @@ class ProductController extends Controller
             'min_stock_level' => 'numeric|min:0',
             'max_stock_level' => 'nullable|numeric|min:0',
             'reorder_quantity' => 'numeric|min:0',
-            'reorder_quantity' => 'numeric|min:0',
             'tax_rate' => 'numeric|min:0|max:100',
             // Pricing Tiers
             'price_distributor' => 'nullable|numeric|min:0',
@@ -335,6 +367,61 @@ class ProductController extends Controller
     }
 
     /**
+     * Export products to Excel or CSV
+     */
+    public function export(Request $request, ImportExportService $service)
+    {
+        $format = $request->get('format', 'xlsx');
+        $filename = 'products_' . date('Y-m-d_H-i') . '.' . $format;
+
+        if ($format === 'json') {
+            $jsonData = app(\App\Services\InventoryJsonService::class)->getData();
+            return response()->json($jsonData)
+                ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+        }
+
+        // Use multi-sheet only for XLSX
+        $export = ($format === 'xlsx') ? new ProductsExport : new ProductsSheet();
+
+        return $service->export($export, $filename);
+    }
+
+    /**
+     * Import products from Excel or CSV
+     */
+    public function import(Request $request, ImportExportService $service)
+    {
+        $request->validate([
+            'file' => 'required|file', // mimes might fail for some JSON types depending on server config
+        ]);
+
+        $file = $request->file('file');
+        $extension = $file->getClientOriginalExtension();
+
+        try {
+            if ($extension === 'json') {
+                $data = json_decode($file->get(), true);
+                if (!$data)
+                    throw new \Exception('Invalid JSON format');
+                app(\App\Services\InventoryJsonService::class)->importData($data);
+                return redirect()->back()->with('success', 'تم استيراد البيانات من ملف JSON بنجاح');
+            }
+
+            // SMART DETECTION:
+            // .xlsx -> Super-Excel (Multi-Sheet)
+            // .csv  -> Single-Sheet (Products Only)
+            $importer = ($extension === 'xlsx' || $extension === 'xls')
+                ? new ProductsImport
+                : new ProductsSheetImport();
+
+            $service->import($importer, $file);
+            return redirect()->back()->with('success', 'تم استيراد المنتجات بنجاح');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'فشل الاستيراد: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Show import form
      */
     public function importForm()
@@ -343,90 +430,11 @@ class ProductController extends Controller
     }
 
     /**
-     * Download sample CSV
+     * Download sample Template
      */
-    public function importSample()
+    public function importSample(ImportExportService $service)
     {
-        $headers = ['sku', 'barcode', 'name', 'description', 'category', 'unit', 'cost_price', 'selling_price', 'tax_rate', 'reorder_level'];
-        $sample = ['PROD-001', '6281000000001', 'منتج تجريبي', 'وصف المنتج', '', '', '100', '150', '15', '10'];
-
-        $content = \App\Services\CsvImportService::generateSampleCsv($headers, $sample);
-
-        return response($content)
-            ->header('Content-Type', 'text/csv; charset=UTF-8')
-            ->header('Content-Disposition', 'attachment; filename="products_sample.csv"');
-    }
-
-    /**
-     * Process CSV import
-     */
-    public function import(Request $request)
-    {
-        $request->validate([
-            'csv_file' => 'required|file|mimes:csv,txt|max:5120',
-        ]);
-
-        $importService = new \App\Services\CsvImportService();
-        $rows = $importService->parseFile($request->file('csv_file'));
-
-        $rules = [
-            'sku' => 'required|string|max:50',
-            'name' => 'required|string|max:255',
-            'cost_price' => 'nullable|numeric|min:0',
-            'selling_price' => 'nullable|numeric|min:0',
-            'tax_rate' => 'nullable|numeric|min:0|max:100',
-        ];
-
-        \DB::beginTransaction();
-        try {
-            foreach ($rows as $row) {
-                $validated = $importService->validateRow($row, $rules, $row['_line']);
-
-                if ($validated) {
-                    // Find category by name
-                    $categoryId = null;
-                    if (!empty($row['category'])) {
-                        $category = Category::firstOrCreate(['name' => $row['category']]);
-                        $categoryId = $category->id;
-                    }
-
-                    // Find unit by name
-                    $unitId = null;
-                    if (!empty($row['unit'])) {
-                        $unit = Unit::firstOrCreate(['name' => $row['unit']], ['abbreviation' => $row['unit']]);
-                        $unitId = $unit->id;
-                    }
-
-                    Product::updateOrCreate(
-                        ['sku' => $validated['sku']],
-                        [
-                            'barcode' => $row['barcode'] ?? null,
-                            'name' => $validated['name'],
-                            'description' => $row['description'] ?? null,
-                            'category_id' => $categoryId,
-                            'unit_id' => $unitId,
-                            'cost_price' => $validated['cost_price'] ?? 0,
-                            'selling_price' => $validated['selling_price'] ?? 0,
-                            'tax_rate' => $validated['tax_rate'] ?? 0,
-                            'reorder_level' => $row['reorder_level'] ?? 0,
-                            'is_active' => true,
-                            'is_sellable' => true,
-                            'is_purchasable' => true,
-                        ]
-                    );
-                }
-            }
-
-            \DB::commit();
-            $results = $importService->getResults();
-
-            return redirect()->route('products.index')
-                ->with('success', "تم استيراد {$results['success_count']} منتج بنجاح" .
-                    ($results['error_count'] > 0 ? " ({$results['error_count']} أخطاء)" : ''));
-
-        } catch (\Exception $e) {
-            \DB::rollBack();
-            return back()->with('error', 'خطأ في الاستيراد: ' . $e->getMessage());
-        }
+        // Return a full template
+        return $service->export(new ProductsExport, 'products_template.xlsx');
     }
 }

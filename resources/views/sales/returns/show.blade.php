@@ -134,7 +134,7 @@
 
                     <div class="d-grid gap-2">
                         <form action="{{ route('sales-returns.approve', $salesReturn) }}" method="POST"
-                            onsubmit="return confirm('هل أنت متأكد من اعتماد المرتجع؟ سيتم إعادة الكميات الصالحة للمخزون.')">
+                            data-confirm="هل أنت متأكد من اعتماد المرتجع؟ سيتم إعادة الكميات الصالحة للمخزون.">
                             @csrf
                             <button type="submit" class="btn btn-success fw-bold w-100">
                                 <i class="bi bi-check-circle me-2"></i> اعتماد المرتجع

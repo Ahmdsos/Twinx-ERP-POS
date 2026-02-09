@@ -178,11 +178,14 @@
                     <div class="d-flex align-items-center gap-3 mb-4">
                         <div class="avatar-circle bg-gradient-to-br from-gray-700 to-gray-800 text-white rounded-circle d-flex align-items-center justify-content-center shadow-lg"
                             style="width: 50px; height: 50px;">
-                            <span class="fs-5 fw-bold">{{ substr($salesInvoice->customer->name, 0, 1) }}</span>
+                            <span
+                                class="fs-5 fw-bold">{{ substr(optional($salesInvoice->customer)->name ?? '?', 0, 1) }}</span>
                         </div>
                         <div>
-                            <h5 class="fw-bold text-white mb-0">{{ $salesInvoice->customer->name }}</h5>
-                            <small class="text-gray-400">{{ $salesInvoice->customer->phone ?? 'لا يوجد هاتف' }}</small>
+                            <h5 class="fw-bold text-white mb-0">
+                                {{ optional($salesInvoice->customer)->name ?? 'Deleted Customer' }}</h5>
+                            <small
+                                class="text-gray-400">{{ optional($salesInvoice->customer)->phone ?? 'لا يوجد هاتف' }}</small>
                         </div>
                     </div>
                 </div>

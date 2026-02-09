@@ -66,15 +66,13 @@
                             <div class="col-md-6">
                                 <label class="form-label text-gray-400 x-small fw-bold">نوع العميل</label>
                                 <select name="type" class="form-select form-select-dark focus-ring-indigo">
-                                    <option value="individual" {{ old('type', $customer->type) == 'individual' ? 'selected' : '' }}>فرد (Consumer)</option>
+                                    <option value="consumer" {{ old('type', $customer->type) == 'consumer' ? 'selected' : '' }}>فرد (Consumer)</option>
                                     <option value="company" {{ old('type', $customer->type) == 'company' ? 'selected' : '' }}>
                                         شركة (Company)</option>
-                                    <hr>
                                     <option value="distributor" {{ old('type', $customer->type) == 'distributor' ? 'selected' : '' }}>موزع معتمد (Distributor)</option>
                                     <option value="wholesale" {{ old('type', $customer->type) == 'wholesale' ? 'selected' : '' }}>تاجر جملة (Wholesale)</option>
                                     <option value="half_wholesale" {{ old('type', $customer->type) == 'half_wholesale' ? 'selected' : '' }}>نص جملة (Half Wholesale)</option>
                                     <option value="quarter_wholesale" {{ old('type', $customer->type) == 'quarter_wholesale' ? 'selected' : '' }}>ربع جملة (Quarter Wholesale)</option>
-                                    <hr>
                                     <option value="technician" {{ old('type', $customer->type) == 'technician' ? 'selected' : '' }}>فني / مقاول (Technician)</option>
                                     <option value="employee" {{ old('type', $customer->type) == 'employee' ? 'selected' : '' }}>موظف (Employee)</option>
                                     <option value="vip" {{ old('type', $customer->type) == 'vip' ? 'selected' : '' }}>عميل

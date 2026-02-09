@@ -110,6 +110,67 @@ class SalesService
         return $so->confirm();
     }
 
+    /**
+     * Update an existing sales order
+     */
+    public function updateSalesOrder(SalesOrder $so, array $data, array $lines): SalesOrder
+    {
+        if (!$so->canEdit()) {
+            throw new \RuntimeException("Cannot edit sales order in status: {$so->status->label()}");
+        }
+
+        return DB::transaction(function () use ($so, $data, $lines) {
+            // Update header
+            $so->update([
+                'customer_id' => $data['customer_id'],
+                'warehouse_id' => $data['warehouse_id'],
+                'order_date' => $data['order_date'],
+                'expected_date' => $data['expected_date'] ?? null,
+                'notes' => $data['notes'] ?? null,
+                'customer_notes' => $data['customer_notes'] ?? null,
+                'shipping_address' => $data['shipping_address'] ?? null,
+                'shipping_method' => $data['shipping_method'] ?? null,
+            ]);
+
+            // Sync lines (Atomic update)
+            $existingLines = $so->lines->keyBy('id');
+            $newLineIds = [];
+
+            foreach ($lines as $lineData) {
+                $product = Product::find($lineData['product_id']);
+
+                // Logic check: If line has an ID, update it; otherwise, create it.
+                // In this UI implementation, we usually send all lines.
+                // To be truly atomic and safe, we match by product_id or a unique property if possible,
+                // but usually, a 'sync' involves checking which lines are new.
+
+                $line = $so->lines()->updateOrCreate(
+                    ['product_id' => $lineData['product_id']],
+                    [
+                        'quantity' => $lineData['quantity'],
+                        'unit_price' => $lineData['unit_price'] ?? $product->selling_price,
+                        'discount_percent' => $lineData['discount_percent'] ?? 0,
+                        'tax_percent' => $lineData['tax_percent'] ?? ($product->tax_rate > 0 ? $product->tax_rate : \App\Models\Setting::getValue('default_tax_rate', 0)),
+                        'unit_id' => $lineData['unit_id'] ?? $product->unit_id,
+                        'description' => $lineData['description'] ?? null,
+                        'notes' => $lineData['notes'] ?? null,
+                    ]
+                );
+
+                $newLineIds[] = $line->id;
+            }
+
+            // Remove lines that were not in the update request
+            $so->lines()->whereNotIn('id', $newLineIds)->delete();
+
+            // Refresh and recalculate
+            $so->refresh();
+            $so->recalculateTotals();
+
+            return $so->fresh(['lines', 'customer']);
+        });
+    }
+
     // ========================================
     // Delivery Order Operations
     // ========================================
@@ -333,14 +394,19 @@ class SalesService
     ): SalesInvoice {
         return DB::transaction(function () use ($do, $invoiceDate, $dueDate) {
             $so = $do->salesOrder;
-            $customer = $do->customer;
+            $customer = $do->customer ?? Customer::withTrashed()->find($do->customer_id);
+
+            if (!$customer) {
+                throw new \RuntimeException("Cannot create invoice: Customer not found for Delivery Order #{$do->do_number}");
+            }
+
             $paymentTerms = $customer->payment_terms ?? 30;
             $invoiceDate = $invoiceDate ?? now();
             $dueDate = $dueDate ?? $invoiceDate->copy()->addDays($paymentTerms);
 
             $invoice = SalesInvoice::create([
                 'customer_id' => $customer->id,
-                'sales_order_id' => $so->id,
+                'sales_order_id' => $so?->id, // Handle null SO
                 'delivery_order_id' => $do->id,
                 'invoice_date' => $invoiceDate,
                 'due_date' => $dueDate,
@@ -348,22 +414,29 @@ class SalesService
                 'created_by' => auth()->id(),
             ]);
 
-            // Create lines from SO lines that were delivered
+            // Create lines
             foreach ($do->lines as $doLine) {
                 $soLine = $doLine->salesOrderLine;
-                if (!$soLine)
-                    continue;
+                $product = $doLine->product;
+
+                // Fallback logic if SO Line is missing
+                $unitPrice = $soLine ? $soLine->unit_price : ($product->selling_price ?? 0);
+                $discountPercent = $soLine ? $soLine->discount_percent : 0;
+                $taxPercent = $soLine ? $soLine->tax_percent : ($product->tax_rate ?? 0);
+                $description = $soLine ? $soLine->description : $product->name;
 
                 $invoice->lines()->create([
                     'product_id' => $doLine->product_id,
-                    'description' => $soLine->product->name,
+                    'description' => $description,
                     'quantity' => $doLine->quantity,
-                    'unit_price' => $soLine->unit_price,
-                    'discount_percent' => $soLine->discount_percent,
-                    'tax_percent' => $soLine->tax_percent,
+                    'unit_price' => $unitPrice,
+                    'discount_percent' => $discountPercent,
+                    'tax_percent' => $taxPercent,
                 ]);
 
-                $soLine->addInvoicedQuantity($doLine->quantity);
+                if ($soLine) {
+                    $soLine->addInvoicedQuantity($doLine->quantity);
+                }
             }
 
             // Create AR Journal Entry
@@ -522,10 +595,14 @@ class SalesService
     public function createQuotation(array $data, array $lines): Quotation
     {
         return DB::transaction(function () use ($data, $lines) {
-            $customer = Customer::find($data['customer_id']);
+            // Multi-customer and Type-based logic
+            $rawCustomerId = $data['customer_id'] ?? [];
+            $customerIds = is_array($rawCustomerId) ? $rawCustomerId : (empty($rawCustomerId) ? [] : [$rawCustomerId]);
+            $primaryCustomerId = !empty($customerIds) ? $customerIds[0] : null;
 
             $quotation = Quotation::create([
-                'customer_id' => $data['customer_id'],
+                'customer_id' => $primaryCustomerId,
+                'target_customer_type' => $data['target_customer_type'] ?? null,
                 'quotation_date' => $data['quotation_date'] ?? now(),
                 'valid_until' => $data['valid_until'] ?? now()->addDays(30),
                 'status' => QuotationStatus::DRAFT,
@@ -536,6 +613,9 @@ class SalesService
                 'discount_amount' => $data['discount_amount'] ?? 0,
                 'created_by' => auth()->id(),
             ]);
+
+            // Sync multiple customers
+            $quotation->customers()->sync($customerIds);
 
             foreach ($lines as $lineData) {
                 $product = Product::find($lineData['product_id']);
@@ -564,6 +644,10 @@ class SalesService
     {
         if (!$quotation->canConvert()) {
             throw new \RuntimeException("Cannot convert quotation in status: {$quotation->status->label()}");
+        }
+
+        if (!$quotation->customer_id) {
+            throw new \RuntimeException("لا يمكن تحويل هذا العرض لأمر بيع مباشرة لأنه موجه لفئة كاملة من العملاء. يرجى إنشاء أمر بيع يدوي واختيار العميل.");
         }
 
         return DB::transaction(function () use ($quotation) {

@@ -52,15 +52,35 @@
                             <label class="section-label mb-2">العميل <span class="text-danger">*</span></label>
                             <div class="position-relative">
                                 <i class="bi bi-person-bounding-box position-absolute top-50 start-0 translate-middle-y ms-3 text-blue-400"></i>
-                                <select name="customer_id" class="form-select glass-select ps-5 text-white fw-bold h-50px" required>
-                                    <option value="" class="text-gray-500">اختر العميل...</option>
+                                <select name="customer_id[]" class="form-select glass-select ps-5 text-white fw-bold" style="height: auto; min-height: 50px;" multiple required>
+                                    @php
+                                        $selectedIds = old('customer_id', $quotation->customers->pluck('id')->toArray());
+                                    @endphp
                                     @foreach($customers as $customer)
                                         <option value="{{ $customer->id }}" class="bg-gray-900 text-white py-2" 
-                                            {{ (old('customer_id', $quotation->customer_id) == $customer->id) ? 'selected' : '' }}>
+                                            {{ in_array($customer->id, $selectedIds) ? 'selected' : '' }}>
                                             {{ $customer->name }}
                                         </option>
                                     @endforeach
                                 </select>
+                                <div class="mt-1 small text-gray-400"><i class="bi bi-info-circle me-1"></i> يمكنك اختيار أكثر من عميل محدد.</div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="section-label mb-2">أو لجميع عملاء النوع (مثل: جملة)</label>
+                            <div class="position-relative">
+                                <i class="bi bi-people position-absolute top-50 start-0 translate-middle-y ms-3 text-cyan-400"></i>
+                                <select name="target_customer_type" class="form-select glass-select ps-5 text-white fw-bold" style="height: 50px;">
+                                    <option value="" class="bg-gray-900 text-slate-500">-- لا ينطبق (اختياري) --</option>
+                                    @foreach(\Modules\Sales\Enums\CustomerType::cases() as $type)
+                                        <option value="{{ $type->value }}" class="bg-gray-900 text-white py-2" 
+                                            {{ old('target_customer_type', $quotation->target_customer_type) == $type->value ? 'selected' : '' }}>
+                                            عملاء: {{ $type->label() }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <div class="mt-1 small text-gray-500"><i class="bi bi-lightning-fill text-warning me-1"></i> سيتم تطبيق العرض على أي عميل من هذا النوع تلقائياً.</div>
                             </div>
                         </div>
                         

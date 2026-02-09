@@ -116,16 +116,17 @@ class PosShift extends Model
         ]);
     }
 
+    public function getCurrentBalance(): float
+    {
+        $totalExpenses = $this->expenses()->sum('amount');
+        $totalReturns = $this->returns()->sum('total_amount');
+
+        return ($this->opening_cash + $this->total_cash) - $totalExpenses - $totalReturns;
+    }
+
     public function close(float $closingCash, ?string $notes = null): self
     {
-        // Calculate totals dynamically
-        $totalExpenses = $this->expenses()->sum('amount');
-        $totalReturns = $this->returns()->sum('total_amount'); // Assuming all returns are cash deducted from drawer? 
-        // ideally we should check return method, but for now assuming returns come from drawer if cash
-        // Or we should verify if returns are refunded to 'credit' or 'wallet'.
-        // Let's assume cash returns for accurate drawer count.
-
-        $expectedCash = ($this->opening_cash + $this->total_cash) - $totalExpenses - $totalReturns;
+        $expectedCash = $this->getCurrentBalance();
 
         $this->update([
             'closed_at' => now(),

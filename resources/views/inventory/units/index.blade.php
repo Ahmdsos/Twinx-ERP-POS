@@ -10,12 +10,38 @@
                 <h3 class="fw-bold text-white mb-2 tracking-wide">وحدات القياس</h3>
                 <p class="text-gray-400 mb-0 small">إدارة وحدات القياس الأساسية والفرعية للمنتجات</p>
             </div>
-            <button type="button"
-                class="btn btn-action-purple px-4 py-2 rounded-pill fw-bold shadow-neon-purple d-flex align-items-center gap-2"
-                data-bs-toggle="modal" data-bs-target="#createUnitModal">
-                <i class="bi bi-plus-lg"></i>
-                <span>إضافة وحدة جديدة</span>
-            </button>
+            <div class="d-flex gap-2">
+                <div class="dropdown">
+                    <button
+                        class="btn btn-icon-glass px-3 d-flex align-items-center gap-2 text-decoration-none dropdown-toggle border-0"
+                        type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false"
+                        style="width: auto; height: 42px; background: rgba(30, 41, 59, 0.5); color: #cbd5e1;">
+                        <i class="bi bi-cloud-download"></i>
+                        <span class="d-none d-md-block small">تصدير</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-dark bg-slate-900 border-white-10 shadow-neon"
+                        aria-labelledby="exportDropdown">
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2"
+                                href="{{ route('export.units', ['format' => 'xlsx']) }}">
+                                <i class="bi bi-file-earmark-spreadsheet text-success"></i> Excel (.xlsx)
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2"
+                                href="{{ route('export.units', ['format' => 'csv']) }}">
+                                <i class="bi bi-file-earmark-code text-info"></i> CSV (.csv)
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <button type="button"
+                    class="btn btn-action-purple px-4 py-2 rounded-pill fw-bold shadow-neon-purple d-flex align-items-center gap-2"
+                    data-bs-toggle="modal" data-bs-target="#createUnitModal">
+                    <i class="bi bi-plus-lg"></i>
+                    <span>إضافة وحدة جديدة</span>
+                </button>
+            </div>
         </div>
 
         @if(session('success'))
@@ -97,7 +123,7 @@
                                         </button>
                                         @if($unit->products_count == 0)
                                             <form action="{{ route('units.destroy', $unit->id) }}" method="POST" class="d-inline"
-                                                onsubmit="return confirm('هل أنت متأكد من الحذف؟');">
+                                                data-confirm="هل أنت متأكد من حذف هذه الوحدة؟">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-icon-glass btn-sm text-danger hover-bg-danger">

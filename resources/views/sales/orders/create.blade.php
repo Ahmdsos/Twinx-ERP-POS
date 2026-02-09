@@ -249,7 +249,7 @@
                             </div>
 
                             <div class="d-flex justify-content-between mb-4 text-gray-400">
-                                <span>الضريبة ({{ number_format($taxRatePercent, 0) }}%)</span>
+                                <span>الضريبة ({{ number_format($taxRatePercent, 2) }}%)</span>
                                 <span class="fw-bold text-white" x-text="formatMoney(totals.tax)"></span>
                             </div>
 
@@ -343,7 +343,7 @@
 
                 submitForm() {
                     if (!this.warehouseId) {
-                        alert('يرجى اختيار المخزن');
+                        Swal.fire({ icon: 'warning', title: 'تنبيه', text: 'يرجى اختيار المخزن قبل الحفظ', background: '#1e293b', color: '#fff' });
                         return;
                     }
                     document.getElementById('order-form').submit();

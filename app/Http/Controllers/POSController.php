@@ -60,13 +60,13 @@ class POSController extends Controller
         ])->active()->orderBy('name')->get();
         $customers = Customer::active()->orderBy('name')->get(['id', 'code', 'name', 'type']);
         $warehouses = Warehouse::active()->orderBy('name')->get(['id', 'name']);
-        $paymentAccounts = Account::whereIn('code', ['1100', '1101', '1102', '1110', '1111'])
-            ->active()
+        $paymentAccounts = Account::active()
+            ->postable()
             ->orderBy('code')
             ->get(['id', 'code', 'name']);
         $activeShift = PosShift::getActiveShift();
         $drivers = DeliveryDriver::with('employee')
-            ->where('status', 'available')
+            ->whereIn('status', ['available', 'on_delivery'])
             ->get()
             ->map(function ($driver) {
                 return [
@@ -141,7 +141,15 @@ class POSController extends Controller
         $categoryId = $request->get('category_id');
         $warehouseId = $request->get('warehouse_id'); // Get selected warehouse
 
-        $products = Product::with(['category', 'unit', 'stocks'])
+        $products = Product::with([
+            'category',
+            'unit',
+            'stocks' => function ($q) use ($warehouseId) {
+                if ($warehouseId) {
+                    $q->where('warehouse_id', $warehouseId);
+                }
+            }
+        ])
             ->when($query, function ($q) use ($query) {
                 $q->where(function ($sub) use ($query) {
                     $sub->where('name', 'LIKE', "%{$query}%")
@@ -183,10 +191,10 @@ class POSController extends Controller
 
                 'cost' => (float) $p->cost_price,
                 'tax_rate' => $p->tax_rate !== null ? (float) $p->tax_rate : null,
-                // Get stock for specific warehouse, or total if no warehouse selected (though UI should enforce one)
+                // TRUTH: Use the eager-loaded collection to get warehouse-specific or total stock
                 'stock' => $warehouseId
-                    ? (float) ($p->stock->first()?->available_quantity ?? 0)
-                    : (float) $p->available_stock,
+                    ? (float) ($p->stocks->where('warehouse_id', $warehouseId)->first()?->available_quantity ?? 0)
+                    : (float) $p->stocks->sum('available_quantity'),
                 'category' => $p->category?->name,
                 'unit' => $p->unit?->abbreviation ?? 'PCS',
                 'image' => $p->primaryImageUrl,
@@ -855,12 +863,17 @@ class POSController extends Controller
                 ['code' => 'EXP-GEN', 'is_active' => true]
             );
 
-            // Record Expense via Service (Handles GL Posting)
+            // Fetch Cash Account Code from Settings
+            $cashCode = \App\Models\Setting::getValue('acc_cash', '1101');
+            $cashAccount = \Modules\Accounting\Models\Account::where('code', $cashCode)->first();
+
+            // Record Expense via Service (Handles GL Posting + Tax)
             $expense = $this->expenseService->recordExpense([
                 'expense_date' => now(),
                 'category_id' => $category->id,
-                'payment_account_id' => 1, // Cash account
+                'payment_account_id' => $cashAccount ? $cashAccount->id : 1,
                 'amount' => $request->amount,
+                'tax_amount' => 0, // POS petty cash usually gross
                 'total_amount' => $request->amount,
                 'payee' => 'POS Ops',
                 'notes' => $request->notes . ' (Shift #' . $activeShift->id . ')',
@@ -873,7 +886,7 @@ class POSController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Expense saved and posted to GL',
-                'balance' => $activeShift->refresh()->expected_cash
+                'balance' => $activeShift->getCurrentBalance()
             ]);
 
         } catch (\Exception $e) {
@@ -881,7 +894,6 @@ class POSController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
-
     /**
      * Get last transactions for current shift
      */
@@ -951,8 +963,6 @@ class POSController extends Controller
         ]);
     }
 
-
-
     // --- PHASE 3: Delivery Management ---
 
     public function listDeliveryOrders()
@@ -1004,31 +1014,6 @@ class POSController extends Controller
         }
 
         return response()->json(['success' => true, 'message' => 'Delivery status updated']);
-    }
-
-    /**
-     * Store Expense (Petty Cash)
-     */
-    public function storeExpense(Request $request)
-    {
-        $request->validate([
-            'amount' => 'required|numeric|min:0.01',
-            'notes' => 'required|string|max:255',
-            'category_id' => 'nullable|integer',
-        ]);
-
-        $expense = \Modules\Finance\Models\Expense::create([
-            'expense_date' => now(),
-            'amount' => $request->amount,
-            'notes' => $request->notes,
-            'user_id' => auth()->id(),
-            'pos_shift_id' => \App\Models\PosShift::getActiveShift()?->id,
-            'category_id' => $request->category_id,
-            'total_amount' => $request->amount, // Finance model requires total_amount
-            'status' => 'approved',
-        ]);
-
-        return response()->json(['success' => true, 'message' => 'تم تسجيل المصروف بنجاح', 'expense' => $expense]);
     }
 }
 

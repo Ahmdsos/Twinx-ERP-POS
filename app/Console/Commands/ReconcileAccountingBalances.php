@@ -15,28 +15,37 @@ class ReconcileAccountingBalances extends Command
      *
      * @var string
      */
-    protected $signature = 'accounting:reconcile';
+    protected $signature = 'accounting:reconcile {--fix : Actually update account balances in the database}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Recalculate all account balances from posted journal entry lines to ensure data integrity.';
+    protected $description = 'Audit account balances against posted journal entries. Use --fix to repair discrepancies.';
 
     /**
      * Execute the console command.
      */
     public function handle()
     {
-        $this->info('🚀 Starting Accounting Reconciliation...');
+        $fix = $this->option('fix');
+        $this->info('🚀 Starting Accounting Audit & Reconciliation...');
+
+        if (!$fix) {
+            $this->comment('ℹ️ Running in AUDIT MODE (Dry Run). No changes will be made to the database.');
+        } else {
+            $this->warn('⚠️ Running in FIX MODE. Account balances will be updated to match the ledger sum.');
+        }
 
         $accounts = Account::postable()->get();
         $bar = $this->output->createProgressBar($accounts->count());
 
         $bar->start();
 
-        DB::transaction(function () use ($accounts, $bar) {
+        $discrepanciesCount = 0;
+
+        DB::transaction(function () use ($accounts, $bar, $fix, &$discrepanciesCount) {
             foreach ($accounts as $account) {
                 // Sum only from POSTED journal entries
                 $totals = DB::table('journal_entry_lines')
@@ -49,13 +58,26 @@ class ReconcileAccountingBalances extends Command
                 $debitSum = (float) ($totals->total_debit ?? 0);
                 $creditSum = (float) ($totals->total_credit ?? 0);
 
-                $oldBalance = (float) $account->balance;
+                $storedBalance = (float) $account->balance;
 
-                // Update balance using Account model logic (respects Normal Balance)
-                $account->updateBalance($debitSum, $creditSum);
+                // Calculate expected balance based on account normal side
+                $expectedBalance = $account->isDebitNormal() ? ($debitSum - $creditSum) : ($creditSum - $debitSum);
 
-                if (abs($oldBalance - (float) $account->balance) > 0.001) {
-                    $this->line("\n⚠️ Corrected account [{$account->code}] {$account->name}: {$oldBalance} -> {$account->balance}");
+                // Check for drift (tolerance for floating point)
+                if (abs($storedBalance - $expectedBalance) > 0.001) {
+                    $discrepanciesCount++;
+                    $delta = $expectedBalance - $storedBalance;
+                    $status = $fix ? ' [REPAIRED]' : ' [AUDIT REVEALED DRIFT]';
+
+                    $this->line("\n" . ($fix ? '✅' : '🔴') . $status . " Account [{$account->code}] {$account->name}");
+                    $this->line("   - Stored Balance:   " . number_format($storedBalance, 2));
+                    $this->line("   - Ledger Sum:       " . number_format($expectedBalance, 2));
+                    $this->line("   - Drift (Delta):    " . number_format($delta, 2));
+
+                    if ($fix) {
+                        $account->balance = $expectedBalance;
+                        $account->save();
+                    }
                 }
 
                 $bar->advance();
@@ -63,7 +85,20 @@ class ReconcileAccountingBalances extends Command
         });
 
         $bar->finish();
-        $this->info("\n\n✅ Reconciliation complete! All account balances are now in sync with the General Ledger.");
+
+        $this->line("\n");
+        $this->info("✨ Audit Complete!");
+
+        if ($discrepanciesCount > 0) {
+            if (!$fix) {
+                $this->warn("Found {$discrepanciesCount} accounts with balance drift.");
+                $this->info("Run 'php artisan accounting:reconcile --fix' to align stored balances with the ledger.");
+            } else {
+                $this->info("Successfully repaired {$discrepanciesCount} account(s).");
+            }
+        } else {
+            $this->info("Perfect Integrity: All account balances match the ledger sum.");
+        }
 
         return 0;
     }

@@ -64,72 +64,25 @@ class ExpenseController extends Controller
         $taxAmount = $validated['tax_amount'] ?? 0;
         $totalAmount = $validated['amount'] + $taxAmount;
 
-        DB::transaction(function () use ($validated, $journalService, $category, $taxAmount, $totalAmount) {
-            $path = null;
-            if (request()->hasFile('attachment')) {
-                $path = request()->file('attachment')->store('expenses', 'public');
-            }
+        $path = null;
+        if ($request->hasFile('attachment')) {
+            $path = $request->file('attachment')->store('expenses', 'public');
+        }
 
-            $expense = Expense::create([
-                'expense_date' => $validated['expense_date'],
-                'category_id' => $validated['category_id'],
-                'payment_account_id' => $validated['payment_account_id'],
-                'amount' => $validated['amount'],
-                'tax_amount' => $taxAmount,
-                'total_amount' => $totalAmount,
-                'payee' => $validated['payee'],
-                'notes' => $validated['notes'],
-                'attachment' => $path,
-                'status' => 'approved', // Auto-approve for now
-                'created_by' => auth()->id(),
-                'approved_by' => auth()->id(),
-            ]);
-
-            // Create Journal Entry
-            // Dr Expense Account (Amount)
-            // Dr Tax Account (Tax Amount)
-            // Cr Payment Account (Total)
-
-            $taxAccount = Account::where('code', \App\Models\Setting::getValue('acc_tax_payable', '2105'))->first();
-            // Actually 2105 is usually Tax Payable. Input Tax should be an Asset (1xxx).
-            // Let's assume 2105 handles both for net tax liability, or separate.
-            // For simplicity, using Tax Account provided.
-
-            $lines = [
-                [
-                    'account_id' => $category->account_id,
-                    'debit' => $validated['amount'],
-                    'credit' => 0,
-                    'description' => $validated['notes'] ?? 'Expense: ' . $category->name,
-                ],
-                [
-                    'account_id' => $validated['payment_account_id'],
-                    'debit' => 0,
-                    'credit' => $totalAmount,
-                    'description' => 'Payment for Expense ' . $expense->reference_number,
-                ]
-            ];
-
-            if ($taxAmount > 0 && $taxAccount) {
-                $lines[] = [
-                    'account_id' => $taxAccount->id,
-                    'debit' => $taxAmount,
-                    'credit' => 0,
-                    'description' => 'Tax on Expense',
-                ];
-            }
-
-            $entry = $journalService->create([
-                'entry_date' => $expense->expense_date,
-                'reference' => $expense->reference_number,
-                'description' => "Expense: {$category->name} - " . ($validated['payee'] ?? ''),
-                'source_type' => Expense::class,
-                'source_id' => $expense->id,
-            ], $lines);
-
-            $journalService->post($entry);
-            $expense->update(['journal_entry_id' => $entry->id]);
-        });
+        $expense = app(\Modules\Finance\Services\ExpenseService::class)->recordExpense([
+            'expense_date' => $validated['expense_date'],
+            'category_id' => $validated['category_id'],
+            'payment_account_id' => $validated['payment_account_id'],
+            'amount' => $validated['amount'],
+            'tax_amount' => $taxAmount,
+            'total_amount' => $totalAmount,
+            'payee' => $validated['payee'],
+            'notes' => $validated['notes'],
+            'attachment' => $path,
+            'status' => 'approved',
+            'created_by' => auth()->id(),
+            'approved_by' => auth()->id(),
+        ]);
 
         return redirect()->route('expenses.index')->with('success', 'تم تسجيل المصروف بنجاح');
     }

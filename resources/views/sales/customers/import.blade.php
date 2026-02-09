@@ -9,7 +9,7 @@
                 <div class="card bg-slate-800 border-slate-700 shadow-lg">
                     <div class="card-header border-slate-700">
                         <h5 class="text-white mb-0"><i class="bi bi-file-earmark-spreadsheet me-2"></i> استيراد العملاء من
-                            CSV</h5>
+                            Excel</h5>
                     </div>
                     <div class="card-body p-4">
 
@@ -17,14 +17,14 @@
                             <strong>تعليمات:</strong>
                             <ul class="mb-0 small mt-2">
                                 <li>قم بتحميل ملف النموذج أولاً للتأكد من تنسيق البيانات.</li>
-                                <li>الحقول الإلزامية: الاسم.</li>
+                                <li>يمكنك تعديل الملف لإضافة المزيد من الحقول.</li>
                                 <li>تأكد من عدم تكرار البريد الإلكتروني.</li>
                             </ul>
                         </div>
 
                         <div class="d-flex justify-content-end mb-4">
                             <a href="{{ route('customers.import.sample') }}" class="btn btn-outline-light btn-sm">
-                                <i class="bi bi-download me-1"></i> تحميل نموذج CSV
+                                <i class="bi bi-download me-1"></i> تحميل نموذج Excel
                             </a>
                         </div>
 
@@ -32,9 +32,9 @@
                             @csrf
 
                             <div class="mb-4">
-                                <label class="form-label text-white">اختر ملف CSV</label>
-                                <input type="file" name="csv_file" class="form-control bg-dark border-secondary text-white"
-                                    accept=".csv" required>
+                                <label class="form-label text-white">اختر ملف Excel</label>
+                                <input type="file" name="file" class="form-control bg-dark border-secondary text-white"
+                                    accept=".xlsx,.xls,.csv" required>
                             </div>
 
                             <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">

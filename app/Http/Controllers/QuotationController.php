@@ -110,7 +110,9 @@ class QuotationController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'customer_id' => 'required|exists:customers,id',
+            'customer_id' => 'required_without:target_customer_type|array|nullable',
+            'customer_id.*' => 'exists:customers,id',
+            'target_customer_type' => 'required_without:customer_id|nullable|string',
             'quotation_date' => 'required|date',
             'valid_until' => 'required|date|after_or_equal:quotation_date',
             'notes' => 'nullable|string',
@@ -124,10 +126,21 @@ class QuotationController extends Controller
         ]);
 
         try {
+            $customerIds = $validated['customer_id'] ?? [];
+            $primaryCustomerId = !empty($customerIds) ? $customerIds[0] : null;
+
+            $quotationData = $validated;
+            $quotationData['customer_id'] = $primaryCustomerId;
+
             $quotation = $this->salesService->createQuotation(
-                $validated,
+                $quotationData,
                 $validated['lines']
             );
+
+            // Sync multi-customers after creation
+            if (!empty($customerIds)) {
+                $quotation->customers()->sync($customerIds);
+            }
 
             return redirect()->route('quotations.show', $quotation)
                 ->with('success', 'تم إنشاء عرض السعر: ' . $quotation->quotation_number);
@@ -186,7 +199,9 @@ class QuotationController extends Controller
         }
 
         $validated = $request->validate([
-            'customer_id' => 'required|exists:customers,id',
+            'customer_id' => 'required_without:target_customer_type|array|nullable',
+            'customer_id.*' => 'exists:customers,id',
+            'target_customer_type' => 'required_without:customer_id|nullable|string',
             'quotation_date' => 'required|date',
             'valid_until' => 'required|date|after_or_equal:quotation_date',
             'notes' => 'nullable|string',
@@ -201,14 +216,22 @@ class QuotationController extends Controller
 
         try {
             // Update header
+            $customerIds = $validated['customer_id'] ?? [];
+            $primaryCustomerId = !empty($customerIds) ? $customerIds[0] : null;
+
+            // Update main record
             $quotation->update([
-                'customer_id' => $validated['customer_id'],
+                'customer_id' => $primaryCustomerId,
+                'target_customer_type' => $validated['target_customer_type'],
                 'quotation_date' => $validated['quotation_date'],
                 'valid_until' => $validated['valid_until'],
                 'notes' => $validated['notes'] ?? null,
                 'terms' => $validated['terms'] ?? null,
                 'discount_amount' => $validated['discount_amount'] ?? 0,
             ]);
+
+            // Sync multi-customers
+            $quotation->customers()->sync($customerIds);
 
             // Delete old lines and recreate
             $quotation->lines()->delete();
@@ -235,6 +258,7 @@ class QuotationController extends Controller
             return back()->with('error', $e->getMessage())->withInput();
         }
     }
+
 
     /**
      * Mark quotation as sent
@@ -298,5 +322,44 @@ class QuotationController extends Controller
         ]);
 
         return view('sales.quotations.print', compact('quotation'));
+    }
+
+    /**
+     * Delete quotation
+     */
+    public function destroy(Quotation $quotation)
+    {
+        if ($quotation->status === QuotationStatus::CONVERTED || $quotation->status === QuotationStatus::ACCEPTED) {
+            return back()->with('error', 'لا يمكن حذف عرض سعر تم قبوله أو تحويله');
+        }
+
+        try {
+            // Delete related lines first if not Cascade delete in DB
+            $quotation->lines()->delete();
+            $quotation->delete();
+
+            return redirect()->route('quotations.index')
+                ->with('success', 'تم حذف عرض السعر بنجاح');
+        } catch (\Exception $e) {
+            return back()->with('error', 'خطأ أثناء الحذف: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Expire/Close quotation manually
+     */
+    public function expire(Quotation $quotation)
+    {
+        if (in_array($quotation->status, [QuotationStatus::CONVERTED, QuotationStatus::EXPIRED])) {
+            return back()->with('error', 'هذا العرض منتهي بالفعل أو تم تحويله');
+        }
+
+        try {
+            $quotation->update(['status' => QuotationStatus::EXPIRED]);
+
+            return back()->with('success', 'تم إغلاق عرض السعر بنجاح');
+        } catch (\Exception $e) {
+            return back()->with('error', 'خطأ أثناء الإغلاق: ' . $e->getMessage());
+        }
     }
 }

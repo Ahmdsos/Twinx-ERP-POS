@@ -42,6 +42,14 @@
                         <button type="button" class="list-group-item list-group-item-action" onclick="showTab('printing')">
                             <i class="bi bi-printer me-2"></i> إعدادات الطباعة
                         </button>
+                        <button type="button" class="list-group-item list-group-item-action"
+                            onclick="showTab('accounting')">
+                            <i class="bi bi-journal-check me-2"></i> الربط المحاسبي (Integration)
+                        </button>
+                        <button type="button" class="list-group-item list-group-item-action text-danger"
+                            onclick="showTab('system')">
+                            <i class="bi bi-shield-slash me-2"></i> النسخ الاحتياطي والتصفير
+                        </button>
 
                     </div>
                 </div>
@@ -297,7 +305,247 @@
                     </div>
                 </div>
 
+                <!-- Tab: Accounting Integration -->
+                <div id="tab-accounting" class="settings-tab d-none">
+                    <div class="glass-card p-4 mb-4">
+                        <div
+                            class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-2">
+                            <h4 class="text-white fw-bold m-0">الربط المحاسبي (Logic Mapping)</h4>
+                            <span class="badge bg-primary px-3 py-2">Advanced Configuration</span>
+                        </div>
 
+                        <div class="alert alert-info border-0 bg-primary bg-opacity-10 text-primary mb-4">
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                            تحكم في كيفية ترحيل العمليات المالية لـ شجرة الحسابات. يرجى الحذر عند تغيير هذه الإعدادات.
+                        </div>
+
+                        <!-- Section: Sales -->
+                        <div class="mb-5">
+                            <h5 class="text-info fw-bold mb-3"><i class="bi bi-cart-check me-2"></i> المبيعات والإيرادات
+                            </h5>
+                            <div class="row g-3">
+                                @php
+                                    $salesKeys = [
+                                        'acc_ar' => 'حساب المدينين (العملاء)',
+                                        'acc_sales_revenue' => 'حساب إيرادات المبيعات',
+                                        'acc_sales_return' => 'حساب مرتجعات المبيعات',
+                                        'acc_tax_payable' => 'حساب ضريبة المخرجات (Sales Tax)',
+                                        'acc_tax_receivable' => 'حساب ضريبة المدخلات (Expense/Purchase Tax)',
+                                        'acc_sales_discount' => 'حساب مسموحات المبيعات (الخصم)',
+                                        'acc_shipping_revenue' => 'حساب إيرادات الشحن والتوصيل',
+                                        'acc_pending_delivery' => 'حساب تسوية الدليفري (Pending)',
+                                    ];
+                                @endphp
+                                @foreach($salesKeys as $key => $label)
+                                    <div class="col-md-6">
+                                        <label class="form-label text-white-50">{{ $label }}</label>
+                                        <select name="{{ $key }}"
+                                            class="form-select bg-transparent text-white border-secondary">
+                                            <option value="">-- اختار الحساب --</option>
+                                            @foreach($accounts as $account)
+                                                <option value="{{ $account->code }}" {{ ($settings['accounting'][$key] ?? '') == $account->code ? 'selected' : '' }}>
+                                                    {{ $account->code }} - {{ $account->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <!-- Section: Purchasing -->
+                        <div class="mb-5">
+                            <h5 class="text-warning fw-bold mb-3"><i class="bi bi-bag-plus me-2"></i> المشتريات والمصروفات
+                            </h5>
+                            <div class="row g-3">
+                                @php
+                                    $purchaseKeys = [
+                                        'acc_ap' => 'حساب الدائنين (الموردين)',
+                                        'acc_tax_receivable' => 'حساب ضريبة المدخلات (Purchase Tax)',
+                                        'acc_purchase_discount' => 'حساب مسموحات المشتريات (الخصم)',
+                                    ];
+                                @endphp
+                                @foreach($purchaseKeys as $key => $label)
+                                    <div class="col-md-6">
+                                        <label class="form-label text-white-50">{{ $label }}</label>
+                                        <select name="{{ $key }}"
+                                            class="form-select bg-transparent text-white border-secondary">
+                                            <option value="">-- اختار الحساب --</option>
+                                            @foreach($accounts as $account)
+                                                <option value="{{ $account->code }}" {{ ($settings['accounting'][$key] ?? '') == $account->code ? 'selected' : '' }}>
+                                                    {{ $account->code }} - {{ $account->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <!-- Section: Inventory -->
+                        <div class="mb-5">
+                            <h5 class="text-success fw-bold mb-3"><i class="bi bi-box-seam me-2"></i> المخزون وتكلفة
+                                المبيعات</h5>
+                            <div class="row g-3">
+                                @php
+                                    $inventoryKeys = [
+                                        'acc_inventory' => 'حساب مخزون البضاعة',
+                                        'acc_cogs' => 'حساب تكلفة البضاعة المباعة (COGS)',
+                                        'acc_inventory_adj' => 'حساب تسويات المخزون (Inventory Adj)',
+                                        'acc_purchase_suspense' => 'حساب المشتريات المعلقة (Suspense)',
+                                        'acc_inventory_other' => 'حساب فروقات المخزون الأخرى',
+                                    ];
+                                @endphp
+                                @foreach($inventoryKeys as $key => $label)
+                                    <div class="col-md-6">
+                                        <label class="form-label text-white-50">{{ $label }}</label>
+                                        <select name="{{ $key }}"
+                                            class="form-select bg-transparent text-white border-secondary">
+                                            <option value="">-- اختار الحساب --</option>
+                                            @foreach($accounts as $account)
+                                                <option value="{{ $account->code }}" {{ ($settings['accounting'][$key] ?? '') == $account->code ? 'selected' : '' }}>
+                                                    {{ $account->code }} - {{ $account->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <!-- Section: Payments -->
+                        <div class="mb-5">
+                            <h5 class="text-danger fw-bold mb-3"><i class="bi bi-cash-stack me-2"></i> طرق السداد والنقدية
+                            </h5>
+                            <div class="row g-3">
+                                @php
+                                    $paymentKeys = [
+                                        'acc_cash' => 'حساب الخزينة الرئيسي (Cash)',
+                                        'acc_bank' => 'حساب البنك / الفيزا الرئيسي',
+                                        'acc_pos_change' => 'حساب تسوية الفكة (Change Balance)',
+                                    ];
+                                @endphp
+                                @foreach($paymentKeys as $key => $label)
+                                    <div class="col-md-6">
+                                        <label class="form-label text-white-50">{{ $label }}</label>
+                                        <select name="{{ $key }}"
+                                            class="form-select bg-transparent text-white border-secondary">
+                                            <option value="">-- اختار الحساب --</option>
+                                            @foreach($accounts as $account)
+                                                <option value="{{ $account->code }}" {{ ($settings['accounting'][$key] ?? '') == $account->code ? 'selected' : '' }}>
+                                                    {{ $account->code }} - {{ $account->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <!-- Section: HR -->
+                        <div class="mb-5">
+                            <h5 class="text-light fw-bold mb-3"><i class="bi bi-people me-2"></i> الرواتب وشؤون الموظفين
+                            </h5>
+                            <div class="row g-3">
+                                @php
+                                    $hrKeys = [
+                                        'acc_salaries_exp' => 'حساب مصروف الرواتب',
+                                        'acc_salaries_payable' => 'حساب الرواتب والأجور المستحقة',
+                                    ];
+                                @endphp
+                                @foreach($hrKeys as $key => $label)
+                                    <div class="col-md-6">
+                                        <label class="form-label text-white-50">{{ $label }}</label>
+                                        <select name="{{ $key }}"
+                                            class="form-select bg-transparent text-white border-secondary">
+                                            <option value="">-- اختار الحساب --</option>
+                                            @foreach($accounts as $account)
+                                                <option value="{{ $account->code }}" {{ ($settings['accounting'][$key] ?? '') == $account->code ? 'selected' : '' }}>
+                                                    {{ $account->code }} - {{ $account->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <!-- Section: System -->
+                        <div class="mb-0">
+                            <h5 class="text-white-50 fw-bold mb-3"><i class="bi bi-gear-fill me-2"></i> إعدادات النظام
+                                الأخرى</h5>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label text-white-50">حساب أرصدة أول المدة (Opening Balances)</label>
+                                    <select name="acc_opening_balance"
+                                        class="form-select bg-transparent text-white border-secondary">
+                                        <option value="">-- اختار الحساب --</option>
+                                        @foreach($accounts as $account)
+                                            <option value="{{ $account->code }}" {{ ($settings['accounting']['acc_opening_balance'] ?? '') == $account->code ? 'selected' : '' }}>
+                                                {{ $account->code }} - {{ $account->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: System Reset & Backup -->
+                <div id="tab-system" class="settings-tab d-none">
+                    <div class="glass-card p-4 mb-4">
+                        <h4 class="text-white fw-bold mb-4 border-bottom border-secondary pb-2">النسخ الاحتياطي وتصفير
+                            النظام</h4>
+
+                        <div class="row g-4">
+                            <!-- Backup Section -->
+                            <div class="col-12">
+                                <h5 class="text-info fw-bold mb-3"><i class="bi bi-cloud-arrow-up me-2"></i> النسخ الاحتياطي
+                                    (Backup)</h5>
+                                <div class="bg-info bg-opacity-10 p-3 rounded-3 mb-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="text-info fw-bold">حماية البيانات</div>
+                                            <div class="text-white-50 small">يُنصح بأخذ نسخة احتياطية بشكل دوري لضمان سلامة
+                                                البيانات.</div>
+                                        </div>
+                                        <a href="{{ route('settings.backup.index') }}" class="btn btn-info px-4">إدارة النسخ
+                                            الاحتياطية</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="border-secondary">
+
+                            <!-- Danger Zone Section -->
+                            <div class="col-12">
+                                <h5 class="text-danger fw-bold mb-3"><i class="bi bi-exclamation-triangle me-2"></i> منطقة
+                                    الخطر (Danger Zone)</h5>
+                                <div class="border border-danger border-opacity-25 bg-danger bg-opacity-10 p-4 rounded-3">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-9">
+                                            <h6 class="text-white fw-bold">تصفير بيانات العمليات (System Safe Wipe)</h6>
+                                            <p class="text-white-50 small mb-0">
+                                                سيقوم هذا الإجراء بمسح كافة المبيعات، المشتريات، المخزون، الحسابات الجارية،
+                                                والقيود المحاسبية.
+                                                <br>
+                                                <strong>سيتم الحفاظ على:</strong> دليل الحسابات، المستخدمين، والصلاحيات،
+                                                وإعدادات النظام.
+                                            </p>
+                                        </div>
+                                        <div class="col-md-3 text-end">
+                                            <button type="button" class="btn btn-danger w-100 fw-bold shadow-sm"
+                                                data-bs-toggle="modal" data-bs-target="#systemResetModal">
+                                                تصفير العمليات الآن
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Save Button Sticky Footer -->
                 <div class="glass-card p-3 mt-4 text-end sticky-bottom" style="bottom: 20px; z-index: 10;">
@@ -352,6 +600,12 @@
             box-shadow: 0 0 0 0.25rem rgba(96, 165, 250, 0.25);
             color: white;
         }
+
+        /* Fix for invisible select options in dark theme */
+        select option {
+            background-color: #111827 !important;
+            color: white !important;
+        }
     </style>
 
     <script>
@@ -371,8 +625,19 @@
             if (tabName === 'sales') buttons[2].classList.add('active');
             if (tabName === 'pos') buttons[3].classList.add('active');
             if (tabName === 'printing') buttons[4].classList.add('active');
-            if (tabName === 'system') buttons[5].classList.add('active');
+            if (tabName === 'accounting') buttons[5].classList.add('active');
+            if (tabName === 'system') buttons[6].classList.add('active');
         }
+
+        // Handle System Reset PIN Modal
+        document.addEventListener('DOMContentLoaded', function () {
+            // Check if there are validation errors for the PIN
+            @if($errors->has('pin') || $errors->has('error'))
+                showTab('system');
+                var modal = new bootstrap.Modal(document.getElementById('systemResetModal'));
+                modal.show();
+            @endif
+                });
 
         function previewImage(input) {
             if (input.files && input.files[0]) {
@@ -412,4 +677,49 @@
             }
         }
     </script>
+
+    <!-- System Reset Modal -->
+    <div class="modal fade" id="systemResetModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-card border-danger border-opacity-50">
+                <div class="modal-header border-bottom border-white border-opacity-10">
+                    <h5 class="modal-title text-danger fw-bold"><i class="bi bi-shield-lock me-2"></i> تأكيد تصفير النظام
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <div class="text-danger display-4 mb-3">
+                        <i class="bi bi-exclamation-octagon"></i>
+                    </div>
+                    <h5 class="text-white mb-3">هل أنت متأكد من مسح كافة العمليات؟</h5>
+                    <p class="text-white-50 small mb-4 text-center">
+                        هذا الإجراء سيقوم بتصفير كافة الأرصدة والكميات وحذف جميع الفواتير والقيود.
+                        <br>
+                        <span class="text-warning">لا يمكن التراجع عن هذه الخطوة!</span>
+                    </p>
+
+                    <form action="{{ route('settings.reset') }}" method="POST">
+                        @csrf
+                        <div class="mb-4 text-start">
+                            <label class="form-label text-white-50 small">أدخل رمز مرور المدير (Admin PIN) للمتابعة:</label>
+                            <input type="password" name="pin"
+                                class="form-control form-control-lg bg-transparent text-white border-danger text-center font-monospace"
+                                placeholder="****" required autofocus>
+                            @error('pin')
+                                <div class="text-danger small mt-2"><i class="bi bi-x-circle me-1"></i> {{ $message }}</div>
+                            @enderror
+                            @error('error')
+                                <div class="text-danger small mt-2"><i class="bi bi-x-circle me-1"></i> {{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger btn-lg fw-bold">تأكيد المسح النهائي</button>
+                            <button type="button" class="btn btn-glass-outline" data-bs-dismiss="modal">إلغاء</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection

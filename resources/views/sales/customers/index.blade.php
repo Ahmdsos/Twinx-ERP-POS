@@ -15,11 +15,40 @@
                     <p class="mb-0 text-gray-400 small">قاعدة بيانات المتسوقين والشركات</p>
                 </div>
             </div>
-            <a href="{{ route('customers.create') }}"
-                class="btn btn-action-indigo d-flex align-items-center gap-2 shadow-lg">
-                <i class="bi bi-person-plus-fill"></i>
-                <span class="fw-bold">إضافة عميل جديد</span>
-            </a>
+            <div class="d-flex gap-2">
+                <div class="dropdown">
+                    <button class="btn btn-success-glass d-flex align-items-center gap-2 shadow-lg dropdown-toggle"
+                        type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-download"></i>
+                        <span class="fw-bold d-none d-md-inline">تصدير</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-dark bg-slate-900 border-white-10 shadow-neon"
+                        aria-labelledby="exportDropdown">
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2"
+                                href="{{ route('export.customers', ['format' => 'xlsx']) }}">
+                                <i class="bi bi-file-earmark-spreadsheet text-success"></i> Excel (.xlsx)
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2"
+                                href="{{ route('export.customers', ['format' => 'csv']) }}">
+                                <i class="bi bi-file-earmark-code text-info"></i> CSV (.csv)
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <a href="{{ route('customers.import.form') }}"
+                    class="btn btn-info-glass d-flex align-items-center gap-2 shadow-lg">
+                    <i class="bi bi-cloud-upload"></i>
+                    <span class="fw-bold d-none d-md-inline">استيراد</span>
+                </a>
+                <a href="{{ route('customers.create') }}"
+                    class="btn btn-action-indigo d-flex align-items-center gap-2 shadow-lg">
+                    <i class="bi bi-person-plus-fill"></i>
+                    <span class="fw-bold">إضافة عميل جديد</span>
+                </a>
+            </div>
         </div>
 
         <!-- Filters Section (Glass) -->
@@ -99,15 +128,15 @@
                                 <td>
                                     @php
                                         $typeLabels = [
-                                            'individual' => 'فرد',
-                                            'company' => 'شركة',
-                                            'distributor' => 'موزع',
-                                            'wholesale' => 'جملة',
-                                            'half_wholesale' => 'نص جملة',
-                                            'quarter_wholesale' => 'ربع جملة',
-                                            'technician' => 'فني',
-                                            'employee' => 'موظف',
-                                            'vip' => 'VIP'
+                                            'consumer' => 'فرد (Consumer)',
+                                            'company' => 'شركة (Company)',
+                                            'distributor' => 'موزع معتمد (Distributor)',
+                                            'wholesale' => 'تاجر جملة (Wholesale)',
+                                            'half_wholesale' => 'نص جملة (Half Wholesale)',
+                                            'quarter_wholesale' => 'ربع جملة (Quarter Wholesale)',
+                                            'technician' => 'فني / مقاول (Technician)',
+                                            'employee' => 'موظف (Employee)',
+                                            'vip' => 'عميل مميز (VIP)'
                                         ];
                                         $label = $typeLabels[$customer->type] ?? $customer->type;
                                         $badgeClass = match ($customer->type) {
@@ -145,7 +174,7 @@
                                             <i class="bi bi-pencil"></i>
                                         </a>
                                         <form action="{{ route('customers.destroy', $customer->id) }}" method="POST"
-                                            class="d-inline" onsubmit="return confirm('هل أنت متأكد من حذف هذا العميل؟');">
+                                            class="d-inline" data-confirm="هل أنت متأكد من حذف هذا العميل؟">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn-icon-glass text-danger hover-danger" title="حذف">

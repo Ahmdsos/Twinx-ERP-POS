@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'كشف حساب: ' . $account->name)
+@section('title', 'كشف حساب: ' . $account->display_name)
 
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h4 class="fw-bold text-white mb-1">كشف حساب <span class="text-info">{{ $account->name }}</span></h4>
+            <h4 class="fw-bold text-white mb-1">كشف حساب <span class="text-info">{{ $account->display_name }}</span></h4>
             <div class="text-white-50 small font-monospace">Code: {{ $account->code }} | Type: {{ $account->type->label() }}
             </div>
         </div>
@@ -94,7 +94,8 @@
                         <td class="py-4 text-end fw-bold text-info fs-5">{{ number_format($totalDebit, 2) }}</td>
                         <td class="py-4 text-end fw-bold text-info fs-5">{{ number_format($totalCredit, 2) }}</td>
                         <td class="px-4 py-4 text-end fw-bold text-warning fs-4 font-monospace">
-                            {{ number_format($closingBalance, 2) }}</td>
+                            {{ number_format($closingBalance, 2) }}
+                        </td>
                     </tr>
                 </tfoot>
             </table>

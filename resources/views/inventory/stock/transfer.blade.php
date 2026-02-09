@@ -156,7 +156,7 @@
             // Prevent selecting same warehouse
             function validateWarehouses() {
                 if (fromWarehouse.value === toWarehouse.value && fromWarehouse.value !== "") {
-                    alert('لا يمكن التحويل لنفس المستودع!');
+                    Swal.fire({ icon: 'warning', title: 'خطأ في التوجيه', text: 'لا يمكن التحويل لنفس المستودع! يرجى اختيار مستودع مختلف.', background: '#1e293b', color: '#fff' });
                     toWarehouse.value = "";
                 }
                 if (fromWarehouse.value && productSelect.value) {

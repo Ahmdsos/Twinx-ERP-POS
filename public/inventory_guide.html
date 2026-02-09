@@ -1,0 +1,1927 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الدليل الخارق لإدارة مخزون توينكس | Twinx ERP PRO</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Inter:wght@400;700;900&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --slate-950: #020617;
+            --slate-900: #0f172a;
+            --slate-800: #1e293b;
+            --slate-700: #334155;
+            --purple-500: #a855f7;
+            --purple-400: #c084fc;
+            --cyan-400: #22d3ee;
+            --rose-400: #fb7185;
+            --glass: rgba(15, 23, 42, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --neon-purple: 0 0 20px rgba(168, 85, 247, 0.3);
+            --neon-cyan: 0 0 20px rgba(34, 211, 238, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--slate-950);
+            color: #e2e8f0;
+            font-family: 'Cairo', sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* --- Typography --- */
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-family: 'Cairo', sans-serif;
+            font-weight: 900;
+        }
+
+        .en {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* --- Layout --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* --- Glow Orbs --- */
+        .orb {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: -1;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .orb-purple {
+            top: -200px;
+            right: -200px;
+            background: var(--purple-500);
+        }
+
+        .orb-cyan {
+            top: 40%;
+            left: -200px;
+            background: var(--cyan-400);
+        }
+
+        /* --- Hero Section --- */
+        .hero {
+            padding: 8rem 0 4rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero h1 {
+            font-size: clamp(3rem, 8vw, 5rem);
+            background: linear-gradient(135deg, #fff 0%, var(--purple-400) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1.5rem;
+            letter-spacing: -1px;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: #94a3b8;
+            max-width: 800px;
+            margin: 0 auto 4rem;
+        }
+
+        /* --- Template Hub --- */
+        .template-hub {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 6rem;
+        }
+
+        .template-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            padding: 2.5rem;
+            border-radius: 40px;
+            text-align: right;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .template-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .template-card.excel {
+            border-bottom: 4px solid #10b981;
+        }
+
+        .template-card.json {
+            border-bottom: 4px solid var(--cyan-400);
+        }
+
+        .template-card h3 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+
+        .template-card p {
+            color: #94a3b8;
+            font-size: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        /* --- Premium Buttons --- */
+        .btn-premium {
+            padding: 1.2rem 2.8rem;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: 900;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-premium::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: rotate(45deg);
+            transition: 0.6s;
+        }
+
+        .btn-premium:hover::after {
+            left: 100%;
+        }
+
+        .btn-premium:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            filter: brightness(1.1);
+        }
+
+        .btn-premium:active {
+            transform: scale(0.98);
+        }
+
+        .btn-template {
+            padding: 1rem 2rem;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .excel .btn-template {
+            background: #10b981;
+            color: #fff;
+        }
+
+        .json .btn-template {
+            background: var(--cyan-400);
+            color: #0f172a;
+        }
+
+        .btn-template:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+
+        /* --- Format Badge --- */
+        .format-badge {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            font-family: 'Inter';
+            font-weight: 900;
+            font-size: 2rem;
+            opacity: 0.05;
+        }
+
+        /* --- Interactive Tabs --- */
+        .tabs-nav {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 4rem;
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+        }
+
+        .tab-btn {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            padding: 1rem 2.5rem;
+            border-radius: 20px;
+            color: #94a3b8;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+        }
+
+        .tab-btn.active {
+            background: rgba(168, 85, 247, 0.2);
+            border-color: var(--purple-400);
+            color: #fff;
+            box-shadow: var(--neon-purple);
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* --- Code Block Pro --- */
+        .code-window {
+            background: #0f172a;
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            font-family: 'Inter', monospace;
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .code-window::before {
+            content: 'JSON SCHEMA';
+            position: absolute;
+            top: -10px;
+            right: 20px;
+            background: var(--cyan-400);
+            color: #020617;
+            padding: 2px 12px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 900;
+        }
+
+        .code-window pre {
+            color: #22d3ee;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+
+        .demo-callout {
+            background: rgba(234, 179, 8, 0.1);
+            border-right: 4px solid #eab308;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+            color: #fde047;
+        }
+
+        .demo-callout strong {
+            color: #fff;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        /* --- Sheet Card --- */
+        .sheet-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 40px;
+            padding: 3rem;
+            margin-bottom: 6rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sheet-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(to left, var(--purple-500), var(--cyan-400));
+        }
+
+        .sheet-title {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .sheet-badge {
+            font-size: 0.9rem;
+            background: rgba(168, 85, 247, 0.1);
+            color: var(--purple-400);
+            padding: 4px 16px;
+            border-radius: 100px;
+            border: 1px solid rgba(168, 85, 247, 0.2);
+        }
+
+        /* --- Field Groups --- */
+        .group-container {
+            margin-top: 3rem;
+        }
+
+        .group-header {
+            font-size: 1.5rem;
+            color: var(--cyan-400);
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(34, 211, 238, 0.1);
+        }
+
+        .field-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 20px;
+        }
+
+        /* --- Field Card --- */
+        .field-card {
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 1.5rem;
+            border-radius: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .field-card:hover {
+            background: rgba(30, 41, 59, 0.8);
+            border-color: rgba(168, 85, 247, 0.4);
+            transform: translateY(-5px);
+        }
+
+        .field-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .field-name {
+            font-family: 'Inter', sans-serif;
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: #fff;
+        }
+
+        .field-tag {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .tag-req {
+            background: rgba(251, 113, 133, 0.1);
+            color: var(--rose-400);
+        }
+
+        .tag-sys {
+            background: rgba(34, 211, 238, 0.1);
+            color: var(--cyan-400);
+        }
+
+        .tag-opt {
+            background: rgba(148, 163, 184, 0.1);
+            color: #94a3b8;
+        }
+
+        .field-desc {
+            font-size: 0.95rem;
+            color: #94a3b8;
+            margin-bottom: 1rem;
+        }
+
+        .field-logic {
+            background: rgba(15, 23, 42, 0.5);
+            padding: 10px 15px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            border-right: 3px solid var(--purple-500);
+        }
+
+        .field-logic strong {
+            color: var(--purple-400);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* --- Footer --- */
+        footer {
+            padding: 6rem 0;
+            text-align: center;
+            background: var(--slate-900);
+            border-top: 1px solid var(--glass-border);
+        }
+
+        @media (max-width: 768px) {
+            .cta-bar {
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+            }
+
+            .sheet-card {
+                padding: 1.5rem;
+            }
+
+            .field-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="orb orb-purple"></div>
+    <div class="orb orb-cyan"></div>
+
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero">
+            <h5 style="color: var(--purple-400); font-weight: 700; letter-spacing: 4px; margin-bottom: 1rem;">TWINX ERP
+                ULTIMATE GUIDE</h5>
+            <h1>الدليل الكامل لإدارة المخزون</h1>
+            <p>بصفتك المسؤل الأول عن دقة البيانات، هذا الدليل صممناه عشان يكون مرجعك الشامل لكل خانة في ملف الـ
+                Data Mastery. اختار الطريقة اللي تريحك وابدأ في صياغة الحقيقة.</p>
+
+            <div class="tabs-nav">
+                <button class="tab-btn active" onclick="switchTab('excel')">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="16" y1="13" x2="8" y2="13" />
+                        <line x1="16" y1="17" x2="8" y2="17" />
+                        <polyline points="10 9 9 9 8 9" />
+                    </svg>
+                    دليل الإكسل (Excel Mode)
+                </button>
+                <button class="tab-btn" onclick="switchTab('json')">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="16 18 22 12 16 6" />
+                        <polyline points="8 6 2 12 8 18" />
+                    </svg>
+                    دليل المبرمجين (JSON Pro)
+                </button>
+            </div>
+        </section>
+
+        <!-- TABS CONTENT WRAPPER -->
+        <div id="tab-excel" class="tab-content active">
+            <!-- Template Bar -->
+            <div class="sheet-card"
+                style="padding: 2rem; border-radius: 32px; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(to right, rgba(16, 185, 129, 0.1), transparent);">
+                <div style="text-align: right;">
+                    <h3 style="color: #10b981; margin-bottom: 5px;">نموذج الإكسل الموحد</h3>
+                    <p style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 0;">جاهز للتحميل وبدأ إدخال بيانات الـ
+                        60
+                        خانة.</p>
+                </div>
+                <a href="/export/inventory/template" class="btn-premium" style="background: #10b981;">تحميل XLSX</a>
+            </div>
+
+            <!-- Sheets Section (Existing flow) -->
+            <div id="flow">
+
+                <!-- SHEET: PRODUCTS -->
+                <section class="sheet-card">
+                    <div class="sheet-title">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--purple-400)"
+                            stroke-width="2">
+                            <path d="M21 8l-9-4-9 4v8l9 4 9-4V8z" />
+                            <path d="M12 12V22" />
+                            <path d="M12 12l8-3.5" />
+                            <path d="M12 12l-8-3.5" />
+                        </svg>
+                        1. المنتجات <span class="en">Products</span>
+                        <span class="sheet-badge">الصفحة الأهم</span>
+                    </div>
+                    <p style="color: #94a3b8; margin-bottom: 2rem;">هذه الصفحة هي قلب النظام، تضم أكثر من 60 عموداً
+                        تغطي كل
+                        تفاصيل المنتج من الأبعاد والوزن حتى الربط المحاسبي الدقيق.</p>
+
+                    <!-- GROUP: IDENTITY -->
+                    <div class="group-container">
+                        <div class="group-header">
+                            <i class="bi bi-person-badge"></i> بيانات التعريف (Identity)
+                        </div>
+                        <div class="field-grid">
+                            <!-- ID -->
+                            <div class="field-card">
+                                <div class="field-header">
+                                    <span class="field-name">ID</span>
+                                    <span class="field-tag tag-sys">System Only</span>
+                                </div>
+                                <div class="field-desc">الرقم المرجعي الوحيد للمنتج في قاعدة البيانات.</div>
+                                <div class="field-logic">
+                                    <strong>قاعدة الاستخدام:</strong>
+                                    لو بتعدل منتج موجود، لا تلمس هذا الرقم. لو بتضيف منتج جديد، سيب الخانة فاضية.
+                                </div>
+                            </div>
+
+                            <!-- SKU -->
+                            <div class="field-card">
+                                <div class="field-header">
+                                    <span class="field-name">SKU</span>
+                                    <span class="field-tag tag-req">Must Be Unique</span>
+                                </div>
+                                <div class="field-desc">كود تتبع الصنف (Stock Keeping Unit).</div>
+                                <div class="field-logic">
+                                    <strong>قاعدة الاستخدام:</strong>
+                                    كود فريد لكل صنف. النظام يستخدمه لربط العمليات الحسابية ومنع التكرار.
+                                </div>
+                            </div>
+
+                            <!-- Barcode -->
+                            <div class="field-card">
+                                <div class="field-header">
+                                    <span class="field-name">Barcode</span>
+                                    <span class="field-tag tag-opt">Recommended</span>
+                                </div>
+                                <div class="field-desc">الباركود الدولي أو المحلي المطبوع على عبوة المنتج.</div>
+                                <div class="field-logic">
+                                    <strong>قاعدة الاستخدام:</strong>
+                                    ادخله عشان تقدر تبيع وتجرد بسرعة باستخدام الماسح الضوئي (Scanner).
+                                </div>
+                            </div>
+
+                            <!-- Name -->
+                            <div class="field-card">
+                                <div class="field-header">
+                                    <span class="field-name">Name</span>
+                                    <span class="field-tag tag-req">Required</span>
+                                </div>
+                                <div class="field-desc">اسم المنتج كما سيظهر للعميل وفي الفاتورة.</div>
+                                <div class="field-logic">
+                                    <strong>قاعدة الاستخدام:</strong>
+                                    اكتب الاسم بدقة (مثلاً: موبايل سامسونج S24 الترا - أسود).
+                                </div>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="field-card">
+                                <div class="field-header">
+                                    <span class="field-name">Description</span>
+                                    <span class="field-tag tag-opt">Detailed</span>
+                                </div>
+                                <div class="field-desc">شرح إضافي للمنتج أو مواصفاته التقنية.</div>
+                                <div class="field-logic">يظهر في تقارير الجرد وفي صفحة تفاصيل المنتج.</div>
+                            </div>
+
+                            <!-- Type -->
+                            <div class="field-card">
+                                <div class="field-header">
+                                    <span class="field-name">Type</span>
+                                    <span class="field-tag tag-req">Default: goods</span>
+                                </div>
+                                <div class="field-desc">نوع الصنف (Goods أو Service).</div>
+                                <div class="field-logic">
+                                    <strong>قاعدة الاستخدام:</strong>
+                                    المنتجات الملموسة اكتب <span class="en">goods</span>، والخدمات اكتب <span
+                                        class="en">service</span>.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GROUP: ASSOCIATIONS -->
+                    <div class="group-container">
+                        <div class="group-header">الربط والهيكلة (Associations)</div>
+                        <div class="field-grid">
+                            <div class="field-card">
+                                <div class="field-header">
+                                    <span class="field-name">Category ID</span>
+                                    <span class="field-tag tag-req">Required</span>
+                                </div>
+                                <div class="field-desc">رقم القسم الذي ينتمي إليه المنتج.</div>
+                                <div class="field-logic">
+                                    <strong>قاعدة الاستخدام:</strong>
+                                    اذهب لصفحة Categories، ابحث عن رقم (ID) القسم المناسب وضعه هنا.
+                                </div>
+                            </div>
+
+                            <div class="field-card">
+                                <div class="field-header">
+                                    <span class="field-name">Brand ID</span>
+                                    <span class="field-tag tag-opt">Optional</span>
+                                </div>
+                                <div class="field-desc">رقم الماركة أو الشركة المصنعة.</div>
+                                <div class="field-logic">
+                                    <strong>قاعدة الاستخدام:</strong>
+                                    هات الـ ID من صفحة Brands. لو ملوش ماركة سيبه فاضي.
+                                </div>
+                            </div>
+
+                            <div class="field-card">
+                                <div class="field-header">
+                                    <span class="field-name">Unit ID</span>
+                                    <span class="field-tag tag-req">Required</span>
+                                </div>
+                                <div class="field-desc">وحدة البيع الافتراضية (قطعة، كيلو، إلخ).</div>
+                                <div class="field-logic">
+                                    <strong>قاعدة الاستخدام:</strong>
+                                    هات الـ ID من صفحة Units. تأكد إنها الوحدة الصغرى للجرد.
+                                </div>
+                            </div>
+
+                            <div class="field-card">
+                                <div class="field-header">
+                                    <span class="field-name">Purchase Unit ID</span>
+                                    <span class="field-tag tag-opt">Defaults to Unit</span>
+                                </div>
+                                <div class="field-desc">الوحدة اللي بتشتري بيها من المورد.</div>
+                                <div class="field-logic">
+                                    <strong>قاعدة الاستخدام:</strong>
+                                    لو بتشتري بالكرتونة وتبيع بالقطعة، حط ID الكرتونة هنا.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GROUP: PRICING -->
+                    <div class="group-container">
+                        <div class="group-header">الأسعار والضرائب (Financials)</div>
+                        <div class="field-grid">
+                            <div class="field-card">
+                                <div class="field-header">
+                                    <span class="field-name">Cost Price</span>
+                                    <span class="field-tag tag-req">Base Cost</span>
+                                </div>
+                                <div class="field-desc">تكلفة شراء المنتج عليك.</div>
+                                <div class="field-logic">
+                                    <strong>قاعدة الاستخدام:</strong>
+                                    ضروري جداً عشان نحسب أرباحك في التقارير بدقة.
+                                </div>
+                            </div>
+                            <div class="field-card">
+                                <div class="field-header">
+                                    <span class="field-name">Selling Price</span>
+                                    <span class="field-tag tag-req">Retail Price</span>
+                                </div>
+                                <div class="field-desc">سعر البيع النهائي للجمهور.</div>
+                            </div>
+                            <div class="field-card">
+                                <div class="field-header">
+                                    <span class="field-name">Min Selling Price</span>
+                                    <span class="field-tag tag-opt">Price Guard</span>
+                                </div>
+                                <div class="field-desc">أقل سعر مسموح به للكاشير.</div>
+                            </div>
+                            <div class="field-card">
+                                <div class="field-header">
+                                    <span class="field-name">Is Active</span>
+                                </div>
+                                <div class="field-desc">حالة المنتج للبيع (Yes/No).</div>
+                            </div>
+                            <div class="field-card">
+                                <div class="field-header">
+                                    <span class="field-name">Is Sellable/Purchasable</span>
+                                </div>
+                                <div class="field-desc">إتاحة البيع أو الشراء بشكل مستقل.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GROUP: PRICING TIERS (NEW) -->
+                    <div class="group-container">
+                        <div class="group-header">شرائح الأسعار (Pricing Tiers)</div>
+                        <div class="field-grid">
+                            <div class="field-card">
+                                <div class="field-header"><span class="field-name">Price Distributor</span></div>
+                                <div class="field-desc">سعر خاص للموزعين المعتمدين.</div>
+                            </div>
+                            <div class="field-card">
+                                <div class="field-header"><span class="field-name">Price Wholesale</span></div>
+                                <div class="field-desc">سعر الجملة للكميات الكبيرة.</div>
+                            </div>
+                            <div class="field-card">
+                                <div class="field-header"><span class="field-name">Price Half Wholesale</span></div>
+                                <div class="field-desc">سعر نص جملة.</div>
+                            </div>
+                            <div class="field-card">
+                                <div class="field-header"><span class="field-name">Price Quarter Wholesale</span>
+                                </div>
+                                <div class="field-desc">سعر ربع جملة.</div>
+                            </div>
+                            <div class="field-card">
+                                <div class="field-header"><span class="field-name">Price Special</span></div>
+                                <div class="field-desc">سعر لكبار العملاء أو عروض خاصة.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GROUP: STOCK CONTROL -->
+                    <div class="group-container">
+                        <div class="group-header">التحكم في المخزون (Inventory Control)</div>
+                        <div class="field-grid">
+                            <div class="field-card">
+                                <div class="field-header"><span class="field-name">Reorder Level</span></div>
+                                <div class="field-desc">الحد الذي ينبهك عنده النظام لنقص الكمية.</div>
+                            </div>
+                            <div class="field-card">
+                                <div class="field-header"><span class="field-name">Reorder Quantity</span></div>
+                                <div class="field-desc">الكمية المقترح طلبها عند الوصول لحد إعادة الطلب.</div>
+                            </div>
+                            <div class="field-card">
+                                <div class="field-header"><span class="field-name">Min/Max Stock</span></div>
+                                <div class="field-desc">أدنى وأعلى كمية مخزون استراتيجية.</div>
+                            </div>
+                            <div class="field-card">
+                                <div class="field-header">
+                                    <span class="field-name">Track Batches/Serials</span>
+                                    <span class="field-tag tag-opt">Yes/No</span>
+                                </div>
+                                <div class="field-desc">تتبع دفعات الانتاج أو الأرقام التسلسلية.</div>
+                                <div class="field-logic">مهم للمنتجات الطبية أو الإلكترونيات.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GROUP: WAREHOUSE STOCK (TRUTH) -->
+                    <div class="group-container"
+                        style="background: rgba(34, 211, 238, 0.05); padding: 2rem; border-radius: 32px; border: 1px dashed var(--cyan-400);">
+                        <div class="group-header" style="border: none; color: #fff;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--cyan-400)"
+                                stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                                <circle cx="12" cy="10" r="3" />
+                            </svg>
+                            توزيع المخزون (Stock Truth)
+                        </div>
+                        <div class="field-grid">
+                            <div class="field-card" style="background: rgba(15, 23, 42, 0.8);">
+                                <div class="field-header">
+                                    <span class="field-name">Stock: [Warehouse] (ID: x)</span>
+                                    <span class="field-tag tag-req">Must Be Numeric</span>
+                                </div>
+                                <div class="field-desc">الكمية الموجودة فعلياً في مخزون معين.</div>
+                                <div class="field-logic">
+                                    <strong>قاعدة الحقيقة:</strong>
+                                    يتم حساب إجمالي مخزون المنتج عبر جمع هذه الأعمدة آلياً.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GROUP: LOGISTICS & DIMENSIONS -->
+                    <div class="group-container">
+                        <div class="group-header">اللوجستيات والأبعاد (Logistics & Specs)</div>
+                        <div class="field-grid">
+                            <div class="field-card">
+                                <div class="field-header"><span class="field-name">Weight / Unit</span></div>
+                                <div class="field-desc">وزن المنتج ووحدته (مثلاً: 1.5 والتعريف kg).</div>
+                            </div>
+                            <div class="field-card">
+                                <div class="field-header"><span class="field-name">Length/Width/Height</span></div>
+                                <div class="field-desc">أبعاد المنتج (طول، عرض، ارتفاع).</div>
+                            </div>
+                            <div class="field-card">
+                                <div class="field-header"><span class="field-name">Dimension Unit</span></div>
+                                <div class="field-desc">وحدة قياس الأبعاد (cm/m).</div>
+                            </div>
+                            <div class="field-card">
+                                <div class="field-header"><span class="field-name">Manufacturer</span></div>
+                                <div class="field-desc">اسم الشركة المصنعة.</div>
+                            </div>
+                            <div class="field-card">
+                                <div class="field-header"><span class="field-name">Manufacturer Part Number</span>
+                                </div>
+                                <div class="field-desc">رقم القطعة الأصلي من المصنع.</div>
+                            </div>
+                            <div class="field-card">
+                                <div class="field-header"><span class="field-name">Country of Origin</span></div>
+                                <div class="field-desc">بلد المنشأ (مثلاً: Egypt).</div>
+                            </div>
+                            <div class="field-card">
+                                <div class="field-header"><span class="field-name">HS Code</span></div>
+                                <div class="field-desc">الكود الجمركي لتسهيل عمليات الاستيراد.</div>
+                            </div>
+                            <div class="field-card">
+                                <div class="field-header"><span class="field-name">Lead Time Days</span></div>
+                                <div class="field-desc">المدة باليوم لوصول الشحنة من المورد.</div>
+                            </div>
+                            <div class="field-card">
+                                <div class="field-header"><span class="field-name">Is Returnable</span><span
+                                        class="field-tag tag-opt">Yes/No</span></div>
+                                <div class="field-desc">هل المنتج قابل للاسترجاع بعد البيع؟</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GROUP: ATTRIBUTES -->
+                    <div class="group-container">
+                        <div class="group-header">المواصفات والوسوم (Attributes)</div>
+                        <div class="field-grid">
+                            <div class="field-card">
+                                <div class="field-header"><span class="field-name">Color / Size</span></div>
+                                <div class="field-desc">لون المنتج ومقاسه.</div>
+                            </div>
+                            <div class="field-card">
+                                <div class="field-header"><span class="field-name">Tags</span></div>
+                                <div class="field-desc">كلمات دلالية للبحث (مفصولة بفاصلة ,).</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GROUP: WARRANTY & EXPIRY -->
+                    <div class="group-container">
+                        <div class="group-header">الضمان والصلاحية (Warranty)</div>
+                        <div class="field-grid">
+                            <div class="field-card">
+                                <div class="field-header"><span class="field-name">Warranty Months</span></div>
+                                <div class="field-desc">مدة الضمان بالشهور.</div>
+                            </div>
+                            <div class="field-card">
+                                <div class="field-header"><span class="field-name">Warranty Type</span></div>
+                                <div class="field-desc">نوع الضمان (Manufacturer/Shop).</div>
+                            </div>
+                            <div class="field-card">
+                                <div class="field-header"><span class="field-name">Expiry Date</span></div>
+                                <div class="field-desc">تاريخ الانتهاء (YYYY-MM-DD).</div>
+                            </div>
+                            <div class="field-card">
+                                <div class="field-header"><span class="field-name">Shelf Life Days</span></div>
+                                <div class="field-desc">العمر الافتراضي للمنتج على الرف.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GROUP: SEO -->
+                    <div class="group-container">
+                        <div class="group-header">تحسين محركات البحث (SEO)</div>
+                        <div class="field-grid">
+                            <div class="field-card">
+                                <div class="field-header"><span class="field-name">SEO Title</span></div>
+                                <div class="field-desc">عنوان الصفحة للموقع (Meta Title).</div>
+                            </div>
+                            <div class="field-card">
+                                <div class="field-header"><span class="field-name">SEO Description</span></div>
+                                <div class="field-desc">شرح المنتج لـ Google.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GROUP: ACCOUNTING -->
+                    <div class="group-container">
+                        <div class="group-header">الربط المحاسبي (Accounting)</div>
+                        <div class="field-grid">
+                            <div class="field-card">
+                                <div class="field-header"><span class="field-name">Sales Account Code</span></div>
+                                <div class="field-desc">كود حساب المبيعات (مثلاً: 4101).</div>
+                            </div>
+                            <div class="field-card">
+                                <div class="field-header"><span class="field-name">Purchase Account Code</span>
+                                </div>
+                                <div class="field-desc">كود حساب المشتريات (مثلاً: 5101).</div>
+                            </div>
+                            <div class="field-card">
+                                <div class="field-header"><span class="field-name">Inventory Account Code</span>
+                                </div>
+                                <div class="field-desc">كود حساب المخزون (مثلاً: 1201).</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </section>
+
+                <!-- SECTION: CATEGORIES -->
+                <section class="sheet-card" style="border-right: 4px solid var(--cyan-400);">
+                    <div class="sheet-title">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--cyan-400)"
+                            stroke-width="2">
+                            <path d="M4 7h16M4 12h16M4 17h16" />
+                        </svg>
+                        2. الأقسام <span class="en">Categories</span>
+                    </div>
+                    <div class="field-grid">
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">ID</span></div>
+                            <p class="field-desc">الرقم المرجعي للقسم.</p>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">Name</span></div>
+                            <p class="field-desc">اسم القسم (مثلاً: ملابس، إلكترونيات).</p>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">Slug</span></div>
+                            <p class="field-desc">كود القسم للرابط (English/Unique).</p>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">Parent Category</span></div>
+                            <p class="field-desc">اسم القسم الرئيسي لو ده فرعي.</p>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">Description</span></div>
+                            <p class="field-desc">وصف القسم وما يحتويه.</p>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">Sort Order</span></div>
+                            <p class="field-desc">رقم لترتيب القسم (0, 1, 2...).</p>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">Active</span></div>
+                            <p class="field-desc">حالة القسم (Yes/No).</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION: BRANDS -->
+                <section class="sheet-card" style="border-right: 4px solid var(--rose-400);">
+                    <div class="sheet-title">3. الماركات (Brands)</div>
+                    <div class="field-grid">
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">ID</span></div>
+                            <p class="field-desc">الرقم المرجعي للماركة.</p>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">Name</span></div>
+                            <p class="field-desc">اسم الشركة المصنعة.</p>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">Description</span></div>
+                            <p class="field-desc">نبذة عن الشركة.</p>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">Website</span></div>
+                            <p class="field-desc">رابط موقع الشركة المصنعة.</p>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">Active</span></div>
+                            <p class="field-desc">حالة الماركة (Yes/No).</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION: UNITS -->
+                <section class="sheet-card" style="border-right: 4px solid var(--purple-400);">
+                    <div class="sheet-title">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--purple-400)"
+                            stroke-width="2">
+                            <path d="M12 2v20M5 5h14M5 19h14" />
+                        </svg>
+                        4. الوحدات <span class="en">Units</span>
+                    </div>
+                    <div class="field-grid">
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">ID</span></div>
+                            <p class="field-desc">الرقم المرجعي للوحدة.</p>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">Name</span></div>
+                            <p class="field-desc">اسم الوحدة بالكامل (كيلو جرام، قطعة).</p>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">Abbreviation</span></div>
+                            <p class="field-desc">اختصار الوحدة (Kg, Pcs, Box).</p>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">Is Base</span></div>
+                            <p class="field-desc">لو Yes يبقى دي أصغر وحدة (قطعة).</p>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">Base Unit</span></div>
+                            <p class="field-desc">اسم الوحدة الرئيسية لو دي فرعية منها.</p>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">Conversion Factor</span></div>
+                            <p class="field-desc">نسبة التحويل للوحدة الأساسية.</p>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">Active</span></div>
+                            <p class="field-desc">حالة الوحدة (Yes/No).</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION: WAREHOUSES -->
+                <section class="sheet-card">
+                    <div class="sheet-title">5. المخازن <span class="en">Warehouses</span></div>
+                    <div class="field-grid">
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">ID</span></div>
+                            <p class="field-desc">الرقم المرجعي للمخزن.</p>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">Code</span></div>
+                            <p class="field-desc">كود المخزن المختصر (Main, Store-1).</p>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">Name</span></div>
+                            <p class="field-desc">الاسم الكامل للمخزن.</p>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">Address / Phone / Email</span></div>
+                            <p class="field-desc">بيانات التواصل مع المخزن.</p>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">Active</span></div>
+                            <p class="field-desc">حالة المخزن (Yes/No).</p>
+                        </div>
+                    </div>
+                </section>
+                <!-- ID LINKING VISUALIZATION -->
+                <section class="sheet-card" style="border-right: 4px solid var(--rose-400);">
+                    <div class="sheet-title">خريطة الربط (ID Linking Map)</div>
+                    <p style="margin-bottom: 2rem;">إزاي تربط كل حاجة ببعضها في ملف الإكسل؟ اتبع المسار ده:</p>
+
+                    <div
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; position: relative;">
+                        <!-- Step 1 -->
+                        <div
+                            style="text-align: center; background: rgba(255,255,255,0.03); padding: 1.5rem; border-radius: 20px;">
+                            <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 5px;">الخطوة 1</div>
+                            <div style="font-weight: 800; color: var(--rose-400);">Categories Sheet</div>
+                            <div style="font-size: 0.85rem; margin-top: 10px;">انسخ الـ <span class="en">ID</span>
+                            </div>
+                        </div>
+                        <!-- Arrow -->
+                        <div
+                            style="display: flex; align-items: center; justify-content: center; font-size: 1.5rem; opacity: 0.3;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                <path d="M5 12h14M12 5l7 7-7 7" />
+                            </svg>
+                        </div>
+                        <!-- Step 2 -->
+                        <div
+                            style="text-align: center; background: rgba(255,255,255,0.03); padding: 1.5rem; border-radius: 20px;">
+                            <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 5px;">الخطوة 2</div>
+                            <div style="font-weight: 800; color: #fff;">Products Sheet</div>
+                            <div style="font-size: 0.85rem; margin-top: 10px;">ضعه في <span class="en">Category
+                                    ID</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        style="margin-top: 3rem; background: rgba(251, 113, 133, 0.05); border: 1px solid rgba(251, 113, 133, 0.2); padding: 1.5rem; border-radius: 16px;">
+                        <strong style="color: var(--rose-400);">⚠️ تنبيه تقني:</strong>
+                        النظام بيربط المنتجات باستخدام الأرقام (IDs) مش الأسماء. لو كتبت اسم القسم بدل رقمه، السيستم
+                        مش
+                        هيعرف يربطهم وهتحصل مشكلة في الجرد.
+                    </div>
+                </section>
+                <!-- SECTION: PRO MODE (JSON BRIDGE) -->
+                <section class="sheet-card"
+                    style="background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(34, 211, 238, 0.1) 100%); border-right: 4px solid var(--cyan-400);">
+                    <div class="sheet-title">سطوة الكود (JSON Power Mode) 💻</div>
+                    <p style="margin-bottom: 2rem;">هذا هو الطريق المختصر للتحكم الكامل. ملف JSON واحد يمثل الـ 5
+                        صفحات
+                        معاً، جاهز للتعديل البرمجي أو عبر أي Text Editor.</p>
+
+                    <div class="field-grid">
+                        <div class="field-card" style="background: rgba(15, 23, 42, 0.8);">
+                            <div class="field-header"><span class="field-name">1. تصدير الحقيقة</span></div>
+                            <p class="field-desc">بضغطة واحدة من واجهة النظام أو عبر الكوماند:</p>
+                            <code
+                                style="background: rgba(0,0,0,0.5); padding: 1rem; border-radius: 12px; border: 1px solid var(--cyan-400); display: block; margin-top: 10px; font-family: 'Inter'; font-size: 0.9rem; color: var(--cyan-400);">php artisan twinx:inventory-export</code>
+                        </div>
+                        <div class="field-card" style="background: rgba(15, 23, 42, 0.8);">
+                            <div class="field-header"><span class="field-name">2. التعديل الشامل</span></div>
+                            <p class="field-desc">افتح ملف <span class="en">twinx_inventory_export.json</span>
+                                واستخدم سحر
+                                الـ <span class="en">Search & Replace</span>.</p>
+                        </div>
+                        <div class="field-card" style="background: rgba(15, 23, 42, 0.8);">
+                            <div class="field-header"><span class="field-name">3. إعادة الاستيراد</span></div>
+                            <p class="field-desc">ارفع الملف من شاشة المنتجات أو استخدم الكوماند:</p>
+                            <code
+                                style="background: rgba(0,0,0,0.5); padding: 1rem; border-radius: 12px; border: 1px solid var(--purple-400); display: block; margin-top: 10px; font-family: 'Inter'; font-size: 0.9rem; color: var(--purple-400);">php artisan twinx:inventory-import</code>
+                        </div>
+                    </div>
+
+                    <div
+                        style="margin-top: 3rem; background: rgba(34, 211, 238, 0.05); border: 1px solid rgba(34, 211, 238, 0.2); padding: 2rem; border-radius: 20px;">
+                        <h4 style="color: var(--cyan-400); margin-bottom: 1rem;">لماذا الـ JSON هو الخيار الأفضل؟
+                        </h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div style="font-size: 0.9rem; color: #fff;">
+                                <strong>✅ هيكل موحد (Single File):</strong><br>
+                                لا حاجة للتنقل بين 5 ملفات أو شيتات. كل شيء في مكان واحد.
+                            </div>
+                            <div style="font-size: 0.9rem; color: #fff;">
+                                <strong>✅ دعم الصور (Image Links):</strong><br>
+                                ملف الـ JSON يدعم ربط الصور بمساراتها الأصلية بسهولة.
+                            </div>
+                            <div style="font-size: 0.9rem; color: #fff;">
+                                <strong>✅ ذكاء الجرد (Target Socking):</strong><br>
+                                النظام بيقارن الكمية في الملف بالواقع وبيعمل عمليات Adjustment أوتوماتيك.
+                            </div>
+                            <div style="font-size: 0.9rem; color: #fff;">
+                                <strong>✅ أمان المعاملات (Atomic):</strong><br>
+                                لو حصلت غلطة في منتج واحد، النظام بيرفض الملف كله عشان يحمي بياناتك.
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <!-- TRUTH VISUALIZATION -->
+                <section class="sheet-card"
+                    style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(34, 211, 238, 0.1) 100%);">
+                    <div class="sheet-title">مخطط الحقيقة المطلقة (Single Source of Truth)</div>
+                    <p style="margin-bottom: 2rem;">كيف يحسب توينكس مخزونك؟ اليك العملية الحسابية التي تتم في
+                        الكواليس:</p>
+
+                    <div
+                        style="display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 2rem; background: rgba(0,0,0,0.3); border-radius: 24px;">
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; width: 100%;">
+                            <div
+                                style="padding: 1rem; border: 1px solid var(--cyan-400); border-radius: 12px; text-align: center;">
+                                <div style="font-size: 0.8rem; color: var(--cyan-400);">المخزن الرئيسي</div>
+                                <div style="font-family: 'Inter'; font-weight: 900;">Stock A</div>
+                            </div>
+                            <div
+                                style="padding: 1rem; border: 1px solid var(--purple-400); border-radius: 12px; text-align: center;">
+                                <div style="font-size: 0.8rem; color: var(--purple-400);">مخزن صالة العرض</div>
+                                <div style="font-family: 'Inter'; font-weight: 900;">Stock B</div>
+                            </div>
+                            <div
+                                style="padding: 1rem; border: 1px solid #94a3b8; border-radius: 12px; text-align: center;">
+                                <div style="font-size: 0.8rem; color: #94a3b8;">المخازن الأخرى...</div>
+                                <div style="font-family: 'Inter'; font-weight: 900;">Stock N</div>
+                            </div>
+                        </div>
+                        <div style="font-size: 2rem;">+</div>
+                        <div
+                            style="width: 100%; height: 2px; background: linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent);">
+                        </div>
+                        <div
+                            style="padding: 2rem; background: linear-gradient(135deg, var(--purple-500), var(--cyan-400)); border-radius: 20px; width: 80%; text-align: center; box-shadow: 0 0 30px rgba(34, 211, 238, 0.4);">
+                            <h3 style="color: white; margin-bottom: 5px;">إجمالي المخزون (Total Stock)</h3>
+                            <p style="font-size: 0.9rem; opacity: 0.9;">هو الوحيد الذي يظهر للعميل في الكاشير</p>
+                        </div>
+                </section>
+            </div> <!-- End Flow -->
+        </div> <!-- End Excel Tab -->
+
+        <!-- TAB: JSON PRO -->
+        <div id="tab-json" class="tab-content">
+            <!-- Template Bar JSON PRO -->
+            <div class="sheet-card"
+                style="padding: 2.5rem; border-radius: 40px; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, rgba(34, 211, 238, 0.15) 0%, rgba(168, 85, 247, 0.1) 100%); border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 20px 50px rgba(0,0,0,0.3);">
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <div
+                        style="width: 60px; height: 60px; background: var(--cyan-400); border-radius: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 25px rgba(34, 211, 238, 0.4);">
+                        <i class="bi bi-cpu" style="font-size: 2rem; color: #020617;"></i>
+                    </div>
+                    <div>
+                        <h3 style="color: var(--cyan-400); margin-bottom: 5px; font-size: 1.8rem;">الدليل المطلق: JSON
+                            Universal Master PRO</h3>
+                        <p style="font-size: 1rem; color: #94a3b8; margin-bottom: 0;">التحكم البرمجي الكامل في الأقسام،
+                            الماركات، الوحدات، المخازن، والمنتجات.</p>
+                    </div>
+                </div>
+                <a href="/export/inventory/json-sample" class="btn-premium"
+                    style="background: var(--cyan-400); color: #020617; padding: 1.5rem 3rem; font-size: 1.2rem;">تحميل
+                    المرجع الشامل JSON</a>
+            </div>
+
+            <!-- INFO: JSON INTELLIGENCE PRIMER -->
+            <div class="sheet-card"
+                style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(34, 211, 238, 0.2); margin-top: 2rem;">
+                <div class="sheet-title" style="font-size: 1.5rem; color: #fff;"><i class="bi bi-info-circle-fill"
+                        style="color: var(--cyan-400);"></i> دليل ذكاء الجيسون (JSON Syntax Mastery)</div>
+                <p style="color: #94a3b8; font-size: 0.95rem; margin-bottom: 2rem;">قبل البدء، يجب أن تفهم أن ملف الـ
+                    JSON هو "كود برمجي" حساس جداً. أي خطأ في حرف أو علامة سيؤدي لفشل الاستيراد بالكامل.</p>
+                <div class="field-grid">
+                    <div class="field-card" style="border-right: 3px solid var(--cyan-400);">
+                        <strong><i class="bi bi-braces"></i> الأقواس (Braces/Brackets)</strong>
+                        <div class="field-desc">تستخدم <code>{}</code> لتعريف "كائن" (Object) مثل بيانات منتج واحد،
+                            بينما <code>[]</code> لتعريف "مصفوفة" (Array) تضم عدة منتجات.</div>
+                    </div>
+                    <div class="field-card" style="border-right: 3px solid var(--rose-400);">
+                        <strong><i class="bi bi-type"></i> أنواع البيانات (Data Types)</strong>
+                        <div class="field-desc">
+                            - <code>String</code>: نص بين علامتي تنصيص <code>"مثل هذا"</code>.<br>
+                            - <code>Integer/Float</code>: أرقام بدون علامات تنصيص <code>1500.50</code>.<br>
+                            - <code>Boolean</code>: قيم منطقية <code>true</code> أو <code>false</code>.
+                        </div>
+                    </div>
+                    <div class="field-card" style="border-right: 3px solid #eab308;">
+                        <strong><i class="bi bi-exclamation-triangle"></i> الفواصل اللعينة (Trailing Commas)</strong>
+                        <div class="field-desc">لا تضع فاصلة <code>,</code> بعد آخر عنصر في الكائن أو المصفوفة. هذا أشهر
+                            سبب لفشل الكود.</div>
+                    </div>
+                    <div class="field-card" style="border-right: 3px solid #10b981;">
+                        <strong><i class="bi bi-shield-check"></i> التحقق (Validation)</strong>
+                        <div class="field-desc">دائماً اختبر الكود الخاص بك في موقع مثل <a href="https://jsonlint.com"
+                                target="_blank" style="color: var(--cyan-400);">JSONLint</a> قبل المحاولة في توينكس.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 1: CATEGORIES DEEP DIVE -->
+            <section class="sheet-card" style="border-right: 4px solid var(--purple-400);">
+                <div class="sheet-title"><i class="bi bi-diagram-3-fill"></i> 1. الأقسام (Categories Mastery)</div>
+                <p style="margin-bottom: 2rem; color: #94a3b8;">هذا الجدول يشرح كل مفتاح في مصفوفة
+                    <code>categories</code>. الأقسام هي حجر الأساس لتنظيم المخزن.
+                </p>
+                <div class="field-grid">
+                    <div class="field-card">
+                        <div class="field-header"><span class="field-name">id</span><span
+                                class="field-tag tag-sys">Integer</span></div>
+                        <div class="field-desc">المعرف الفريد للقسم.</div>
+                        <div class="field-logic"><strong>الأهمية:</strong> هو الرقم الذي نضعه في حقل
+                            <code>category_id</code> داخل المنتجات لربطها بهذا القسم.
+                        </div>
+                    </div>
+                    <div class="field-card">
+                        <div class="field-header"><span class="field-name">name</span><span
+                                class="field-tag tag-req">String</span></div>
+                        <div class="field-desc">الاسم المعروض (مثل: "موبايلات"، "إكسسوارات").</div>
+                    </div>
+                    <div class="field-card">
+                        <div class="field-header"><span class="field-name">slug</span><span
+                                class="field-tag tag-sys">String</span></div>
+                        <div class="field-desc">الرابط اللطيف (Clean URL).</div>
+                        <div class="field-logic">يستخدم في المتجر الإلكتروني. لو تركته <code>null</code>، النظام سيقوم
+                            بتوليده آلياً من الاسم.</div>
+                    </div>
+                    <div class="field-card">
+                        <div class="field-header"><span class="field-name">parent_id</span><span
+                                class="field-tag tag-opt">Integer / Null</span></div>
+                        <div class="field-desc">الربط الشجري (Hierarchy).</div>
+                        <div class="field-logic">لو هذا "قسم فرعي"، نضع هنا ID "القسم الأب". لو قسم رئيسي، نضعه
+                            <code>null</code>.
+                        </div>
+                    </div>
+                    <div class="field-card">
+                        <div class="field-header"><span class="field-name">description</span><span
+                                class="field-tag tag-opt">String</span></div>
+                        <div class="field-desc">وصف تفصيلي للقسم ومهامه.</div>
+                    </div>
+                    <div class="field-card">
+                        <div class="field-header"><span class="field-name">sort_order</span><span
+                                class="field-tag tag-opt">Integer</span></div>
+                        <div class="field-desc">ترتيب العرض (0 هو الأعلى).</div>
+                    </div>
+                    <div class="field-card">
+                        <div class="field-header"><span class="field-name">is_active</span><span
+                                class="field-tag tag-sys">Boolean</span></div>
+                        <div class="field-desc">حالة القسم (نشط/معطل).</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 2: BRANDS DEEP DIVE -->
+            <section class="sheet-card" style="border-right: 4px solid var(--cyan-400);">
+                <div class="sheet-title"><i class="bi bi-patch-check-fill"></i> 2. الماركات (Brands Mastery)</div>
+                <p style="margin-bottom: 2rem; color: #94a3b8;">تعريف الشركات المصنعة لربط الأصناف بأصولها العالمية
+                    ومنشئها. البراند يساعد في فلترة التقارير وبناء صفحات خاصة للعملاء.</p>
+                <div class="field-grid">
+                    <div class="field-card">
+                        <div class="field-header"><span class="field-name">id</span><span
+                                class="field-tag tag-sys">Integer</span></div>
+                        <div class="field-desc">المعرف الفريد للبراند (Primary Key).</div>
+                        <div class="field-logic"><strong>قاعدة الربط:</strong> يستخدم في حقل <code>brand_id</code> داخل
+                            مصفوفة المنتجات لربط المنتج بماركته.</div>
+                    </div>
+                    <div class="field-card">
+                        <div class="field-header"><span class="field-name">name</span><span
+                                class="field-tag tag-req">String</span></div>
+                        <div class="field-desc">اسم الماركة الرسمي (مثل: Apple, Samsung, Dell).</div>
+                        <div class="field-logic"><strong>معلومة:</strong> الاسم يظهر بجانب اسم المنتج في الفاتورة
+                            والمتجر.</div>
+                    </div>
+                    <div class="field-card">
+                        <div class="field-header"><span class="field-name">website</span><span
+                                class="field-tag tag-opt">URL String</span></div>
+                        <div class="field-desc">الموقع الإلكتروني الرسمي للشركة المصنعة.</div>
+                    </div>
+                    <div class="field-card">
+                        <div class="field-header"><span class="field-name">description</span><span
+                                class="field-tag tag-opt">Text String</span></div>
+                        <div class="field-desc">نبذة عن تاريخ الماركة أو تخصصها.</div>
+                    </div>
+                    <div class="field-card">
+                        <div class="field-header"><span class="field-name">is_active</span><span
+                                class="field-tag tag-sys">Boolean</span></div>
+                        <div class="field-desc">حالة الماركة في النظام (متاحة للاستخدام أم لا).</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 3: UNITS DEEP DIVE -->
+            <section class="sheet-card" style="border-right: 4px solid var(--rose-400);">
+                <div class="sheet-title"><i class="bi bi-rulers"></i> 3. وحدات القياس (Units Mastery)</div>
+                <p style="margin-bottom: 2rem; color: #94a3b8;">إدارة الوحدات الأساسية والتحويلات البرمجية الدقيقة.</p>
+                <div class="field-grid">
+                    <div class="field-card">
+                        <div class="field-header"><span class="field-name">id</span><span
+                                class="field-tag tag-sys">Integer</span></div>
+                        <div class="field-desc">المعرف الفريد للوحدة.</div>
+                    </div>
+                    <div class="field-card">
+                        <div class="field-header"><span class="field-name">name</span><span
+                                class="field-tag tag-req">String</span></div>
+                        <div class="field-desc">الاسم الكامل (مثل: "قطعة"، "كرتونة").</div>
+                    </div>
+                    <div class="field-card">
+                        <div class="field-header"><span class="field-name">abbreviation</span><span
+                                class="field-tag tag-req">String</span></div>
+                        <div class="field-desc">الاختصار (مثل: pcs, box).</div>
+                    </div>
+                    <div class="field-card">
+                        <div class="field-header"><span class="field-name">is_base</span><span
+                                class="field-tag tag-sys">Boolean</span></div>
+                        <div class="field-desc">هل هي وحدة أساسية؟</div>
+                        <div class="field-logic">الوحدة الأساسية هي التي لا تشتق من غيرها (مثل "القطعة").</div>
+                    </div>
+                    <div class="field-card">
+                        <div class="field-header"><span class="field-name">base_unit_id</span><span
+                                class="field-tag tag-opt">Integer / Null</span></div>
+                        <div class="field-desc">الوحدة المرجعية.</div>
+                        <div class="field-logic">لو الوحدة "كرتونة"، بنحط هنا ID "القطعة" عشان نحسب التحويل.</div>
+                    </div>
+                    <div class="field-card">
+                        <div class="field-header"><span class="field-name">conversion_factor</span><span
+                                class="field-tag tag-req">Float</span></div>
+                        <div class="field-desc">معامل التحويل.</div>
+                        <div class="field-logic">لو الكرتونة فيها 12 قطعة، المعامل بيكون 12.0. لو وحدة أساسية بيكون 1.0.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 4: WAREHOUSES DEEP DIVE -->
+            <section class="sheet-card" style="border-right: 4px solid var(--emerald-400);">
+                <div class="sheet-title"><i class="bi bi-buildings-fill"></i> 4. المخازن (Warehouses Mastery)</div>
+                <p style="margin-bottom: 2rem; color: #94a3b8;">تحديد القنوات اللوجستية وتوزيع المخزون الفيزيائي.
+                    المخازن هي أوعية البيانات الكمية.</p>
+                <div class="field-grid">
+                    <div class="field-card">
+                        <div class="field-header"><span class="field-name">id</span><span
+                                class="field-tag tag-sys">Integer</span></div>
+                        <div class="field-desc">المعرف الفريد للمخزن في السيستم.</div>
+                        <div class="field-logic"><strong>هام جداً:</strong> هذا الـ ID هو المفتاح (Key) في كائن الـ
+                            <code>stocks</code> داخل المنتجات، وهو ما يحدد أين تذهب الكميات.
+                        </div>
+                    </div>
+                    <div class="field-card">
+                        <div class="field-header"><span class="field-name">code</span><span
+                                class="field-tag tag-req">String</span></div>
+                        <div class="field-desc">كود المخزن المختصر (مثل: WH-MAIN, STORE-01).</div>
+                        <div class="field-logic"><strong>احترافي:</strong> الكود يساعد الموظفين في التمييز السريع بين
+                            المواقع عند التحويل المخزني.</div>
+                    </div>
+                    <div class="field-card">
+                        <div class="field-header"><span class="field-name">name</span><span
+                                class="field-tag tag-req">String</span></div>
+                        <div class="field-desc">الاسم الكامل للمخزن المعترف به إدارياً.</div>
+                    </div>
+                    <div class="field-card">
+                        <div class="field-header"><span class="field-name">address</span><span
+                                class="field-tag tag-opt">String</span></div>
+                        <div class="field-desc">العنوان الجغرافي التفصيلي للمخزن.</div>
+                    </div>
+                    <div class="field-card">
+                        <div class="field-header"><span class="field-name">phone / email</span><span
+                                class="field-tag tag-opt">String</span></div>
+                        <div class="field-desc">بيانات التواصل المباشر مع أمين المخزن.</div>
+                    </div>
+                    <div class="field-card">
+                        <div class="field-header"><span class="field-name">manager_id</span><span
+                                class="field-tag tag-opt">Integer</span></div>
+                        <div class="field-desc">ID المستخدم المسؤول عن إدارة هذا الموقع.</div>
+                    </div>
+                    <div class="field-card">
+                        <div class="field-header"><span class="field-name">is_default</span><span
+                                class="field-tag tag-sys">Boolean</span></div>
+                        <div class="field-desc">هل هذا هو "المخزن الافتراضي" لعمليات البيع؟</div>
+                        <div class="field-logic">النظام يسحب الكميات آلياً من هذا المخزن ما لم يحدد الكاشير غير ذلك.
+                        </div>
+                    </div>
+                    <div class="field-card">
+                        <div class="field-header"><span class="field-name">is_active</span><span
+                                class="field-tag tag-sys">Boolean</span></div>
+                        <div class="field-desc">حالة المخزن (متاح للعمليات أم معطل للصيانة/الجرد).</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 5: PRODUCTS EXHAUSTIVE MANUAL -->
+            <section class="sheet-card" style="border-right: 4px solid var(--amber-400);">
+                <div class="sheet-title"><i class="bi bi-box-seam-fill"></i> 5. المنتجات (Universal Product Schema)
+                </div>
+                <p style="color: #94a3b8; margin-bottom: 2.5rem;">هنا يسكن قلب السيستم. الدليل التالي يشرح كل حقل (Key)
+                    من الـ 60 حقل المتاحة للمنتج الواحد.</p>
+
+                <!-- GROUP: CORE IDENTITY -->
+                <div class="group-container">
+                    <div class="group-header"><i class="bi bi-tags"></i> الهوية الأساسية (Core Identity)</div>
+                    <p style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 1.5rem;">هذه البيانات هي التي تمنح
+                        المنتج وجوده القانوني داخل النظام والمستجدات.</p>
+                    <div class="field-grid">
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">id</span><span
+                                    class="field-tag tag-sys">Integer</span></div>
+                            <div class="field-desc">رقم المنتج في قاعدة البيانات.</div>
+                            <div class="field-logic"><strong>قاعدة الاستقرار:</strong> إذا كان الملف للتحديث، لا تلمسه.
+                                إذا كان للإضافة الجديدة، اتركه <code>null</code>.</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">sku</span><span
+                                    class="field-tag tag-req">Required String</span></div>
+                            <div class="field-desc">كود تتبع الصنف (Unique SKU).</div>
+                            <div class="field-logic"><strong>الأهمية القصوى:</strong> هو "البصمة الوراثية" للمنتج.
+                                السيستم يفشل في الاستيراد إذا تكرر الـ SKU.</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">barcode</span><span
+                                    class="field-tag tag-opt">String</span></div>
+                            <div class="field-desc">الباركود المسجل على العبوة للمسح السريع.</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">name</span><span
+                                    class="field-tag tag-req">String</span></div>
+                            <div class="field-desc">الاسم الرسمي الكامل للصنف.</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">description</span><span
+                                    class="field-tag tag-opt">Text</span></div>
+                            <div class="field-desc">شرح فني موجه للعميل أو لموظف المبيعات.</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">type</span><span
+                                    class="field-tag tag-req">Enum ["goods", "service"]</span></div>
+                            <div class="field-desc">طبيعة المنتج.</div>
+                            <div class="field-logic"><code>goods</code> تخضع لرقابة المخزون والكميات،
+                                <code>service</code> (مثل الصيانة) لا تحتاج لكميات.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GROUP: ASSOCIATIONS & MAPPING -->
+                <div class="group-container">
+                    <div class="group-header"><i class="bi bi-link"></i> الربط والهيكلة (Relational Mapping)</div>
+                    <div class="field-grid">
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">category_id</span><span
+                                    class="field-tag tag-req">Integer</span></div>
+                            <div class="field-desc">رقم القسم (Category ID).</div>
+                            <div class="field-logic"><strong>قاعدة:</strong> يجب أن يتطابق مع ID موجود في مصفوفة
+                                <code>categories</code>.
+                            </div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">brand_id</span><span
+                                    class="field-tag tag-opt">Integer / Null</span></div>
+                            <div class="field-desc">رقم الماركة (Brand ID).</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">unit_id</span><span
+                                    class="field-tag tag-req">Integer</span></div>
+                            <div class="field-desc">وحدة البيع وحساب الكمية الأصلية.</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">purchase_unit_id</span><span
+                                    class="field-tag tag-opt">Integer</span></div>
+                            <div class="field-desc">وحدة الشراء من الموردين.</div>
+                            <div class="field-logic">إذا كنت تشتري بالدزينة وتبيع بالقطعة، ضع ID الدزينة هنا.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GROUP: TECHNICAL LOGISTICS & ORIGIN -->
+                <div class="group-container">
+                    <div class="group-header"><i class="bi bi-gear-fill"></i> المواصفات اللوجستية والمنشأ (Technical
+                        Specs)</div>
+                    <div class="field-grid">
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">weight / weight_unit</span><span
+                                    class="field-tag tag-opt">Float / String</span></div>
+                            <div class="field-desc">الوزن الصافي ووحدة القياس (مثل kg, g).</div>
+                            <div class="field-logic"><strong>هام:</strong> يستخدم لحساب تكاليف الشحن آلياً.</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">length / width / height</span><span
+                                    class="field-tag tag-opt">Float</span></div>
+                            <div class="field-desc">الأبعاد الفيزيائية للمنتج (L x W x H).</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">dimension_unit</span><span
+                                    class="field-tag tag-opt">String</span></div>
+                            <div class="field-desc">وحدة قياس الأبعاد (مثل cm, m, inch).</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">manufacturer</span><span
+                                    class="field-tag tag-opt">String</span></div>
+                            <div class="field-desc">اسم المصنع الحقيقي (قد يكون مختلفاً عن الـ Brand).</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">manufacturer_part_number</span><span
+                                    class="field-tag tag-opt">String</span></div>
+                            <div class="field-desc">كود القطعة عند المصنع (MPN).</div>
+                            <div class="field-logic">يستخدم للطلب المباشر من المصنع لمنع الخطأ في قطع الغيار.</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">country_of_origin</span><span
+                                    class="field-tag tag-opt">String</span></div>
+                            <div class="field-desc">بلد المنشأ (مثل: Vietnam, Japan).</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">hs_code</span><span
+                                    class="field-tag tag-opt">String</span></div>
+                            <div class="field-desc">كود التنسيق الجمركي العالمي.</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">lead_time_days</span><span
+                                    class="field-tag tag-opt">Integer</span></div>
+                            <div class="field-desc">فترة توريد الشحنة باليوم.</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">is_returnable</span><span
+                                    class="field-tag tag-sys">Boolean</span></div>
+                            <div class="field-desc">قابلية المنتج للمرتجع للصيدليات أو الشركات.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GROUP: FINANCIAL ARCHITECTURE & TAXATION -->
+                <div class="group-container">
+                    <div class="group-header"><i class="bi bi-currency-exchange"></i> هيكل التسعير والضرائب (Financials
+                        & Tax)</div>
+                    <div class="field-grid">
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">cost_price</span><span
+                                    class="field-tag tag-req">Float</span></div>
+                            <div class="field-desc">سعر التكلفة الصافي (بدون ضريبة).</div>
+                            <div class="field-logic"><strong>قاعدة:</strong> يستخدم لحساب متوسط التكلفة المرجح (WAC)
+                                وأرباحك الحقيقية.</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">selling_price</span><span
+                                    class="field-tag tag-req">Float</span></div>
+                            <div class="field-desc">سعر البيع النهائي للعميل العادي.</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">min_selling_price</span><span
+                                    class="field-tag tag-opt">Float</span></div>
+                            <div class="field-desc">أدنى سعر مسموح به (Price Guard).</div>
+                            <div class="field-logic">يمنع الكاشير من تجاوز حد الخصم المسموح به.</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">tax_rate</span><span
+                                    class="field-tag tag-opt">Float</span></div>
+                            <div class="field-desc">نسبة الضريبة المسجلة (مثل 14.0).</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">tax_type</span><span
+                                    class="field-tag tag-opt">Enum ["exclusive", "inclusive"]</span></div>
+                            <div class="field-desc">طريقة حساب الضريبة.</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">price_distributor</span><span
+                                    class="field-tag tag-opt">Float</span></div>
+                            <div class="field-desc">سعر خاص لموزعي الجملة الرسميين.</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">price_wholesale</span><span
+                                    class="field-tag tag-opt">Float</span></div>
+                            <div class="field-desc">سعر الجملة (Wholesale).</div>
+                        </div>
+                        <div class="field-card" style="opacity: 0.8;">
+                            <div class="field-header"><span class="field-name">price_half_wholesale /
+                                    quarter_wholesale</span><span class="field-tag tag-opt">Float</span></div>
+                            <div class="field-desc">شرائح تسعير للكميات المتوسطة والقليلة.</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">price_special</span><span
+                                    class="field-tag tag-opt">Float</span></div>
+                            <div class="field-desc">السعر الاستراتيجي لكبار العملاء VIP.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GROUP: STRATEGIC STOCK CONTROL -->
+                <div class="group-container">
+                    <div class="group-header"><i class="bi bi-shield-lock-fill"></i> الرقابة الاستراتيجية (Stock
+                        Control)</div>
+                    <div class="field-grid">
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">reorder_level</span><span
+                                    class="field-tag tag-opt">Integer</span></div>
+                            <div class="field-desc">نقطة إعادة الطلب (Alert Level).</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">reorder_quantity</span><span
+                                    class="field-tag tag-opt">Integer</span></div>
+                            <div class="field-desc">الكمية المقترح طلبها لتعويض العجز.</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">min_stock / max_stock</span><span
+                                    class="field-tag tag-opt">Integer</span></div>
+                            <div class="field-desc">الحدود الحرجة للمخزون (الأمان والوفرة).</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">track_batches / track_serials</span><span
+                                    class="field-tag tag-sys">Boolean</span></div>
+                            <div class="field-desc">دقة التعقب (Batch/Serial Tracking).</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GROUP: RELATIONAL OBJECTS -->
+                <div class="group-container"
+                    style="background: rgba(34, 211, 238, 0.05); padding: 2.3rem; border-radius: 36px; border: 1px dashed var(--cyan-400);">
+                    <div class="group-header" style="border: none; color: #fff;">
+                        <i class="bi bi-link-45deg"></i> الربط المعقد (Atomic Relational Objects)
+                    </div>
+                    <p style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 2rem;">هذه الحقول هي أوعية (Objects)
+                        وليست مجرد نصوص. دقتها تحدد سلامة حركة المخزن.</p>
+                    <div class="field-grid">
+                        <div class="field-card"
+                            style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(34, 211, 238, 0.2);">
+                            <div class="field-header">
+                                <span class="field-name">stocks</span>
+                                <span class="field-tag tag-req">Object {WH_ID: Qty}</span>
+                            </div>
+                            <div class="field-desc">خريطة الحقيقة المكانية للمخزون.</div>
+                            <div class="field-logic">
+                                <strong>طريقة الكتابة:</strong> <br>
+                                <code>"stocks": { "1": 150, "2": 45 }</code> <br>
+                                المعنى: المخزن رقم 1 يحتوي على 150 قطعة.
+                            </div>
+                        </div>
+                        <div class="field-card"
+                            style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(168, 85, 247, 0.2);">
+                            <div class="field-header">
+                                <span class="field-name">images_list</span>
+                                <span class="field-tag tag-opt">Array of Objects</span>
+                            </div>
+                            <div class="field-desc">معرض صور المنتج الرقمي.</div>
+                            <div class="field-logic">
+                                <strong>تنسيق الكائن:</strong> <br>
+                                <code>{ "path": "p/img.jpg", "is_primary": true, "sort_order": 0 }</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GROUP: PRODUCT ATTRIBUTES & WARRANTY -->
+                <div class="group-container">
+                    <div class="group-header"><i class="bi bi-patch-check"></i> الخصائص والضمان (Attributes & Warranty)</div>
+                    <div class="field-grid">
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">color / size</span><span class="field-tag tag-opt">String</span></div>
+                            <div class="field-desc">اللون والقياس المادي (مثل: Red, XL).</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">material / pattern</span><span class="field-tag tag-opt">String</span></div>
+                            <div class="field-desc">الخامة والنقشة (للأقمشة والأثاث).</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">warranty_months</span><span class="field-tag tag-opt">Integer</span></div>
+                            <div class="field-desc">مدة الضمان بالشهور.</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">warranty_type</span><span class="field-tag tag-opt">Enum ["local", "international"]</span></div>
+                            <div class="field-desc">نوع الضمان (محلي أم دولي).</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">expiry_date</span><span class="field-tag tag-opt">Date String "YYYY-MM-DD"</span></div>
+                            <div class="field-desc">تاريخ انتهاء الصلاحية المتوقع.</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">shelf_life_days</span><span class="field-tag tag-opt">Integer</span></div>
+                            <div class="field-desc">العمر الافتراضي للمنتج على الرف.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GROUP: SEO & GLOBAL SEARCH -->
+                <div class="group-container">
+                    <div class="group-header"><i class="bi bi-google"></i> التواجد الرقمي والوسوم (SEO & Search)</div>
+                    <div class="field-grid">
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">seo_title</span><span class="field-tag tag-opt">String</span></div>
+                            <div class="field-desc">عنوان الصفحة الصديق لمحركات البحث.</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">seo_description</span><span class="field-tag tag-opt">String (160 chars)</span></div>
+                            <div class="field-desc">وصف الميتا داتا لجذب العملاء.</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">tags</span><span class="field-tag tag-opt">Array of Strings</span></div>
+                            <div class="field-desc">الوسوم: <code>["exclusive", "new_arrival", "sale"]</code>.</div>
+                        </div>
+                        <div class="field-card">
+                            <div class="field-header"><span class="field-name">slug</span><span class="field-tag tag-sys">String</span></div>
+                            <div class="field-desc">الرابط الفريد (Unique URL Slug).</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 6: SYSTEM SIGNATURES -->
+            <section class="sheet-card"
+                style="background: rgba(2, 6, 23, 0.4); border: 1px solid rgba(255,255,255,0.05); border-right: 4px solid var(--purple-400);">
+                <div class="sheet-title"><i class="bi bi-shield-lock"></i> 6. التوقيع الرقمي والميتا (System Truth)
+                </div>
+                <div class="field-grid">
+                    <div class="field-card" style="background: rgba(15, 23, 42, 0.6);">
+                        <div class="sheet-title" style="font-size: 1rem; border: none; padding:0; margin-bottom:10px;">
+                            system_info</div>
+                        <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 0;">يحتوي على الـ
+                            <code>version</code> و <code>exported_at</code>. هو ضمان أن الملف متوافق مع نسخة السيستم
+                            الحالية.
+                        </p>
+                    </div>
+                    <div class="field-card" style="background: rgba(15, 23, 42, 0.6);">
+                        <div class="sheet-title" style="font-size: 1rem; border: none; padding:0; margin-bottom:10px;">
+                            descriptive_info</div>
+                        <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 0;">بيانات للقراءة البشرية فقط. يتم
+                            تجاهلها تماماً عند الاستيراد. وظيفتها أن تعرف أن الـ ID رقم 5 هو "موبايلات" بدون استعلام الـ
+                            Database.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PRO ENGINEERING RULES -->
+            <section class="sheet-card" style="background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(34, 211, 238, 0.1) 100%);">
+                <div class="sheet-title">قواعد سطوة الكود (Pro Engineering Standards)</div>
+                <div class="field-grid">
+                    <div class="field-card" style="background: rgba(0,0,0,0.3); padding: 1.8rem; border-radius: 28px;">
+                        <strong style="color: var(--cyan-400); display: block; margin-bottom: 12px; font-size: 1.1rem;"><i class="bi bi-lightning-charge"></i> السرعة الذرية (Atomic Speed):</strong>
+                        ملف الـ JSON يتم معالجته في ذاكرة النظام (Memory-Speed) وهو أسرع ב- 10 مرات من الإكسل. ينصح به لقواعد البيانات التي تتخطى الـ 100 ألف صنف.
+                    </div>
+                    <div class="field-card" style="background: rgba(0,0,0,0.3); padding: 1.8rem; border-radius: 28px;">
+                        <strong style="color: var(--purple-400); display: block; margin-bottom: 12px; font-size: 1.1rem;"><i class="bi bi-shield-check"></i> السلامة المعيارية (Atomic Integrity):</strong>
+                        عند استيراد JSON، النظام يطبق مبدأ الـ Transaction. لو مسمار واحد في الملف غلط، العملية كلها "بتفشل" عشان نحمي داتا شركتك من التلوث (Zero Data Pollution).
+                    </div>
+                </div>
+            </section>
+
+            <!-- GENERAL JSON KNOWLEDGE SECTION -->
+            <section class="sheet-card" style="background: rgba(15, 23, 42, 0.3); border: 1px dashed rgba(255,255,255,0.1); margin-top:3rem;">
+                <div class="sheet-title" style="color: #94a3b8; font-size: 1.2rem;"><i class="bi bi-mortarboard-fill"></i> حقائق برمجية عن JSON وتوأم اكس (The Science of Twinx JSON)</div>
+                <div class="field-grid">
+                    <div class="field-card" style="border: none; background: transparent;">
+                        <p style="font-size: 1rem; color: #fff; margin-bottom: 0.5rem;"><strong>1. لماذا لا نستخدم Excel فقط؟</strong></p>
+                        <p style="font-size: 0.85rem; color: #94a3b8;">لأن الإكسل لا يدعم "العلاقات المتشعبة". في JSON يمكننا وضع مخازن وصور ومواصفات داخل صنف واحد (One-to-Many) بشكل هرمي، وهو ما يستحيل فعله في ملف جدول مسطح بدون تكرار البيانات.</p>
+                    </div>
+                    <div class="field-card" style="border: none; background: transparent;">
+                        <p style="font-size: 1rem; color: #fff; margin-bottom: 0.5rem;"><strong>2. ما معنى تهرّب الرموز (Escaping)؟</strong></p>
+                        <p style="font-size: 0.85rem; color: #94a3b8;">إذا كان اسم المنتج يحتوي على علامة تنصيص <code>"</code>، يجب أن تسبقها بشرطة مائلة <code>\"</code> لكي لا يظن المفسر أن النص قد انتهى. مثال: <code>"TV 55\" Inch"</code>.</p>
+                    </div>
+                    <div class="field-card" style="border: none; background: transparent;">
+                        <p style="font-size: 1rem; color: #fff; margin-bottom: 0.5rem;"><strong>3. الترتيب لا يهم!</strong></p>
+                        <p style="font-size: 0.85rem; color: #94a3b8;">في JSON، ترتيب المفاتيح لا يؤثر على الصحة. يمكنك وضع <code>sku</code> في الأول أو في الآخر، النظام سيتعرف عليه طالما الاسم (Key) مكتوباً بدقة.</p>
+                    </div>
+                    <div class="field-card" style="border: none; background: transparent;">
+                        <p style="font-size: 1rem; color: #fff; margin-bottom: 0.5rem;"><strong>4. ترميز اللغة (UTF-8)</strong></p>
+                        <p style="font-size: 0.85rem; color: #94a3b8;">دائماً احفظ ملفاتك بتنسيق <strong>UTF-8</strong> لضمان ظهور الأحرف العربية بشكل صحيح وعدم تحولها لرموز غريبة عند الرفع.</p>
+                    </div>
+                </div>
+            </section>
+        </div> <!-- End JSON Master PRO -->
+
+    </div> <!-- End Container -->
+
+    <footer>
+        <div class="container">
+            <h2 style="margin-bottom: 1rem;">Twinx ERP | الحقيقة تبدأ من البيانات</h2>
+            <p style="color: #94a3b8;">هذا الدليل تم توليده آلياً لضمان توافقه مع بنية النظام الحالية.</p>
+            <p style="margin-top: 2rem; font-size: 0.8rem; opacity: 0.4;">&copy; 2026 Dual Intelligence Systems.
+                All
+                Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Tab Switching Logic
+        function switchTab(tabName) {
+            // Update buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`button[onclick="switchTab('${tabName}')"]`).classList.add('active');
+
+            // Update content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+
+            // Save preference
+            localStorage.setItem('inventory_guide_tab', tabName);
+        }
+
+        // Restore preference on load
+        window.onload = () => {
+            const savedTab = localStorage.getItem('inventory_guide_tab');
+            if (savedTab) switchTab(savedTab);
+        };
+
+        // Smooth appearances
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = 1;
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        function initObserver() {
+            document.querySelectorAll('.tab-content.active .field-card, .tab-content.active .sheet-card').forEach(card => {
+                card.style.opacity = 1;
+                card.style.transform = 'translateY(0)';
+            });
+
+            document.querySelectorAll('.field-card, .sheet-card').forEach(card => {
+                // Only set initial state if not already handled
+                if (!card.style.transition) {
+                    card.style.opacity = 0;
+                    card.style.transform = 'translateY(30px)';
+                    card.style.transition = 'all 0.6s cubic-bezier(0.23, 1, 0.32, 1)';
+                }
+                observer.observe(card);
+            });
+        }
+
+        initObserver();
+        // Re-init on tab switch for new elements
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                setTimeout(initObserver, 50);
+            });
+        });
+    </script>
+</body>
+
+</html>

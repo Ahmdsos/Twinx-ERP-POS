@@ -72,7 +72,7 @@
                                     </a>
                                     @if(auth()->id() !== $user->id)
                                         <form action="{{ route('users.destroy', $user) }}" method="POST" class="d-inline"
-                                            onsubmit="return confirm('هل أنت متأكد من حذف هذا المستخدم؟');">
+                                            data-confirm="هل أنت متأكد من حذف هذا المستخدم؟">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-outline-danger" title="حذف">

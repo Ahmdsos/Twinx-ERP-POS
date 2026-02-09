@@ -158,6 +158,14 @@ class WarehouseController extends Controller
     }
 
     /**
+     * Export warehouses to Excel
+     */
+    public function export()
+    {
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\WarehousesExport, 'warehouses.xlsx');
+    }
+
+    /**
      * Show import form
      */
     public function importForm()
@@ -166,66 +174,29 @@ class WarehouseController extends Controller
     }
 
     /**
-     * Download sample CSV
+     * Download sample file
      */
     public function importSample()
     {
-        $headers = ['code', 'name', 'address', 'phone', 'email'];
-        $sample = ['WH-001', 'مستودع رئيسي', 'العنوان', '01000000000', 'warehouse@example.com'];
-
-        $content = \App\Services\CsvImportService::generateSampleCsv($headers, $sample);
-
-        return response($content)
-            ->header('Content-Type', 'text/csv; charset=UTF-8')
-            ->header('Content-Disposition', 'attachment; filename="warehouses_sample.csv"');
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\WarehousesExport, 'warehouses_sample.xlsx');
     }
 
     /**
-     * Process CSV import
+     * Process import
      */
     public function import(Request $request)
     {
         $request->validate([
-            'csv_file' => 'required|file|mimes:csv,txt|max:5120',
+            'file' => 'required|mimes:xlsx,xls,csv',
         ]);
 
-        $importService = new \App\Services\CsvImportService();
-        $rows = $importService->parseFile($request->file('csv_file'));
-
-        $rules = [
-            'code' => 'required|string|max:50',
-            'name' => 'required|string|max:255',
-        ];
-
-        \DB::beginTransaction();
         try {
-            foreach ($rows as $row) {
-                $validated = $importService->validateRow($row, $rules, $row['_line']);
-
-                if ($validated) {
-                    Warehouse::updateOrCreate(
-                        ['code' => $validated['code']],
-                        [
-                            'name' => $validated['name'],
-                            'address' => $row['address'] ?? null,
-                            'phone' => $row['phone'] ?? null,
-                            'email' => $row['email'] ?? null,
-                            'is_active' => true,
-                        ]
-                    );
-                }
-            }
-
-            \DB::commit();
-            $results = $importService->getResults();
+            \Maatwebsite\Excel\Facades\Excel::import(new \App\Imports\WarehousesImport, $request->file('file'));
 
             return redirect()->route('warehouses.index')
-                ->with('success', "تم استيراد {$results['success_count']} مستودع بنجاح" .
-                    ($results['error_count'] > 0 ? " ({$results['error_count']} أخطاء)" : ''));
-
+                ->with('success', 'تم استيراد المستودعات بنجاح.');
         } catch (\Exception $e) {
-            \DB::rollBack();
-            return back()->with('error', 'خطأ في الاستيراد: ' . $e->getMessage());
+            return back()->with('error', 'حدث خطأ أثناء الاستيراد: ' . $e->getMessage());
         }
     }
 }

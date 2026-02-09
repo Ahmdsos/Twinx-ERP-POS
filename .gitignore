@@ -34,3 +34,5 @@ out/
 release/
 release-builds/
 
+twinx_inventory_export.json
+.license.key

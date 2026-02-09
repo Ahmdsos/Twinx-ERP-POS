@@ -67,7 +67,7 @@
                                     </a>
                                     @if(!in_array($role->name, ['admin']))
                                         <form action="{{ route('roles.destroy', $role) }}" method="POST" class="d-inline"
-                                            onsubmit="return confirm('هل أنت متأكد من حذف هذا الدور؟');">
+                                            data-confirm="هل أنت متأكد من حذف هذا الدور؟">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-outline-danger" title="حذف">

@@ -10,7 +10,7 @@
                 <a href="{{ route('grns.index') }}" class="btn btn-outline-light btn-sm rounded-circle shadow-sm"
                     style="width: 32px; height: 32px;"><i class="bi bi-arrow-right"></i></a>
                 <div>
-                    <h2 class="fw-bold text-white mb-0">سند استلام بضاعة</h2>
+                    <h2 class="fw-bold text-heading mb-0">سند استلام بضاعة</h2>
                     <div class="d-flex align-items-center gap-2">
                         <span class="text-gray-400 font-monospace">{{ $grn->grn_number }}</span>
                         <span
@@ -37,19 +37,19 @@
             <!-- Details -->
             <div class="col-md-9">
                 <div class="glass-panel p-0 overflow-hidden mb-4">
-                    <div class="p-4 border-bottom border-white-5">
+                    <div class="p-4 border-bottom border-secondary border-opacity-10-5">
                         <div class="row g-4">
                             <div class="col-md-4">
                                 <label class="text-gray-500 x-small fw-bold text-uppercase mb-1">المورد</label>
-                                <h6 class="text-white fw-bold mb-0">{{ $grn->supplier->name }}</h6>
+                                <h6 class="text-heading fw-bold mb-0">{{ $grn->supplier->name }}</h6>
                             </div>
                             <div class="col-md-3">
                                 <label class="text-gray-500 x-small fw-bold text-uppercase mb-1">تاريخ الاستلام</label>
-                                <p class="text-white fw-bold mb-0">{{ $grn->received_date->format('Y-m-d') }}</p>
+                                <p class="text-body fw-bold mb-0">{{ $grn->received_date->format('Y-m-d') }}</p>
                             </div>
                             <div class="col-md-3">
                                 <label class="text-gray-500 x-small fw-bold text-uppercase mb-1">المخزن</label>
-                                <p class="text-white mb-0">{{ $grn->warehouse->name }}</p>
+                                <p class="text-body mb-0">{{ $grn->warehouse->name }}</p>
                             </div>
                             <div class="col-md-2">
                                 <label class="text-gray-500 x-small fw-bold text-uppercase mb-1">أمر الشراء</label>
@@ -66,16 +66,16 @@
                         <table class="table table-dark-custom align-middle mb-0">
                             <thead>
                                 <tr>
-                                    <th class="ps-4">المنتج</th>
+                                    <th class="ps-4">{{ __('Product') }}</th>
                                     <th class="text-center">الكمية المستلمة</th>
-                                    <th class="text-center">الوحدة</th>
+                                    <th class="text-center">{{ __('Unit') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($grn->lines as $line)
                                     <tr>
                                         <td class="ps-4">
-                                            <h6 class="text-white mb-0">{{ $line->product->name }}</h6>
+                                            <h6 class="text-heading mb-0">{{ $line->product->name }}</h6>
                                             <span class="text-gray-500 x-small code-font">{{ $line->product->sku }}</span>
                                         </td>
                                         <td class="text-center fw-bold text-green-300 fs-5">{{ $line->quantity }}</td>
@@ -93,7 +93,7 @@
             <div class="col-md-3">
                 @if($grn->notes)
                     <div class="glass-panel p-4 mb-4">
-                        <h6 class="text-gray-400 x-small fw-bold text-uppercase mb-2">ملاحظات</h6>
+                        <h6 class="text-gray-400 x-small fw-bold text-uppercase mb-2">{{ __('Notes') }}</h6>
                         <p class="text-gray-300 small mb-0">{{ $grn->notes }}</p>
                     </div>
                 @endif
@@ -101,7 +101,7 @@
                 @if($grn->supplier_delivery_note)
                     <div class="glass-panel p-4">
                         <h6 class="text-gray-400 x-small fw-bold text-uppercase mb-2">إذن تسليم المورد</h6>
-                        <p class="text-white font-monospace mb-0">{{ $grn->supplier_delivery_note }}</p>
+                        <p class="text-body font-monospace mb-0">{{ $grn->supplier_delivery_note }}</p>
                     </div>
                 @endif
             </div>
@@ -123,7 +123,7 @@
 
         .table-dark-custom th {
             background: rgba(0, 0, 0, 0.2);
-            color: #94a3b8;
+            color: var(--text-secondary);
             font-weight: 600;
             padding: 1rem;
         }
@@ -131,7 +131,7 @@
         .btn-action-cyan {
             background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
             border: none;
-            color: white;
+            color: var(--text-primary);
             padding: 8px 16px;
             border-radius: 8px;
         }

@@ -44,11 +44,23 @@ class AccountingServiceProvider extends ServiceProvider
         // Register API routes
         $this->registerApiRoutes();
 
+        // Register Web routes
+        $this->registerWebRoutes();
+
         // Load migrations
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
         // Load module views
         $this->loadViewsFrom(__DIR__ . '/../resources/views', $this->moduleNameLower);
+    }
+
+    /**
+     * Register Web routes
+     */
+    protected function registerWebRoutes(): void
+    {
+        Route::middleware('web')
+            ->group(__DIR__ . '/../routes/web.php');
     }
 
     /**

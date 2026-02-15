@@ -5,16 +5,14 @@
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h4 class="fw-bold text-white mb-1">دليل الحسابات</h4>
-            <div class="text-white-50 small">عرض شجري للهيكل المحاسبي</div>
+            <h4 class="fw-bold text-heading mb-1">{{ __('Chart of Accounts') }}</h4>
+            <div class="text-muted small">عرض شجري للهيكل المحاسبي</div>
         </div>
         <div class="d-flex gap-2">
             <a href="{{ route('accounts.index') }}" class="btn btn-glass-outline">
-                <i class="bi bi-list-ul me-1"></i> عرض القائمة
-            </a>
+                <i class="bi bi-list-ul me-1"></i>{{ __('List View') }}</a>
             <a href="{{ route('accounts.create') }}" class="btn btn-primary shadow-lg fw-bold px-4 py-2">
-                <i class="bi bi-plus-lg me-1"></i> حساب جديد
-            </a>
+                <i class="bi bi-plus-lg me-1"></i>{{ __('New Account') }}</a>
         </div>
     </div>
 
@@ -35,7 +33,7 @@
                                     <i class="bi bi-folder2-open me-2 text-warning"></i>
                                     {{ $typeLabels[$typeKey] }}
                                 </span>
-                                <span class="badge bg-white bg-opacity-10 text-white rounded-pill ms-3">
+                                <span class="badge bg-surface bg-opacity-10 text-body rounded-pill ms-3">
                                     {{ count($accounts) }} جذر
                                 </span>
                             </span>
@@ -43,7 +41,7 @@
                     </h2>
                     <div id="collapse{{ $typeKey }}" class="accordion-collapse collapse show"
                         data-bs-parent="#accountsAccordion">
-                        <div class="accordion-body text-white pt-2 ps-4">
+                        <div class="accordion-body text-body pt-2 ps-4">
                             @if(count($accounts) > 0)
                                 <ul class="list-unstyled account-tree">
                                     @foreach($accounts as $account)
@@ -51,7 +49,7 @@
                                     @endforeach
                                 </ul>
                             @else
-                                <div class="text-white-50 small py-2 fst-italic">لا توجد حسابات مسجلة لهذا النوع</div>
+                                <div class="text-muted small py-2 fst-italic">لا توجد حسابات مسجلة لهذا النوع</div>
                             @endif
                         </div>
                     </div>
@@ -61,18 +59,12 @@
     </div>
 
     <style>
-        .glass-card {
-            background: rgba(17, 24, 39, 0.7);
-            backdrop-filter: blur(30px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            min-height: 400px;
-        }
+        
 
         .glass-accordion-btn {
-            background: rgba(255, 255, 255, 0.05) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white !important;
+            background: var(--btn-glass-bg); !important;
+            border: 1px solid var(--btn-glass-border);
+            color: var(--text-primary); !important;
             box-shadow: none !important;
         }
 
@@ -101,9 +93,9 @@
         }
 
         .btn-glass-outline {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--btn-glass-bg);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
+            color: var(--text-primary);
         }
     </style>
 @endsection

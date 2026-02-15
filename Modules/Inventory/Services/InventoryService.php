@@ -69,8 +69,8 @@ class InventoryService
 
             $stock->updateFromMovement($quantity, $totalCost);
 
-            // Create journal entry if product has inventory account
-            if ($createJournal && $product->inventory_account_id && $product->purchase_account_id) {
+            // Create journal entry (SSOT will resolve accounts)
+            if ($createJournal) {
                 $this->createInventoryJournalEntry($movement, $product, 'add');
             }
 
@@ -137,9 +137,8 @@ class InventoryService
             // Update product stock
             $stock->updateFromMovement(-$quantity, -$costData['total_cost']);
 
-            // Create journal entry if product has inventory account
-            // Truth: Inventory reduction always requires a COGS/Inventory journal
-            if ($createJournal && $product->inventory_account_id) {
+            // Create journal entry (SSOT will resolve accounts)
+            if ($createJournal) {
                 $this->createInventoryJournalEntry($movement, $product, 'remove');
             }
 
@@ -319,10 +318,31 @@ class InventoryService
         $totalCost = abs($movement->total_cost);
         $movementType = $movement->type;
 
-        // Inventory Account is always one side
-        $inventoryAccountId = $product->inventory_account_id;
+        // --- 1. Resolve Inventory Asset Account (SSOT Priority) ---
+        $inventoryCode = \App\Models\Setting::getValue('acc_inventory');
+        $inventoryAccount = $inventoryCode ? Account::where('code', $inventoryCode)->first() : null;
 
-        // Determine the offset account based on movement type
+        if ($inventoryAccount && $inventoryAccount->isPostable()) {
+            $inventoryAccountId = $inventoryAccount->id;
+        } else {
+            // Fallback to product-level if product has an account and it is postable
+            $productAccount = Account::find($product->inventory_account_id);
+            if ($productAccount && $productAccount->isPostable()) {
+                $inventoryAccountId = $productAccount->id;
+            } else {
+                $errorMsg = "فشل إنشاء القيد المحاسبي للمخزون: حساب المخزون غير صحيح أو غير محدد. ";
+                if ($inventoryAccount && !$inventoryAccount->isPostable()) {
+                    $errorMsg .= "حساب الإعدادات العامة ({$inventoryAccount->display_name}) هو حساب رئيسي لا يقبل قيود يدوية.";
+                } elseif ($productAccount && !$productAccount->isPostable()) {
+                    $errorMsg .= "حساب المنتج ({$productAccount->display_name}) هو حساب رئيسي لا يقبل قيود يدوية.";
+                } else {
+                    $errorMsg .= "يرجى ضبط 'حساب المخزون' في الإعدادات العامة أو كارت الصنف ({$product->name}).";
+                }
+                throw new \RuntimeException($errorMsg);
+            }
+        }
+
+        // --- 2. Resolve Offset Account (Expense/Liability/Equity) ---
         $offsetAccountCode = match ($movementType) {
             MovementType::INITIAL => \App\Models\Setting::getValue('acc_opening_balance', '3101'),
             MovementType::ADJUSTMENT_IN, MovementType::ADJUSTMENT_OUT => \App\Models\Setting::getValue('acc_inventory_adj', '5201'),
@@ -332,11 +352,23 @@ class InventoryService
         };
 
         $offsetAccount = Account::where('code', $offsetAccountCode)->first();
-        if (!$offsetAccount) {
-            // Fallback to product's purchase account if specific setting fails
-            $offsetAccountId = $product->purchase_account_id;
-        } else {
+
+        if ($offsetAccount && $offsetAccount->isPostable()) {
             $offsetAccountId = $offsetAccount->id;
+        } else {
+            // Fallback to product's purchase/expense account
+            $productAccount = Account::find($product->purchase_account_id);
+            if ($productAccount && $productAccount->isPostable()) {
+                $offsetAccountId = $productAccount->id;
+            } else {
+                $errorMsg = "فشل إنشاء القيد المحاسبي للمخزون: حساب المقابل (Offset Account) غير صحيح أو غير محدد للمهارة: {$movementType->label()}. ";
+                if ($offsetAccount && !$offsetAccount->isPostable()) {
+                    $errorMsg .= "حساب الإعدادات المقابل ({$offsetAccount->display_name}) هو حساب رئيسي لا يقبل قيود.";
+                } else {
+                    $errorMsg .= "يرجى مراجعة إعدادات الحسابات المقابلة للمخزون (الافتتاحي، التسوية، تكلفة المبيعات) والتأكد من أنها حسابات فرعية.";
+                }
+                throw new \RuntimeException($errorMsg);
+            }
         }
 
         if ($direction === 'add') {

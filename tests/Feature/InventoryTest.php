@@ -23,7 +23,7 @@ class InventoryTest extends TestCase
     {
         parent::setUp();
 
-        $this->user = User::factory()->create();
+        $this->user = $this->createUserWithPermissions(['inventory.manage']);
 
         // Create test data with correct field names
         Category::create(['name' => 'Test Category', 'code' => 'CAT001']);

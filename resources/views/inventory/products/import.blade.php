@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'استيراد المنتجات')
+@section('title', __('Import Products'))
 
 @section('content')
     <div class="container py-5">
@@ -8,7 +8,7 @@
             <div class="col-md-6">
                 <div class="card bg-slate-800 border-slate-700 shadow-lg">
                     <div class="card-header border-slate-700">
-                        <h5 class="text-white mb-0"><i class="bi bi-file-earmark-spreadsheet me-2"></i> استيراد المنتجات من
+                        <h5 class="text-heading mb-0"><i class="bi bi-file-earmark-spreadsheet me-2"></i> استيراد المنتجات من
                             Excel</h5>
                     </div>
                     <div class="card-body p-4">
@@ -32,8 +32,8 @@
                             @csrf
 
                             <div class="mb-4">
-                                <label class="form-label text-white">اختر ملف Excel</label>
-                                <input type="file" name="file" class="form-control bg-dark border-secondary text-white"
+                                <label class="form-label text-body">اختر ملف Excel</label>
+                                <input type="file" name="file" class="form-control bg-surface-secondary border-secondary text-body"
                                     accept=".xlsx,.xls,.csv" required>
                             </div>
 

@@ -8,7 +8,7 @@
         <!-- Header with Profile Card -->
         <div class="row mb-4">
             <div class="col-md-12">
-                <div class="glass-card rounded-4 p-4 border-white border-opacity-10 shadow-lg text-white"
+                <div class="glass-card rounded-4 p-4 border-secondary border-opacity-10 border-opacity-10 shadow-lg text-heading"
                     style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
                     <div class="row align-items-center">
                         <div class="col-md-auto text-center mb-3 mb-md-0">
@@ -25,7 +25,7 @@
                                     {{ $driver->is_in_field ? 'في الميدان بمهام نشطة' : 'متاح للعمل' }}
                                 </span>
                             </div>
-                            <p class="text-white-50 mb-0 d-flex gap-4 flex-wrap">
+                            <p class="text-heading-50 mb-0 d-flex gap-4 flex-wrap">
                                 <span><i class="bi bi-hash me-1"></i> كود الموظف:
                                     {{ $driver->employee->employee_code }}</span>
                                 <span><i class="bi bi-telephone me-1"></i>
@@ -54,7 +54,7 @@
                         <h2 class="fw-black mb-0">{{ $driver->success_rate }}%</h2>
                         <i class="bi bi-graph-up-arrow text-success"></i>
                     </div>
-                    <div class="progress mt-3 bg-dark bg-opacity-10" style="height: 6px;">
+                    <div class="progress mt-3 bg-surface-secondary bg-opacity-10" style="height: 6px;">
                         <div class="progress-bar bg-success" role="progressbar" style="width: {{ $driver->success_rate }}%">
                         </div>
                     </div>
@@ -131,7 +131,7 @@
                                                 </span>
                                             </td>
                                             <td class="pe-4 text-end">
-                                                <a href="{{ route('reports.mission-control', ['search' => $mission->do_number]) }}"
+                                                <a href="{{ route('mission.control', ['search' => $mission->do_number]) }}"
                                                     class="btn btn-sm btn-icon btn-light rounded-circle shadow-none">
                                                     <i class="bi bi-eye"></i>
                                                 </a>
@@ -157,7 +157,7 @@
             <!-- History Section -->
             <div class="col-md-12">
                 <div class="card border-0 shadow-sm rounded-4">
-                    <div class="card-header bg-dark bg-opacity-10 border-0 p-4">
+                    <div class="card-header bg-surface-secondary bg-opacity-10 border-0 p-4">
                         <h5 class="fw-black mb-0"><i class="bi bi-clock-history me-2"></i> سجل العمليات السابقة (آخر 50
                             مهمة)</h5>
                     </div>

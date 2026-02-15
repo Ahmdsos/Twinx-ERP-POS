@@ -61,6 +61,11 @@ enum QuotationStatus: string
     }
     public function badgeClass(): string
     {
-        return 'bg-' . $this->color() . ' text-white';
+        $color = $this->color();
+        // Light backgrounds for specific statuses
+        if (in_array($color, ['warning', 'info', 'secondary'])) {
+            return 'bg-' . $color . ' bg-opacity-10 text-' . $color;
+        }
+        return 'bg-' . $color . ' text-white';
     }
 }

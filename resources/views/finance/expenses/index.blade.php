@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'المصروفات')
+@section('title', __('Expenses'))
 
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h4 class="fw-bold text-white mb-1">المصروفات</h4>
-            <div class="text-white-50 small">إدارة وتسجيل المصروفات اليومية</div>
+            <h4 class="fw-bold text-heading mb-1">{{ __('Expenses') }}</h4>
+            <div class="text-muted small">إدارة وتسجيل المصروفات اليومية</div>
         </div>
         <a href="{{ route('expenses.create') }}" class="btn btn-primary shadow-lg fw-bold px-4 py-2">
             <i class="bi bi-plus-lg me-1"></i> تسجيل مصروف
@@ -15,16 +15,16 @@
 
     <div class="glass-card">
         <div class="table-responsive">
-            <table class="table align-middle text-white mb-0 custom-table">
+            <table class="table align-middle text-body mb-0 custom-table">
                 <thead>
                     <tr>
-                        <th class="px-4 py-4 text-white-50 fw-normal">رقم المرجع</th>
-                        <th class="py-4 text-white-50 fw-normal">التاريخ</th>
-                        <th class="py-4 text-white-50 fw-normal">البند / التصنيف</th>
-                        <th class="py-4 text-white-50 fw-normal">المستفيد</th>
-                        <th class="py-4 text-white-50 fw-normal">حساب الدفع</th>
-                        <th class="py-4 text-white-50 fw-normal text-end">المبلغ</th>
-                        <th class="px-4 py-4 text-white-50 fw-normal text-end">إجراءات</th>
+                        <th class="px-4 py-4 text-secondary-50 fw-normal">رقم المرجع</th>
+                        <th class="py-4 text-secondary-50 fw-normal">{{ __('Date') }}</th>
+                        <th class="py-4 text-secondary-50 fw-normal">البند / التصنيف</th>
+                        <th class="py-4 text-secondary-50 fw-normal">المستفيد</th>
+                        <th class="py-4 text-secondary-50 fw-normal">حساب الدفع</th>
+                        <th class="py-4 text-secondary-50 fw-normal text-end">{{ __('Amount') }}</th>
+                        <th class="px-4 py-4 text-secondary-50 fw-normal text-end">{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -35,14 +35,14 @@
                             <td class="py-3">
                                 <div class="fw-bold fs-5 mb-1">{{ $expense->category->name }}</div>
                                 @if($expense->notes)
-                                    <div class="small text-white-50" style="max-width: 300px; line-height: 1.4;">
+                                    <div class="small text-muted" style="max-width: 300px; line-height: 1.4;">
                                         {{ Str::limit($expense->notes, 50) }}</div>
                                 @endif
                             </td>
                             <td class="py-3 fs-6">{{ $expense->payee ?? '-' }}</td>
                             <td class="py-3">
                                 <span
-                                    class="badge bg-white bg-opacity-10 text-white fw-normal px-3 py-2 rounded-pill border border-white border-opacity-10">
+                                    class="badge bg-surface bg-opacity-10 text-body fw-normal px-3 py-2 rounded-pill border border-secondary border-opacity-10 border-opacity-10">
                                     {{ $expense->paymentAccount->name }}
                                 </span>
                             </td>
@@ -67,7 +67,7 @@
                             <td colspan="7" class="text-center py-5">
                                 <div class="d-flex flex-column align-items-center justify-content-center py-5 opacity-50">
                                     <i class="bi bi-wallet2 display-1 mb-4"></i>
-                                    <h4 class="text-white-50">لا توجد مصروفات مسجلة حتى الآن</h4>
+                                    <h4 class="text-heading-50">لا توجد مصروفات مسجلة حتى الآن</h4>
                                     <p class="mb-4">ابدأ بتسجيل أول مصروف للنظام</p>
                                     <a href="{{ route('expenses.create') }}"
                                         class="btn btn-outline-light px-4 py-2 rounded-pill">تسجيل مصروف جديد</a>
@@ -78,29 +78,18 @@
                 </tbody>
             </table>
         </div>
-        <div class="card-footer bg-transparent border-top border-white border-opacity-10 py-4">
+        <div class="card-footer bg-transparent border-top border-secondary border-opacity-10 border-opacity-10 py-4">
             {{ $expenses->links('partials.pagination') }}
         </div>
     </div>
 
     <style>
-        .glass-card {
-            background: rgba(17, 24, 39, 0.7);
-            /* Darker base for better contrast */
-            backdrop-filter: blur(30px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            /* For rounded corners on table */
-            min-height: 400px;
-            /* Ensure minimum height */
-        }
+        
 
         .custom-table thead th {
             background-color: rgba(255, 255, 255, 0.03);
             letter-spacing: 0.5px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            border-bottom: 1px solid var(--border-color);
         }
 
         .table-row-hover {
@@ -109,7 +98,7 @@
         }
 
         .table-row-hover:hover {
-            background-color: rgba(255, 255, 255, 0.05);
+            background-color: var(--table-head-bg);
             /* Highlight on hover */
             transform: translateY(-1px);
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -121,8 +110,8 @@
         }
 
         .btn-glass {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: var(--btn-glass-bg);
+            border: 1px solid var(--btn-glass-border);
             border-radius: 8px;
             /* Softer corners */
             width: 36px;

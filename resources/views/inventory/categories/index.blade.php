@@ -8,22 +8,22 @@
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-5 gap-4">
             <div class="d-flex align-items-center gap-4">
                 <div class="icon-box bg-gradient-primary shadow-neon">
-                    <i class="bi bi-diagram-3-fill fs-3 text-white"></i>
+                    <i class="bi bi-diagram-3-fill fs-3 text-body"></i>
                 </div>
                 <div>
-                    <h2 class="fw-bold text-white mb-1 tracking-wide">إدارة التصنيفات</h2>
-                    <p class="mb-0 text-gray-400 small">مركز التحكم في هيكلة وتنظيم المنتجات</p>
+                    <h2 class="fw-bold text-heading mb-1 tracking-wide">إدارة التصنيفات</h2>
+                    <p class="mb-0 text-secondary small">مركز التحكم في هيكلة وتنظيم المنتجات</p>
                 </div>
             </div>
             <div class="d-flex gap-3">
                 <div class="dropdown">
                     <button
-                        class="btn btn-dark-glass d-flex align-items-center gap-2 border-0 text-gray-300 hover-text-white dropdown-toggle"
+                        class="btn btn-dark-glass d-flex align-items-center gap-2 border-0 text-secondary hover-text-white dropdown-toggle"
                         type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-cloud-download"></i>
-                        <span class="d-none d-md-block">تصدير</span>
+                        <span class="d-none d-md-block">{{ __('Export') }}</span>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-dark bg-slate-900 border-white-10 shadow-neon"
+                    <ul class="dropdown-menu dropdown-menu-dark bg-surface border-secondary border-opacity-10-10 shadow-neon"
                         aria-labelledby="exportDropdown">
                         <li>
                             <a class="dropdown-item d-flex align-items-center gap-2"
@@ -40,14 +40,14 @@
                     </ul>
                 </div>
                 <a href="{{ route('categories.import.form') }}"
-                    class="btn btn-dark-glass d-flex align-items-center gap-2 border-0 text-gray-300 hover-text-white">
+                    class="btn btn-dark-glass d-flex align-items-center gap-2 border-0 text-secondary hover-text-white">
                     <i class="bi bi-cloud-upload"></i>
-                    <span class="d-none d-md-block">استيراد</span>
+                    <span class="d-none d-md-block">{{ __('Import') }}</span>
                 </a>
                 <a href="{{ route('categories.create') }}"
                     class="btn btn-action-primary d-flex align-items-center gap-2 shadow-lg">
                     <i class="bi bi-plus-lg"></i>
-                    <span class="fw-bold">إضافة تصنيف</span>
+                    <span class="fw-bold">{{ __('Create Expense Category') }}</span>
                 </a>
             </div>
         </div>
@@ -58,11 +58,11 @@
                 <div class="stat-card glass-panel position-relative overflow-hidden h-100 p-4">
                     <div class="z-1 position-relative">
                         <p class="text-cyan-400 small fw-bold text-uppercase mb-2 tracking-wider">إجمالي التصنيفات</p>
-                        <h1 class="fw-bold text-white mb-0 display-4">{{ $categories->count() }}</h1>
+                        <h1 class="fw-bold text-heading mb-0 display-4">{{ $categories->count() }}</h1>
                         <p class="text-gray-500 small mt-2">تصنيف مسجل بالنظام</p>
                     </div>
                     <i
-                        class="bi bi-tags-fill position-absolute bottom-0 end-0 display-1 text-white opacity-5 transform-scale-150"></i>
+                        class="bi bi-tags-fill position-absolute bottom-0 end-0 display-1 text-body opacity-5 transform-scale-150"></i>
                     <div class="glow-orb bg-cyan-500"></div>
                 </div>
             </div>
@@ -70,12 +70,12 @@
                 <div class="stat-card glass-panel position-relative overflow-hidden h-100 p-4">
                     <div class="z-1 position-relative">
                         <p class="text-purple-400 small fw-bold text-uppercase mb-2 tracking-wider">التصنيفات الرئيسية</p>
-                        <h1 class="fw-bold text-white mb-0 display-4">{{ $categories->whereNull('parent_id')->count() }}
+                        <h1 class="fw-bold text-heading mb-0 display-4">{{ $categories->whereNull('parent_id')->count() }}
                         </h1>
                         <p class="text-gray-500 small mt-2">جذور لشجرة الأصناف</p>
                     </div>
                     <i
-                        class="bi bi-diagram-3-fill position-absolute bottom-0 end-0 display-1 text-white opacity-5 transform-scale-150"></i>
+                        class="bi bi-diagram-3-fill position-absolute bottom-0 end-0 display-1 text-body opacity-5 transform-scale-150"></i>
                     <div class="glow-orb bg-purple-500"></div>
                 </div>
             </div>
@@ -83,12 +83,12 @@
                 <div class="stat-card glass-panel position-relative overflow-hidden h-100 p-4">
                     <div class="z-1 position-relative">
                         <p class="text-emerald-400 small fw-bold text-uppercase mb-2 tracking-wider">التصنيفات الفرعية</p>
-                        <h1 class="fw-bold text-white mb-0 display-4">{{ $categories->whereNotNull('parent_id')->count() }}
+                        <h1 class="fw-bold text-heading mb-0 display-4">{{ $categories->whereNotNull('parent_id')->count() }}
                         </h1>
                         <p class="text-gray-500 small mt-2">تفرعات دقيقة</p>
                     </div>
                     <i
-                        class="bi bi-arrow-return-right position-absolute bottom-0 end-0 display-1 text-white opacity-5 transform-scale-150"></i>
+                        class="bi bi-arrow-return-right position-absolute bottom-0 end-0 display-1 text-body opacity-5 transform-scale-150"></i>
                     <div class="glow-orb bg-emerald-500"></div>
                 </div>
             </div>
@@ -97,11 +97,11 @@
         <!-- Main Content Panel -->
         <div class="glass-panel border-top-gradient p-0 overflow-hidden">
             <!-- Toolbar -->
-            <div class="p-4 border-bottom border-white-10 d-flex justify-content-between align-items-center">
-                <h5 class="fw-bold text-white mb-0">قائمة التصنيفات</h5>
+            <div class="p-4 border-bottom border-secondary border-opacity-10-10 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold text-heading mb-0">قائمة التصنيفات</h5>
                 <div class="position-relative" style="width: 300px;">
                     <i class="bi bi-search position-absolute top-50 end-0 translate-middle-y me-3 text-gray-500"></i>
-                    <input type="text" id="searchInput" class="form-control form-control-dark ps-2 pe-5"
+                    <input type="text" id="searchInput" class="form-control form-control ps-2 pe-5"
                         placeholder="بحث سريع...">
                 </div>
             </div>
@@ -113,8 +113,8 @@
                         <tr>
                             <th class="ps-4">اسم التصنيف</th>
                             <th>المسار الهيكلي</th>
-                            <th class="text-center">المنتجات</th>
-                            <th>الحالة</th>
+                            <th class="text-center">{{ __('Products') }}</th>
+                            <th>{{ __('Status') }}</th>
                             <th class="pe-4 text-end">الإجراءات</th>
                         </tr>
                     </thead>
@@ -124,13 +124,13 @@
                                 <td class="ps-4">
                                     <div class="d-flex align-items-center gap-3">
                                         <div
-                                            class="avatar-icon {{ $category->parent_id ? 'bg-secondary-soft text-gray-400' : 'bg-primary-soft text-cyan-400' }}">
+                                            class="avatar-icon {{ $category->parent_id ? 'bg-secondary-soft text-secondary' : 'bg-primary-soft text-cyan-400' }}">
                                             <i
                                                 class="bi {{ $category->parent_id ? 'bi-arrow-return-right' : 'bi-folder-fill' }}"></i>
                                         </div>
                                         <div>
                                             <a href="{{ route('categories.show', $category) }}"
-                                                class="fw-bold text-white text-decoration-none hover-glow transition-all">{{ $category->name }}</a>
+                                                class="fw-bold text-body text-decoration-none hover-glow transition-all">{{ $category->name }}</a>
                                             <div class="small text-gray-500">
                                                 {{ Str::limit($category->description ?? 'لا يوجد وصف', 40) }}
                                             </div>
@@ -157,37 +157,35 @@
                                     @if($category->is_active)
                                         <div class="d-flex align-items-center gap-2">
                                             <div class="pulse-dot bg-success"></div>
-                                            <span class="text-success small fw-bold">نشط</span>
+                                            <span class="text-success small fw-bold">{{ __('Active') }}</span>
                                         </div>
                                     @else
                                         <div class="d-flex align-items-center gap-2">
                                             <div class="pulse-dot bg-danger"></div>
-                                            <span class="text-danger small fw-bold">غير نشط</span>
+                                            <span class="text-danger small fw-bold">{{ __('Inactive') }}</span>
                                         </div>
                                     @endif
                                 </td>
                                 <td class="pe-4 text-end">
                                     <div class="dropdown">
-                                        <button class="btn btn-icon-only text-gray-400 hover-text-white" type="button"
+                                        <button class="btn btn-icon-only text-secondary hover-text-white" type="button"
                                             data-bs-toggle="dropdown">
                                             <i class="bi bi-three-dots-vertical"></i>
                                         </button>
                                         <ul
-                                            class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-neon-sm border-white-10">
+                                            class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-neon-sm border-secondary border-opacity-10-10">
                                             <li>
                                                 <a class="dropdown-item d-flex align-items-center gap-2"
                                                     href="{{ route('categories.show', $category) }}">
-                                                    <i class="bi bi-eye text-cyan-400"></i> عرض التفاصيل
-                                                </a>
+                                                    <i class="bi bi-eye text-cyan-400"></i>{{ __('View Details') }}</a>
                                             </li>
                                             <li>
                                                 <a class="dropdown-item d-flex align-items-center gap-2"
                                                     href="{{ route('categories.edit', $category) }}">
-                                                    <i class="bi bi-pencil text-warning"></i> تعديل
-                                                </a>
+                                                    <i class="bi bi-pencil text-warning"></i>{{ __('Edit') }}</a>
                                             </li>
                                             <li>
-                                                <hr class="dropdown-divider border-white-10">
+                                                <hr class="dropdown-divider border-secondary border-opacity-10-10">
                                             </li>
                                             <li>
                                                 <form action="{{ route('categories.destroy', $category) }}" method="POST"
@@ -196,8 +194,7 @@
                                                     @method('DELETE')
                                                     <button type="submit"
                                                         class="dropdown-item d-flex align-items-center gap-2 text-danger">
-                                                        <i class="bi bi-trash"></i> حذف
-                                                    </button>
+                                                        <i class="bi bi-trash"></i>{{ __('Delete') }}</button>
                                                 </form>
                                             </li>
                                         </ul>
@@ -209,7 +206,7 @@
                                 <td colspan="5" class="text-center py-5">
                                     <div class="empty-state">
                                         <div class="icon mb-3 text-gray-600"><i class="bi bi-folder-x display-4"></i></div>
-                                        <h5 class="text-gray-400">لا توجد تصنيفات</h5>
+                                        <h5 class="text-secondary">لا توجد تصنيفات</h5>
                                         <p class="text-gray-600 mb-0">ابدأ بإضافة تصنيفات لترتيب منتجاتك</p>
                                     </div>
                                 </td>
@@ -223,17 +220,11 @@
 
     <style>
         /* Premium Theme Variables */
-        :root {
-            --bg-dark: #0f172a;
-            --glass-bg: rgba(30, 41, 59, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --primary-glow: 0 0 20px rgba(56, 189, 248, 0.3);
-            --text-secondary: #94a3b8;
-        }
+        /* :root override removed for theme compatibility */
 
         /* Core Layout */
         .btn-dark-glass {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--btn-glass-bg);
             border: 1px solid var(--glass-border);
             transition: all 0.3s;
         }
@@ -246,7 +237,7 @@
         .btn-action-primary {
             background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
             border: none;
-            color: white;
+            color: var(--text-primary);
             transition: all 0.3s;
             box-shadow: var(--primary-glow);
         }
@@ -309,7 +300,7 @@
         .form-control-dark {
             background: rgba(0, 0, 0, 0.3) !important;
             border: 1px solid var(--glass-border) !important;
-            color: white !important;
+            color: var(--text-primary); !important;
             border-radius: 12px;
             padding: 0.75rem 1rem;
         }
@@ -323,7 +314,7 @@
         .table-dark-custom {
             --bs-table-bg: transparent;
             --bs-table-border-color: var(--glass-border);
-            color: #e2e8f0;
+            color: var(--text-body);
         }
 
         .table-dark-custom th {
@@ -379,7 +370,7 @@
 
         .badge-outline-secondary {
             border: 1px solid rgba(148, 163, 184, 0.3);
-            color: #94a3b8;
+            color: var(--text-secondary);
             background: rgba(148, 163, 184, 0.05);
             padding: 0.35em 0.8em;
             border-radius: 6px;
@@ -425,7 +416,7 @@
         }
 
         .text-gray-400 {
-            color: #94a3b8 !important;
+            color: var(--text-secondary); !important;
         }
 
         .text-gray-500 {

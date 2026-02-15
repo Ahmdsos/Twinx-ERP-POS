@@ -33,7 +33,7 @@
             width: 90%;
             background: rgba(18, 25, 45, 0.98);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--btn-glass-border);
             border-radius: 2rem;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
@@ -41,13 +41,13 @@
         .logo-box {
             width: 80px;
             height: 80px;
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--btn-glass-bg);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 1.5rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--btn-glass-border);
             box-shadow: 0 10px 20px rgba(0,0,0,0.3);
         }
 

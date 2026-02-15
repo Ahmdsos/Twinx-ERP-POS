@@ -20,7 +20,7 @@ use Modules\Accounting\Services\JournalService;
 use Modules\Accounting\Models\Account;
 use Modules\Core\Traits\HasTaxCalculations;
 use Modules\HR\Models\DeliveryDriver;
-use App\Models\Setting;
+use Modules\Core\Models\Setting;
 
 /**
  * POSService
@@ -44,6 +44,10 @@ class POSService
     {
         return DB::transaction(function () use ($data) {
             $activeShift = \App\Models\PosShift::getActiveShift();
+
+            if (!$activeShift) {
+                throw new \RuntimeException("عفواً، لا يوجد وردية نشطة حالياً. يرجى فتح وردية أولاً قبل إتمام عملية البيع.");
+            }
 
             // 1. Process Items & Calculate Totals
             $items = $data['items'];
@@ -88,8 +92,12 @@ class POSService
             $total = (float) round($total, 2);
 
             // Calculate total paid across all payment methods
-            $amountPaid = collect($data['payments'])->sum('amount');
-            $balanceDue = max(0, (float) round($total - $amountPaid, 2));
+            $totalReceived = collect($data['payments'])->sum('amount');
+            $change = max(0, (float) round($totalReceived - $total, 2));
+
+            // MATH TRUTH: paid_amount on invoice cannot exceed the total invoice value (C-04 Fix)
+            $paidOnInvoice = (float) round(min($total, $totalReceived), 2);
+            $balanceDue = max(0, (float) round($total - $paidOnInvoice, 2));
 
             // 2. Resolve Customer
             $customerId = $data['customer_id'] ?? $this->resolveWalkInCustomer()->id;
@@ -135,7 +143,7 @@ class POSService
                 'tax_amount' => $totalTax,
                 'delivery_fee' => $deliveryFee,
                 'total' => $total,
-                'paid_amount' => $amountPaid,
+                'paid_amount' => $paidOnInvoice,
                 'balance_due' => $balanceDue,
                 'status' => $balanceDue > 0 ? SalesInvoiceStatus::PARTIAL : SalesInvoiceStatus::PAID,
                 'is_delivery' => $data['is_delivery'] ?? false,
@@ -147,11 +155,22 @@ class POSService
                 'created_by' => $data['cashier_id'] ?? auth()->id(), // Phase 3: Cashier Assignment
             ]);
 
-            // Track stats in shift - Split awareness
+            // Track stats in shift - Split awareness (Fix for #ExpectedCash)
             if ($activeShift) {
+                $tempChange = $change;
                 foreach ($data['payments'] as $payment) {
-                    $activeShift->incrementSales($payment['amount'], $payment['method']);
+                    $meth = $payment['method'];
+                    $amt = (float) $payment['amount'];
+
+                    // Consume change from the cash payment method specifically
+                    if ($meth === 'cash' && $tempChange > 0) {
+                        $amt -= $tempChange;
+                        $tempChange = 0;
+                    }
+
+                    $activeShift->incrementSales($amt, $meth);
                 }
+                $activeShift->incrementTransaction();
             }
 
             // 4. Create Lines & Handle Stock
@@ -196,18 +215,8 @@ class POSService
                     $this->recordPayment($invoice, $paymentData);
                 }
             }
-
             // 7. Create Journal Entry (Split support)
             $this->createInvoiceJournalEntry($invoice, $data['payments']);
-
-            // 8. Track Stats in Shift (Split Awareness)
-            // Added back to ensure X-Report works correctly
-            if ($activeShift) {
-                $activeShift->incrementTransaction();
-                foreach ($data['payments'] as $payment) {
-                    $activeShift->incrementSales((float) $payment['amount'], $payment['method']);
-                }
-            }
 
             return $invoice;
         });
@@ -491,13 +500,16 @@ class POSService
     protected function createInvoiceJournalEntry(SalesInvoice $invoice, array $payments): void
     {
         $cashCode = Setting::getValue('acc_cash', '1101');
-        $bankCode = Setting::getValue('acc_bank', '1102');
+        $bankCode = Setting::getValue('acc_bank', '1110'); // Aligned with ChartOfAccountsSeeder (Bank Main)
         $arCode = Setting::getValue('acc_ar', '1201');
         $salesCode = Setting::getValue('acc_sales_revenue', '4101');
         $taxCode = Setting::getValue('acc_tax_payable', '2201');
-        $shippingCode = Setting::getValue('acc_shipping_revenue', '4201');
-        $discountCode = Setting::getValue('acc_sales_discount', '4301');
+        $shippingCode = Setting::getValue('acc_shipping_revenue', '4103');
+        $deliveryLiabilityCode = Setting::getValue('acc_delivery_liability', '2120'); // C-04 Fix: Liability for drivers
+        $discountCode = Setting::getValue('acc_sales_discount', '4120');
         $pendingDeliveryCode = Setting::getValue('acc_pending_delivery', '1202');
+
+        $accountingMode = Setting::getValue('pos_delivery_accounting_method', 'revenue'); // revenue | liability
 
         $cashAccount = Account::where('code', $cashCode)->first();
         $bankAccount = Account::where('code', $bankCode)->first();
@@ -506,7 +518,8 @@ class POSService
             : Account::where('code', $arCode)->first();
         $salesAccount = Account::where('code', $salesCode)->first();
         $taxAccount = Account::where('code', $taxCode)->first();
-        $shippingAccount = Account::where('code', $shippingCode)->first();
+        $shippingAccount = Account::where('code', $shippingCode)->first() ?? $salesAccount;
+        $deliveryLiabilityAccount = Account::where('code', $deliveryLiabilityCode)->first();
         $discountAccount = Account::where('code', $discountCode)->first();
         $pendingDeliveryAccount = Account::where('code', $pendingDeliveryCode)->first();
 
@@ -567,12 +580,29 @@ class POSService
         }
 
         // Sales Discount (Debit)
-        if ((float) $invoice->discount_amount > 0 && $discountAccount) {
+        if ((float) $invoice->discount_amount > 0) {
+            $discountAcc = $discountAccount ?? $salesAccount; // Fallback to Sales Revenue (Debit) if Discount Acc missing
+            if ($discountAcc) {
+                $lines[] = [
+                    'account_id' => $discountAcc->id,
+                    'debit' => (float) $invoice->discount_amount,
+                    'credit' => 0,
+                    'description' => 'Sales Discount - ' . $invoice->invoice_number
+                ];
+            }
+        }
+
+        // --- CHANGE / EXCESS PAYMENT (Credit to Cash) ---
+        // Fix for "Journal entry is not balanced" when paid > total
+        $totalPaid = collect($payments)->sum('amount');
+        $change = max(0, $totalPaid - $invoice->total);
+
+        if ($change > 0 && $cashAccount) {
             $lines[] = [
-                'account_id' => $discountAccount->id,
-                'debit' => (float) $invoice->discount_amount,
-                'credit' => 0,
-                'description' => 'Sales Discount - ' . $invoice->invoice_number
+                'account_id' => $cashAccount->id,
+                'debit' => 0,
+                'credit' => round($change, 2),
+                'description' => 'Change Return - ' . $invoice->invoice_number
             ];
         }
 
@@ -600,14 +630,26 @@ class POSService
             ];
         }
 
-        // Shipping Revenue (separate credit)
-        if ($deliveryFee > 0 && $shippingAccount) {
-            $lines[] = [
-                'account_id' => $shippingAccount->id,
-                'debit' => 0,
-                'credit' => round($deliveryFee, 2),
-                'description' => 'Shipping Revenue'
-            ];
+        // Shipping Revenue OR Liability (separate credit)
+        if ($deliveryFee > 0) {
+            $targetAccount = null;
+            $description = 'Shipping Revenue';
+
+            if ($accountingMode === 'liability' && $deliveryLiabilityAccount) {
+                $targetAccount = $deliveryLiabilityAccount;
+                $description = 'Delivery Fee Payable (Driver)';
+            } else {
+                $targetAccount = $shippingAccount;
+            }
+
+            if ($targetAccount) {
+                $lines[] = [
+                    'account_id' => $targetAccount->id,
+                    'debit' => 0,
+                    'credit' => round($deliveryFee, 2),
+                    'description' => $description . ' - ' . $invoice->invoice_number
+                ];
+            }
         }
 
         // --- BALANCING (Change / Overpayment) ---

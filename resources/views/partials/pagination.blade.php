@@ -1,10 +1,10 @@
 @if ($paginator->hasPages())
     <nav class="d-flex justify-content-between align-items-center w-100">
         <!-- Results Summary -->
-        <div class="text-gray-400 small">
-            عرض <span class="fw-bold text-white">{{ $paginator->firstItem() }}</span> إلى <span
-                class="fw-bold text-white">{{ $paginator->lastItem() }}</span> من أصل <span
-                class="fw-bold text-white">{{ $paginator->total() }}</span> سجل
+        <div class="text-secondary small">
+            {{ __('Showing') }} <span class="fw-bold text-body">{{ $paginator->firstItem() }}</span> {{ __('to') }} <span
+                class="fw-bold text-body">{{ $paginator->lastItem() }}</span> {{ __('of_total') }} <span
+                class="fw-bold text-body">{{ $paginator->total() }}</span> {{ __('results') }}
         </div>
 
         <!-- Pagination Links -->
@@ -12,12 +12,13 @@
             {{-- Previous Page Link --}}
             @if ($paginator->onFirstPage())
                 <li class="page-item disabled">
-                    <span class="page-link glass-page-link disabled"><i class="bi bi-chevron-right"></i></span>
+                    <span class="page-link glass-page-link disabled"><i
+                            class="bi {{ app()->getLocale() == 'ar' ? 'bi-chevron-right' : 'bi-chevron-left' }}"></i></span>
                 </li>
             @else
                 <li class="page-item">
                     <a class="page-link glass-page-link" href="{{ $paginator->previousPageUrl() }}" rel="prev"><i
-                            class="bi bi-chevron-right"></i></a>
+                            class="bi {{ app()->getLocale() == 'ar' ? 'bi-chevron-right' : 'bi-chevron-left' }}"></i></a>
                 </li>
             @endif
 
@@ -48,11 +49,12 @@
             @if ($paginator->hasMorePages())
                 <li class="page-item">
                     <a class="page-link glass-page-link" href="{{ $paginator->nextPageUrl() }}" rel="next"><i
-                            class="bi bi-chevron-left"></i></a>
+                            class="bi {{ app()->getLocale() == 'ar' ? 'bi-chevron-left' : 'bi-chevron-right' }}"></i></a>
                 </li>
             @else
                 <li class="page-item disabled">
-                    <span class="page-link glass-page-link disabled"><i class="bi bi-chevron-left"></i></span>
+                    <span class="page-link glass-page-link disabled"><i
+                            class="bi {{ app()->getLocale() == 'ar' ? 'bi-chevron-left' : 'bi-chevron-right' }}"></i></span>
                 </li>
             @endif
         </ul>
@@ -60,8 +62,8 @@
 
     <style>
         .glass-page-link {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: var(--btn-glass-bg);
+            border: 1px solid var(--btn-glass-border);
             color: #ccc;
             border-radius: 8px !important;
             padding: 0.5rem 0.8rem;
@@ -71,14 +73,14 @@
 
         .glass-page-link:hover {
             background: rgba(255, 255, 255, 0.15);
-            color: white;
+            color: var(--text-primary);
             border-color: rgba(255, 255, 255, 0.3);
             text-decoration: none;
         }
 
         .glass-page-link.active {
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
+            color: var(--text-primary);
             border: none;
             box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
         }

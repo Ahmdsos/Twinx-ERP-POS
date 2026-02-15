@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'أوامر الشراء')
+@section('title', __('Purchase Orders'))
 
 @section('content')
     <div class="container-fluid p-0">
@@ -8,10 +8,10 @@
         <div class="d-flex justify-content-between align-items-center mb-5">
             <div class="d-flex align-items-center gap-4">
                 <div class="icon-box bg-gradient-blue shadow-neon-blue">
-                    <i class="bi bi-cart3 fs-3 text-white"></i>
+                    <i class="bi bi-cart3 fs-3 text-body"></i>
                 </div>
                 <div>
-                    <h2 class="fw-bold text-white mb-1 tracking-wide">أوامر الشراء</h2>
+                    <h2 class="fw-bold text-heading mb-1 tracking-wide">{{ __('Purchase Orders') }}</h2>
                     <p class="mb-0 text-gray-400 small">إدارة طلبات الشراء من الموردين</p>
                 </div>
             </div>
@@ -23,15 +23,15 @@
         </div>
 
         <!-- Filters (Glass) -->
-        <div class="bg-slate-900 bg-opacity-50 border border-white-5 rounded-4 p-4 mb-5">
+        <div class="bg-slate-900 bg-opacity-50 border border-secondary border-opacity-10-5 rounded-4 p-4 mb-5">
             <form action="{{ route('purchase-orders.index') }}" method="GET" class="row g-3 align-items-end">
                 <div class="col-md-3">
-                    <label class="form-label text-blue-400 x-small fw-bold text-uppercase ps-1">بحث</label>
+                    <label class="form-label text-blue-400 x-small fw-bold text-uppercase ps-1">{{ __('Search') }}</label>
                     <div class="input-group">
                         <span class="input-group-text bg-dark-input border-end-0 text-gray-500"><i
                                 class="bi bi-search"></i></span>
                         <input type="text" name="search"
-                            class="form-control form-control-dark border-start-0 ps-0 text-white placeholder-gray-600 focus-ring-blue"
+                            class="form-control form-control-dark border-start-0 ps-0 text-body placeholder-gray-600 focus-ring-blue"
                             value="{{ request('search') }}" placeholder="رقم الطلب...">
                     </div>
                 </div>
@@ -39,7 +39,7 @@
                 <div class="col-md-3">
                     <label class="form-label text-blue-400 x-small fw-bold text-uppercase ps-1">المورد</label>
                     <select name="supplier_id"
-                        class="form-select form-select-dark text-white cursor-pointer hover:bg-white-5">
+                        class="form-select form-select-dark text-body cursor-pointer hover:bg-surface-5">
                         <option value="">-- الكل --</option>
                         @foreach($suppliers as $supplier)
                             <option value="{{ $supplier->id }}" {{ request('supplier_id') == $supplier->id ? 'selected' : '' }}>
@@ -50,8 +50,8 @@
                 </div>
 
                 <div class="col-md-3">
-                    <label class="form-label text-blue-400 x-small fw-bold text-uppercase ps-1">الحالة</label>
-                    <select name="status" class="form-select form-select-dark text-white cursor-pointer hover:bg-white-5">
+                    <label class="form-label text-blue-400 x-small fw-bold text-uppercase ps-1">{{ __('Status') }}</label>
+                    <select name="status" class="form-select form-select-dark text-body cursor-pointer hover:bg-surface-5">
                         <option value="">-- الكل --</option>
                         @foreach($statuses as $status)
                             <option value="{{ $status->value }}" {{ request('status') == $status->value ? 'selected' : '' }}>
@@ -63,8 +63,7 @@
 
                 <div class="col-md-3">
                     <button type="submit" class="btn btn-blue-glass w-100 fw-bold">
-                        <i class="bi bi-funnel"></i> تصفية
-                    </button>
+                        <i class="bi bi-funnel"></i>{{ __('Filter') }}</button>
                 </div>
             </form>
         </div>
@@ -79,9 +78,9 @@
                             <th>المورد</th>
                             <th>تاريخ الطلب</th>
                             <th>تاريخ التوقع</th>
-                            <th>الإجمالي</th>
-                            <th>الحالة</th>
-                            <th class="pe-4 text-end">إجراءات</th>
+                            <th>{{ __('Total') }}</th>
+                            <th>{{ __('Status') }}</th>
+                            <th class="pe-4 text-end">{{ __('Actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -89,15 +88,15 @@
                             <tr class="table-row-hover position-relative group-hover-actions">
                                 <td class="ps-4 font-monospace text-blue-300">
                                     <a href="{{ route('purchase-orders.show', $order->id) }}"
-                                        class="text-decoration-none text-blue-300 hover-text-white">
+                                        class="text-decoration-none text-blue-300 hover-text-body">
                                         {{ $order->po_number }}
                                     </a>
                                 </td>
-                                <td class="fw-bold text-white">{{ $order->supplier->name }}</td>
+                                <td class="fw-bold text-body">{{ $order->supplier->name }}</td>
                                 <td class="text-gray-400 x-small">{{ $order->order_date->format('Y-m-d') }}</td>
                                 <td class="text-gray-400 x-small">
                                     {{ $order->expected_date ? $order->expected_date->format('Y-m-d') : '-' }}</td>
-                                <td class="fw-bold text-white">{{ number_format($order->total_amount, 2) }}</td>
+                                <td class="fw-bold text-body">{{ number_format($order->total_amount, 2) }}</td>
                                 <td>
                                     @php
                                         $color = match ($order->status->value) {
@@ -115,7 +114,7 @@
                                 <td class="pe-4 text-end">
                                     <div class="d-flex justify-content-end gap-2 opacity-0 group-hover-visible transition-all">
                                         <a href="{{ route('purchase-orders.show', $order->id) }}" class="btn-icon-glass"
-                                            title="عرض">
+                                            title="{{ __('View') }}">
                                             <i class="bi bi-eye"></i>
                                         </a>
                                         @if($order->status->value == 'approved')
@@ -142,7 +141,7 @@
             </div>
 
             @if($purchaseOrders->hasPages())
-                <div class="p-4 border-top border-white-5">
+                <div class="p-4 border-top border-secondary border-opacity-10-5">
                     {{ $purchaseOrders->links() }}
                 </div>
             @endif
@@ -187,7 +186,7 @@
         .btn-action-blue {
             background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
             border: none;
-            color: white;
+            color: var(--text-primary);
             padding: 10px 24px;
             border-radius: 10px;
             transition: all 0.3s;
@@ -209,15 +208,15 @@
 
         .btn-blue-glass:hover {
             background: rgba(59, 130, 246, 0.25);
-            color: white;
+            color: var(--text-primary);
             border-color: #60a5fa;
         }
 
         .form-control-dark,
         .form-select-dark {
             background: rgba(15, 23, 42, 0.6) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            color: white !important;
+            border: 1px solid var(--btn-glass-border); !important;
+            color: var(--text-primary); !important;
         }
 
         .focus-ring-blue:focus {
@@ -227,7 +226,7 @@
 
         .bg-dark-input {
             background: rgba(15, 23, 42, 0.8) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid var(--btn-glass-border); !important;
         }
 
         .table-dark-custom {
@@ -238,7 +237,7 @@
 
         .table-dark-custom th {
             background: rgba(0, 0, 0, 0.2);
-            color: #94a3b8;
+            color: var(--text-secondary);
             font-weight: 600;
             padding: 1rem;
         }
@@ -258,14 +257,14 @@
             align-items: center;
             justify-content: center;
             border-radius: 6px;
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--btn-glass-bg);
             color: #cbd5e1;
             transition: 0.2s;
         }
 
         .btn-icon-glass:hover {
             background: rgba(255, 255, 255, 0.1);
-            color: white;
+            color: var(--text-primary);
         }
     </style>
 @endsection

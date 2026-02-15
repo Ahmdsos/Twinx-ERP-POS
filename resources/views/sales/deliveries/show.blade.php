@@ -13,18 +13,18 @@
                 </div>
                 <div>
                     <div class="d-flex align-items-center gap-3 mb-1">
-                        <h2 class="fw-bold text-white mb-0">{{ $delivery->do_number }}</h2>
-                        <span class="badge bg-gray-700 border border-white/20 fs-6 px-3 py-2 rounded-pill shadow-sm">
+                        <h2 class="fw-bold text-heading mb-0">{{ $delivery->do_number }}</h2>
+                        <span class="badge bg-gray-700 border border-secondary border-opacity-10/20 fs-6 px-3 py-2 rounded-pill shadow-sm">
                             {{ $delivery->status->label() }}
                         </span>
                     </div>
                     <div class="d-flex gap-3 text-gray-400 small">
                         <span><i class="bi bi-calendar me-1"></i> التاريخ: <span
-                                class="text-white">{{ $delivery->delivery_date->format('Y-m-d') }}</span></span>
+                                class="text-body">{{ $delivery->delivery_date->format('Y-m-d') }}</span></span>
                         @if($delivery->salesOrder)
                             <span><i class="bi bi-link-45deg me-1"></i> أمر البيع:
                                 <a href="{{ route('sales-orders.show', $delivery->salesOrder->id) }}"
-                                    class="text-info text-decoration-none hover:text-white transition-colors fw-bold">
+                                    class="text-info text-decoration-none hover:text-body transition-colors fw-bold">
                                     {{ $delivery->salesOrder->so_number }}
                                 </a>
                             </span>
@@ -63,31 +63,31 @@
             <!-- Main Content -->
             <div class="col-lg-8">
                 <!-- Items Table -->
-                <div class="glass-panel p-0 rounded-4 overflow-hidden border border-white/10 shadow-lg mb-4">
-                    <div class="bg-white/5 p-4 border-bottom border-white/10 d-flex justify-content-between">
-                        <h5 class="fw-bold text-white mb-0"><i class="bi bi-list-check me-2 text-info"></i> المواد المصروفة
+                <div class="glass-panel p-0 rounded-4 overflow-hidden border border-secondary border-opacity-10/10 shadow-lg mb-4">
+                    <div class="bg-surface/5 p-4 border-bottom border-secondary border-opacity-10/10 d-flex justify-content-between">
+                        <h5 class="fw-bold text-heading mb-0"><i class="bi bi-list-check me-2 text-info"></i> المواد المصروفة
                         </h5>
-                        <span class="badge bg-white/10 text-gray-300">{{ $delivery->warehouse->name }}</span>
+                        <span class="badge bg-surface/10 text-gray-300">{{ $delivery->warehouse->name }}</span>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-borderless align-middle mb-0">
                             <thead class="bg-gray-900/50 text-gray-400 text-uppercase small">
                                 <tr>
-                                    <th class="ps-4 py-3">المنتج</th>
+                                    <th class="ps-4 py-3">{{ __('Product') }}</th>
                                     <th class="text-center py-3">الكمية المصروفة</th>
-                                    <th class="text-center py-3">الوحدة</th>
+                                    <th class="text-center py-3">{{ __('Unit') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($delivery->lines as $line)
-                                    <tr class="hover:bg-white/5 border-bottom border-white/5">
+                                    <tr class="hover:bg-surface/5 border-bottom border-secondary border-opacity-10/5">
                                         <td class="ps-4 py-3">
-                                            <div class="fw-bold text-white">{{ $line->product->name }}</div>
+                                            <div class="fw-bold text-body">{{ $line->product->name }}</div>
                                             <small class="text-gray-500">{{ $line->product->code ?? '-' }}</small>
                                         </td>
                                         <td class="text-center py-3">
                                             <span
-                                                class="badge bg-white/10 text-white border border-white/10 rounded-pill px-4 py-2 fs-6">
+                                                class="badge bg-surface/10 text-body border border-secondary border-opacity-10/10 rounded-pill px-4 py-2 fs-6">
                                                 {{ $line->quantity + 0 }}
                                             </span>
                                         </td>
@@ -100,25 +100,25 @@
                 </div>
 
                 <!-- Shipping Info -->
-                <div class="glass-panel p-4 rounded-4 border border-white/10 shadow-lg mb-4">
-                    <h5 class="fw-bold text-white mb-4 border-bottom border-white/10 pb-3"><i
+                <div class="glass-panel p-4 rounded-4 border border-secondary border-opacity-10/10 shadow-lg mb-4">
+                    <h5 class="fw-bold text-heading mb-4 border-bottom border-secondary border-opacity-10/10 pb-3"><i
                             class="bi bi-truck me-2 text-warning"></i> بيانات الشحن</h5>
                     <div class="row g-4">
                         <div class="col-md-6">
                             <label class="text-gray-500 small d-block mb-1">طريقة الشحن</label>
-                            <div class="text-white">{{ $delivery->shipping_method ?? 'غير محدد' }}</div>
+                            <div class="text-body">{{ $delivery->shipping_method ?? 'غير محدد' }}</div>
                         </div>
                         <div class="col-md-6">
-                            <label class="text-gray-500 small d-block mb-1">العنوان</label>
-                            <div class="text-white">{{ $delivery->shipping_address ?? '-' }}</div>
+                            <label class="text-gray-500 small d-block mb-1">{{ __('Address') }}</label>
+                            <div class="text-body">{{ $delivery->shipping_address ?? '-' }}</div>
                         </div>
                         <div class="col-md-4">
                             <label class="text-gray-500 small d-block mb-1">اسم السائق</label>
-                            <div class="text-white">{{ $delivery->driver_name ?? '-' }}</div>
+                            <div class="text-body">{{ $delivery->driver_name ?? '-' }}</div>
                         </div>
                         <div class="col-md-4">
                             <label class="text-gray-500 small d-block mb-1">رقم المركبة</label>
-                            <div class="text-white">{{ $delivery->vehicle_number ?? '-' }}</div>
+                            <div class="text-body">{{ $delivery->vehicle_number ?? '-' }}</div>
                         </div>
                         <div class="col-md-4">
                             <label class="text-gray-500 small d-block mb-1">رقم التتبع</label>
@@ -128,10 +128,9 @@
                 </div>
 
                 @if($delivery->notes)
-                    <div class="glass-panel p-4 rounded-4 border border-white/10 shadow-lg">
-                        <h6 class="text-gray-400 fw-bold mb-2 small text-uppercase"><i class="bi bi-sticky me-2"></i> ملاحظات
-                        </h6>
-                        <p class="text-white mb-0 opacity-75">{{ $delivery->notes }}</p>
+                    <div class="glass-panel p-4 rounded-4 border border-secondary border-opacity-10/10 shadow-lg">
+                        <h6 class="text-gray-400 fw-bold mb-2 small text-uppercase"><i class="bi bi-sticky me-2"></i>{{ __('Notes') }}</h6>
+                        <p class="text-body mb-0 opacity-75">{{ $delivery->notes }}</p>
                     </div>
                 @endif
             </div>
@@ -139,38 +138,38 @@
             <!-- Sidebar -->
             <div class="col-lg-4">
                 <!-- Customer Card -->
-                <div class="glass-panel p-4 rounded-4 border border-white/10 shadow-lg mb-4">
-                    <h5 class="fw-bold text-white mb-4 border-bottom border-white/10 pb-3">العميل</h5>
+                <div class="glass-panel p-4 rounded-4 border border-secondary border-opacity-10/10 shadow-lg mb-4">
+                    <h5 class="fw-bold text-heading mb-4 border-bottom border-secondary border-opacity-10/10 pb-3">{{ __('Customer') }}</h5>
                     <div class="d-flex align-items-center gap-3 mb-3">
                         <div class="avatar-circle bg-gradient-to-br from-gray-700 to-gray-800 text-white rounded-circle d-flex align-items-center justify-content-center shadow-lg"
                             style="width: 50px; height: 50px;">
                             <span class="fs-5 fw-bold">{{ substr($delivery->customer->name, 0, 1) }}</span>
                         </div>
                         <div>
-                            <h5 class="fw-bold text-white mb-0">{{ $delivery->customer->name }}</h5>
+                            <h5 class="fw-bold text-heading mb-0">{{ $delivery->customer->name }}</h5>
                             <small class="text-gray-400">{{ $delivery->customer->phone ?? 'لا يوجد هاتف' }}</small>
                         </div>
                     </div>
-                    <div class="text-gray-300 small bg-white/5 p-3 rounded">
+                    <div class="text-gray-300 small bg-surface/5 p-3 rounded">
                         {{ $delivery->customer->address ?? 'لا يوجد عنوان مسجل' }}
                     </div>
                 </div>
 
                 <!-- Meta Info -->
-                <div class="glass-panel p-4 rounded-4 border border-white/10 shadow-lg">
-                    <h5 class="fw-bold text-white mb-4 border-bottom border-white/10 pb-3">سجل الحركة</h5>
+                <div class="glass-panel p-4 rounded-4 border border-secondary border-opacity-10/10 shadow-lg">
+                    <h5 class="fw-bold text-heading mb-4 border-bottom border-secondary border-opacity-10/10 pb-3">سجل الحركة</h5>
                     <ul class="timeline-list list-unstyled m-0 p-0">
-                        <li class="position-relative pb-4 ps-4 border-start border-white/10">
+                        <li class="position-relative pb-4 ps-4 border-start border-secondary border-opacity-10/10">
                             <div class="position-absolute top-0 start-0 translate-middle bg-primary rounded-circle"
                                 style="width: 10px; height: 10px;"></div>
-                            <div class="fw-bold text-white">تم الإنشاء</div>
+                            <div class="fw-bold text-body">تم الإنشاء</div>
                             <div class="small text-gray-500">{{ $delivery->created_at->format('Y-m-d H:i') }}</div>
                         </li>
                         @if($delivery->shipped_date)
-                            <li class="position-relative pb-4 ps-4 border-start border-white/10">
+                            <li class="position-relative pb-4 ps-4 border-start border-secondary border-opacity-10/10">
                                 <div class="position-absolute top-0 start-0 translate-middle bg-warning rounded-circle"
                                     style="width: 10px; height: 10px;"></div>
-                                <div class="fw-bold text-white">تم الشحن</div>
+                                <div class="fw-bold text-body">{{ __('Shipped') }}</div>
                                 <div class="small text-gray-500">{{ $delivery->shipped_date->format('Y-m-d H:i') }}</div>
                             </li>
                         @endif
@@ -178,8 +177,8 @@
                             <li class="position-relative ps-4">
                                 <div class="position-absolute top-0 start-0 translate-middle bg-success rounded-circle"
                                     style="width: 10px; height: 10px;"></div>
-                                <div class="fw-bold text-white">تم التسليم</div>
-                                <div class="small text-gray-500">مكتمل</div>
+                                <div class="fw-bold text-body">تم التسليم</div>
+                                <div class="small text-gray-500">{{ __('Completed') }}</div>
                             </li>
                         @endif
                     </ul>
@@ -191,8 +190,8 @@
     <!-- Ship Modal -->
     <div class="modal fade" id="shipModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content bg-slate-900 border border-white/10 text-white shadow-2xl">
-                <div class="modal-header border-white/10">
+            <div class="modal-content bg-slate-900 border border-secondary border-opacity-10/10 text-body shadow-2xl">
+                <div class="modal-header border-secondary border-opacity-10/10">
                     <h5 class="modal-title fw-bold">تحديث بيانات الشحن</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
@@ -215,8 +214,8 @@
                                 value="{{ $delivery->tracking_number }}">
                         </div>
                     </div>
-                    <div class="modal-footer border-white/10">
-                        <button type="button" class="btn btn-glass-outline" data-bs-dismiss="modal">إلغاء</button>
+                    <div class="modal-footer border-secondary border-opacity-10/10">
+                        <button type="button" class="btn btn-glass-outline" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
                         <button type="submit" class="btn btn-success fw-bold px-4">تأكيد الشحن</button>
                     </div>
                 </form>
@@ -226,7 +225,7 @@
 
     <style>
         .glass-panel {
-            background: rgba(30, 41, 59, 0.7);
+            background: var(--glass-bg);
             backdrop-filter: blur(20px);
         }
 
@@ -239,9 +238,9 @@
         }
 
         .btn-glass-outline {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
+            background: var(--btn-glass-bg);
+            border: 1px solid var(--btn-glass-border);
+            color: var(--text-primary);
         }
 
         .btn-glass-outline:hover {
@@ -250,8 +249,8 @@
 
         .glass-input {
             background: rgba(15, 23, 42, 0.6) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            color: white !important;
+            border: 1px solid var(--btn-glass-border); !important;
+            color: var(--text-primary); !important;
         }
 
         .glass-input:focus {

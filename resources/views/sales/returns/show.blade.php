@@ -6,10 +6,10 @@
     <div class="row mb-4">
         <div class="col-12 d-flex justify-content-between align-items-center">
             <div>
-                <h4 class="fw-bold text-white mb-1">
+                <h4 class="fw-bold text-heading mb-1">
                     مرتجع مبيعات <span class="text-info font-monospace">#{{ $salesReturn->return_number }}</span>
                 </h4>
-                <div class="text-white-50 small">
+                <div class="text-muted small">
                     <i class="bi bi-calendar-event me-1"></i> {{ $salesReturn->return_date->format('Y-m-d') }}
                     <span class="mx-2">|</span>
                     <i class="bi bi-person me-1"></i> {{ $salesReturn->customer->name }}
@@ -18,8 +18,7 @@
             <div class="d-flex gap-2">
                 <a href="{{ route('sales-returns.index') }}" class="btn btn-glass-outline">عودة للقائمة</a>
                 <button onclick="window.print()" class="btn btn-glass-outline">
-                    <i class="bi bi-printer me-2"></i> طباعة
-                </button>
+                    <i class="bi bi-printer me-2"></i>{{ __('Print') }}</button>
             </div>
         </div>
     </div>
@@ -29,8 +28,8 @@
         <div class="col-md-8">
             <div class="glass-card p-4 h-100">
                 <div
-                    class="d-flex justify-content-between align-items-center mb-4 border-bottom border-white border-opacity-10 pb-3">
-                    <h5 class="text-white mb-0">الأصناف المرتجعة</h5>
+                    class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary border-opacity-10 border-opacity-10 pb-3">
+                    <h5 class="text-heading mb-0">الأصناف المرتجعة</h5>
                     <span
                         class="badge bg-{{ $salesReturn->status->color() }} bg-opacity-20 text-{{ $salesReturn->status->color() }} px-3 py-2 rounded-pill border border-{{ $salesReturn->status->color() }} border-opacity-20">
                         {{ $salesReturn->status->label() }}
@@ -38,22 +37,22 @@
                 </div>
 
                 <div class="table-responsive">
-                    <table class="table table-borderless align-middle text-white mb-0">
-                        <thead class="text-white-50 small border-bottom border-white border-opacity-10">
+                    <table class="table table-borderless align-middle text-body mb-0">
+                        <thead class="text-secondary-50 small border-bottom border-secondary border-opacity-10 border-opacity-10">
                             <tr>
-                                <th class="py-3">المنتج</th>
-                                <th class="py-3 text-center">الحالة</th>
-                                <th class="py-3 text-center">الكمية</th>
-                                <th class="py-3 text-end">سعر الوحدة</th>
-                                <th class="py-3 text-end">الإجمالي</th>
+                                <th class="py-3">{{ __('Product') }}</th>
+                                <th class="py-3 text-center">{{ __('Status') }}</th>
+                                <th class="py-3 text-center">{{ __('Quantity') }}</th>
+                                <th class="py-3 text-end">{{ __('Unit Price') }}</th>
+                                <th class="py-3 text-end">{{ __('Total') }}</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($salesReturn->lines as $line)
-                                <tr class="border-bottom border-white border-opacity-5">
+                                <tr class="border-bottom border-secondary border-opacity-10 border-opacity-5">
                                     <td class="py-3">
                                         <div class="fw-bold">{{ $line->product->name }}</div>
-                                        <div class="small text-white-50 font-monospace">{{ $line->product->code }}</div>
+                                        <div class="small text-muted font-monospace">{{ $line->product->code }}</div>
                                     </td>
                                     <td class="text-center">
                                         @if($line->item_condition == 'resalable')
@@ -70,20 +69,20 @@
                                 </tr>
                             @endforeach
                         </tbody>
-                        <tfoot class="border-top border-white border-opacity-10 bg-white bg-opacity-5">
+                        <tfoot class="border-top border-secondary border-opacity-10 border-opacity-10 bg-surface bg-opacity-5">
                             <tr>
-                                <td colspan="4" class="text-end py-3 text-white-50">الإجمالي (قبل الضريبة)</td>
+                                <td colspan="4" class="text-end py-3 text-muted">الإجمالي (قبل الضريبة)</td>
                                 <td class="text-end py-3 font-monospace">{{ number_format($salesReturn->subtotal, 2) }}</td>
                             </tr>
                             @if($salesReturn->tax_amount > 0)
                                 <tr>
-                                    <td colspan="4" class="text-end py-2 text-white-50">الضريبة</td>
+                                    <td colspan="4" class="text-end py-2 text-muted">{{ __('Tax') }}</td>
                                     <td class="text-end py-2 font-monospace">{{ number_format($salesReturn->tax_amount, 2) }}
                                     </td>
                                 </tr>
                             @endif
                             <tr>
-                                <td colspan="4" class="text-end py-3 fw-bold text-white fs-5">الإجمالي الكلي</td>
+                                <td colspan="4" class="text-end py-3 fw-bold text-body fs-5">{{ __('Grand Total') }}</td>
                                 <td class="text-end py-3 fw-bold text-info fs-5 font-monospace">
                                     {{ number_format($salesReturn->total_amount, 2) }}
                                 </td>
@@ -93,9 +92,9 @@
                 </div>
 
                 @if($salesReturn->notes)
-                    <div class="mt-4 pt-3 border-top border-white border-opacity-10">
-                        <label class="text-white-50 small mb-2">ملاحظات:</label>
-                        <p class="text-white bg-white bg-opacity-5 p-3 rounded-3 mb-0">{{ $salesReturn->notes }}</p>
+                    <div class="mt-4 pt-3 border-top border-secondary border-opacity-10 border-opacity-10">
+                        <label class="text-muted small mb-2">ملاحظات:</label>
+                        <p class="text-body bg-surface bg-opacity-5 p-3 rounded-3 mb-0">{{ $salesReturn->notes }}</p>
                     </div>
                 @endif
             </div>
@@ -104,16 +103,16 @@
         <!-- Info Sidebar -->
         <div class="col-md-4">
             <div class="glass-card p-4 mb-4">
-                <h6 class="text-white-50 border-bottom border-white border-opacity-10 pb-2 mb-3">معلومات إضافية</h6>
+                <h6 class="text-heading-50 border-bottom border-secondary border-opacity-10 border-opacity-10 pb-2 mb-3">معلومات إضافية</h6>
 
                 <div class="d-flex justify-content-between mb-3">
                     <span class="text-gray-400">المخزن المستلم</span>
-                    <span class="text-white fw-medium">{{ $salesReturn->warehouse->name }}</span>
+                    <span class="text-body fw-medium">{{ $salesReturn->warehouse->name }}</span>
                 </div>
 
                 <div class="d-flex justify-content-between mb-3">
-                    <span class="text-gray-400">تاريخ الإنشاء</span>
-                    <span class="text-white">{{ $salesReturn->created_at->format('Y-m-d h:i A') }}</span>
+                    <span class="text-gray-400">{{ __('Created At') }}</span>
+                    <span class="text-body">{{ $salesReturn->created_at->format('Y-m-d h:i A') }}</span>
                 </div>
 
                 @if($salesReturn->salesInvoice)
@@ -129,8 +128,8 @@
 
             @if($salesReturn->status === \Modules\Sales\Enums\SalesReturnStatus::DRAFT)
                 <div class="glass-card p-4 text-center">
-                    <h6 class="text-white mb-3">إجراءات الاعتماد</h6>
-                    <p class="text-white-50 small mb-4">يمكنك اعتماد المرتجع ليتم التأثير على المخزون والحسابات.</p>
+                    <h6 class="text-heading mb-3">إجراءات الاعتماد</h6>
+                    <p class="text-body-50 small mb-4">يمكنك اعتماد المرتجع ليتم التأثير على المخزون والحسابات.</p>
 
                     <div class="d-grid gap-2">
                         <form action="{{ route('sales-returns.approve', $salesReturn) }}" method="POST"
@@ -148,17 +147,12 @@
     </div>
 
     <style>
-        .glass-card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
-        }
+        
 
         .btn-glass-outline {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--btn-glass-bg);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
+            color: var(--text-primary);
         }
 
         .text-gray-300 {
@@ -166,7 +160,7 @@
         }
 
         .text-gray-400 {
-            color: #94a3b8;
+            color: var(--text-secondary);
         }
     </style>
 @endsection

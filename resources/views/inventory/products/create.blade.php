@@ -14,8 +14,8 @@
                         <i class="bi bi-arrow-right"></i>
                     </a>
                     <div>
-                        <h3 class="fw-bold text-white mb-0 tracking-wide">إضافة منتج جديد</h3>
-                        <p class="text-gray-400 mb-0 small">أدخل تفاصيل المنتج لإضافته للمخزون</p>
+                        <h3 class="fw-bold text-heading mb-0 tracking-wide">إضافة منتج جديد</h3>
+                        <p class="text-secondary mb-0 small">أدخل تفاصيل المنتج لإضافته للمخزون</p>
                     </div>
                 </div>
 

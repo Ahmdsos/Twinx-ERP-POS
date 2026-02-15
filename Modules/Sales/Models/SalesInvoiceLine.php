@@ -12,6 +12,7 @@ use Modules\Accounting\Models\Account;
  */
 class SalesInvoiceLine extends Model
 {
+    use \Modules\Core\Traits\HasTaxCalculations;
     protected $fillable = [
         'sales_invoice_id',
         'product_id',
@@ -84,17 +85,14 @@ class SalesInvoiceLine extends Model
 
     public function calculateTotals(): void
     {
-        $subtotal = $this->quantity * $this->unit_price;
+        $calc = $this->calculateLineFromNet(
+            (float) $this->quantity,
+            (float) $this->unit_price,
+            (float) ($this->discount_amount ?? 0),
+            $this->tax_percent
+        );
 
-        if ($this->discount_percent > 0) {
-            $this->discount_amount = $subtotal * ($this->discount_percent / 100);
-        }
-        $afterDiscount = $subtotal - $this->discount_amount;
-
-        if ($this->tax_percent > 0) {
-            $this->tax_amount = $afterDiscount * ($this->tax_percent / 100);
-        }
-
-        $this->line_total = $afterDiscount + $this->tax_amount;
+        $this->tax_amount = $calc['tax_amount'];
+        $this->line_total = $calc['line_total'];
     }
 }

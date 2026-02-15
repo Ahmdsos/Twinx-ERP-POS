@@ -10,7 +10,7 @@
                 <a href="{{ route('grns.index') }}" class="btn btn-outline-light btn-sm rounded-circle shadow-sm"
                     style="width: 32px; height: 32px;"><i class="bi bi-arrow-right"></i></a>
                 <div>
-                    <h2 class="fw-bold text-white mb-0">استلام بضاعة (GRN)</h2>
+                    <h2 class="fw-bold text-heading mb-0">استلام بضاعة (GRN)</h2>
                     <p class="text-gray-400 mb-0 x-small">استلام منتجات من أمر شراء معتمد</p>
                 </div>
             </div>
@@ -41,7 +41,7 @@
 
                     @if($purchaseOrder)
                         <div class="glass-panel p-4">
-                            <h6 class="text-white fw-bold mb-3 border-bottom border-white-5 pb-2">بيانات الاستلام</h6>
+                            <h6 class="text-heading fw-bold mb-3 border-bottom border-secondary border-opacity-10-5 pb-2">بيانات الاستلام</h6>
 
                             <div class="mb-3">
                                 <label class="form-label text-gray-400 x-small fw-bold">المخزن المستلم <span
@@ -70,7 +70,7 @@
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label text-gray-400 x-small fw-bold">ملاحظات</label>
+                                <label class="form-label text-gray-400 x-small fw-bold">{{ __('Notes') }}</label>
                                 <textarea name="notes" class="form-control form-control-dark focus-ring-green"
                                     rows="3"></textarea>
                             </div>
@@ -82,15 +82,15 @@
                 <div class="col-md-8">
                     @if($purchaseOrder)
                         <div class="glass-panel p-4 h-100">
-                            <h5 class="text-white fw-bold mb-4"><i class="bi bi-list-check me-2"></i>قائمة المراجعة والاستلام
+                            <h5 class="text-heading fw-bold mb-4"><i class="bi bi-list-check me-2"></i>قائمة المراجعة والاستلام
                             </h5>
 
                             <div class="table-responsive">
                                 <table class="table table-dark-custom align-middle">
                                     <thead>
                                         <tr>
-                                            <th>المنتج</th>
-                                            <th class="text-center">الوحدة</th>
+                                            <th>{{ __('Product') }}</th>
+                                            <th class="text-center">{{ __('Unit') }}</th>
                                             <th class="text-center">المطلوب</th>
                                             <th class="text-center" style="width: 150px;">المستلم (الآن)</th>
                                             <th class="text-center">حالة الصنف</th>
@@ -100,7 +100,7 @@
                                         @foreach($purchaseOrder->lines as $index => $line)
                                             <tr>
                                                 <td>
-                                                    <h6 class="text-white mb-0">{{ $line->product->name }}</h6>
+                                                    <h6 class="text-heading mb-0">{{ $line->product->name }}</h6>
                                                     <input type="hidden" name="lines[{{ $index }}][purchase_order_line_id]"
                                                         value="{{ $line->id }}">
                                                 </td>
@@ -137,7 +137,7 @@
         .btn-action-green {
             background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
             border: none;
-            color: white;
+            color: var(--text-primary);
             padding: 10px 24px;
             border-radius: 10px;
         }
@@ -145,8 +145,8 @@
         .form-control-dark,
         .form-select-dark {
             background: rgba(15, 23, 42, 0.6) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            color: white !important;
+            border: 1px solid var(--btn-glass-border); !important;
+            color: var(--text-primary); !important;
         }
 
         .focus-ring-green:focus {

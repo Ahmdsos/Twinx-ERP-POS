@@ -8,7 +8,7 @@
         <!-- Header & Action -->
         <div class="row g-4 mb-4 align-items-center">
             <div class="col-md-6 text-start">
-                <h2 class="text-white fw-black mb-0">إدارة <span class="text-primary">الرواتب</span></h2>
+                <h2 class="text-heading fw-black mb-0">إدارة <span class="text-primary">الرواتب</span></h2>
                 <p class="text-secondary small mt-2 opacity-75">توليد المسيرات الشهرية، مراجعة الاستحقاقات، والترحيل
                     للحسابات العامة.</p>
             </div>
@@ -24,11 +24,11 @@
         </div>
 
         <!-- Payroll Table -->
-        <div class="glass-card rounded-4 border-white border-opacity-10 overflow-hidden shadow-lg bg-dark bg-opacity-40">
+        <div class="glass-card rounded-4 border-secondary border-opacity-10 border-opacity-10 overflow-hidden shadow-lg bg-surface-secondary bg-opacity-40">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0 text-white text-start">
+                <table class="table table-hover align-middle mb-0 text-heading text-start">
                     <thead>
-                        <tr class="bg-white bg-opacity-5 border-bottom border-white border-opacity-10">
+                        <tr class="bg-white bg-opacity-5 border-bottom border-secondary border-opacity-10 border-opacity-10">
                             <th class="ps-4 py-3 border-0 text-secondary x-small fw-black text-uppercase">الشهر / السنة</th>
                             <th class="py-3 border-0 text-secondary x-small fw-black text-uppercase text-center">إجمالي
                                 الرواتب</th>
@@ -45,7 +45,7 @@
                     </thead>
                     <tbody>
                         @forelse($payrolls as $payroll)
-                            <tr class="border-bottom border-white border-opacity-5">
+                            <tr class="border-bottom border-secondary border-opacity-10 border-opacity-5">
                                 <td class="ps-4 py-3">
                                     <div class="d-flex align-items-center gap-3">
                                         <div class="p-2 bg-primary bg-opacity-10 rounded-2 text-primary">
@@ -76,7 +76,7 @@
                                 </td>
                                 <td class="pe-4 py-3 text-end">
                                     <a href="{{ route('hr.payroll.show', $payroll->id) }}"
-                                        class="btn btn-icon-box bg-white bg-opacity-10 text-white rounded-3 shadow-none">
+                                        class="btn btn-icon-box bg-white bg-opacity-10 text-body rounded-3 shadow-none">
                                         <i class="bi bi-eye-fill"></i>
                                     </a>
                                 </td>
@@ -98,9 +98,9 @@
     <!-- Generate Payroll Modal -->
     <div class="modal fade" id="generatePayrollModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content glass-card border-white border-opacity-10 rounded-4 shadow-lg bg-dark">
-                <div class="modal-header border-bottom border-white border-opacity-5 p-4">
-                    <h5 class="modal-title text-white fw-bold">توليد كشف رواتب جديد</h5>
+            <div class="modal-content glass-card border-secondary border-opacity-10 border-opacity-10 rounded-4 shadow-lg bg-surface-secondary">
+                <div class="modal-header border-bottom border-secondary border-opacity-10 border-opacity-5 p-4">
+                    <h5 class="modal-title text-heading fw-bold">توليد كشف رواتب جديد</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <form action="{{ route('hr.payroll.generate') }}" method="POST">
@@ -112,10 +112,10 @@
                             <div class="col-md-6">
                                 <label class="form-label text-secondary small fw-bold">الشهر</label>
                                 <select name="month"
-                                    class="form-select bg-white bg-opacity-5 border-white border-opacity-10 text-white shadow-none"
+                                    class="form-select bg-white bg-opacity-5 border-secondary border-opacity-10 border-opacity-10 text-body shadow-none"
                                     required>
                                     @for($m = 1; $m <= 12; $m++)
-                                        <option value="{{ $m }}" class="bg-dark" {{ date('n') == $m ? 'selected' : '' }}>
+                                        <option value="{{ $m }}" class="bg-surface-secondary" {{ date('n') == $m ? 'selected' : '' }}>
                                             {{ \Carbon\Carbon::create()->month($m)->translatedFormat('F') }}</option>
                                     @endfor
                                 </select>
@@ -123,16 +123,16 @@
                             <div class="col-md-6">
                                 <label class="form-label text-secondary small fw-bold">السنة</label>
                                 <select name="year"
-                                    class="form-select bg-white bg-opacity-5 border-white border-opacity-10 text-white shadow-none"
+                                    class="form-select bg-white bg-opacity-5 border-secondary border-opacity-10 border-opacity-10 text-body shadow-none"
                                     required>
                                     @for($y = date('Y'); $y >= 2023; $y--)
-                                        <option value="{{ $y }}" class="bg-dark">{{ $y }}</option>
+                                        <option value="{{ $y }}" class="bg-surface-secondary">{{ $y }}</option>
                                     @endfor
                                 </select>
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer border-top border-white border-opacity-5 p-4">
+                    <div class="modal-footer border-top border-secondary border-opacity-10 border-opacity-5 p-4">
                         <button type="button" class="btn btn-link text-secondary text-decoration-none fw-bold"
                             data-bs-dismiss="modal">إلغاء</button>
                         <button type="submit" class="btn btn-primary px-5 rounded-pill fw-black shadow-lg border-0">ابدأ

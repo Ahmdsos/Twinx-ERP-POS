@@ -14,17 +14,17 @@
                 </div>
                 <div>
                     <div class="d-flex align-items-center gap-3 mb-1">
-                        <h2 class="fw-bold text-white mb-0">{{ $quotation->quotation_number }}</h2>
+                        <h2 class="fw-bold text-heading mb-0">{{ $quotation->quotation_number }}</h2>
                         <span
-                            class="badge {{ $quotation->status->badgeClass() }} border border-white/20 fs-6 px-3 py-2 rounded-pill shadow-sm">
+                            class="badge {{ $quotation->status->badgeClass() }} border border-secondary border-opacity-10/20 fs-6 px-3 py-2 rounded-pill shadow-sm">
                             {{ $quotation->status->label() }}
                         </span>
                     </div>
                     <div class="d-flex gap-3 text-gray-400 small">
                         <span><i class="bi bi-calendar me-1"></i> تاريخ الإصدار: <span
-                                class="text-white">{{ $quotation->quotation_date->format('Y-m-d') }}</span></span>
+                                class="text-body">{{ $quotation->quotation_date->format('Y-m-d') }}</span></span>
                         <span class="text-warning"><i class="bi bi-hourglass-split me-1"></i> صالح حتى: <span
-                                class="text-white fw-bold">{{ $quotation->valid_until ? $quotation->valid_until->format('Y-m-d') : 'غير محدد' }}</span></span>
+                                class="text-body fw-bold">{{ $quotation->valid_until ? $quotation->valid_until->format('Y-m-d') : 'غير محدد' }}</span></span>
                     </div>
                 </div>
             </div>
@@ -38,9 +38,8 @@
                     {{-- Edit (if editable) --}}
                     @if($quotation->status->canEdit())
                         <a href="{{ route('quotations.edit', $quotation->id) }}"
-                            class="btn btn-dark border-start border-white/10 text-warning hover-bg-warning-dark">
-                            <i class="bi bi-pencil-fill me-2"></i> تعديل
-                        </a>
+                            class="btn btn-dark border-start border-secondary border-opacity-10/10 text-warning hover-bg-warning-dark">
+                            <i class="bi bi-pencil-fill me-2"></i>{{ __('Edit') }}</a>
                     @endif
 
                     {{-- Send (if Draft) --}}
@@ -48,9 +47,8 @@
                         <form action="{{ route('quotations.send', $quotation->id) }}" method="POST" class="d-inline">
                             @csrf
                             <button type="submit"
-                                class="btn btn-dark border-start border-white/10 text-primary hover-bg-primary-dark">
-                                <i class="bi bi-send-fill me-2"></i> إرسال
-                            </button>
+                                class="btn btn-dark border-start border-secondary border-opacity-10/10 text-primary hover-bg-primary-dark">
+                                <i class="bi bi-send-fill me-2"></i>{{ __('Submit') }}</button>
                         </form>
                     @endif
 
@@ -59,7 +57,7 @@
                         <form action="{{ route('quotations.accept', $quotation->id) }}" method="POST" class="d-inline">
                             @csrf
                             <button type="submit"
-                                class="btn btn-dark border-start border-white/10 text-success hover-bg-success-dark">
+                                class="btn btn-dark border-start border-secondary border-opacity-10/10 text-success hover-bg-success-dark">
                                 <i class="bi bi-check-lg me-2"></i> قبول
                             </button>
                         </form>
@@ -67,9 +65,8 @@
 
                     {{-- Print --}}
                     <a href="{{ route('quotations.print', $quotation->id) }}" target="_blank"
-                        class="btn btn-dark border-start border-white/10 text-info hover-bg-info-dark">
-                        <i class="bi bi-printer-fill me-2"></i> طباعة
-                    </a>
+                        class="btn btn-dark border-start border-secondary border-opacity-10/10 text-info hover-bg-info-dark">
+                        <i class="bi bi-printer-fill me-2"></i>{{ __('Print') }}</a>
 
                     {{-- Convert to Order (if Accepted) --}}
                     @if($quotation->status === \Modules\Sales\Enums\QuotationStatus::ACCEPTED)
@@ -94,9 +91,8 @@
                 <div class="dropdown">
                     <button class="btn btn-glass-outline rounded-pill dropdown-toggle" type="button"
                         data-bs-toggle="dropdown">
-                        <i class="bi bi-gear-fill me-2"></i> إجراءات
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-dark shadow-2xl border border-white/10">
+                        <i class="bi bi-gear-fill me-2"></i>{{ __('Actions') }}</button>
+                    <ul class="dropdown-menu dropdown-menu-dark shadow-2xl border border-secondary border-opacity-10/10">
                         @if(in_array($quotation->status, [\Modules\Sales\Enums\QuotationStatus::DRAFT, \Modules\Sales\Enums\QuotationStatus::SENT, \Modules\Sales\Enums\QuotationStatus::ACCEPTED]))
                             <li>
                                 <form action="{{ route('quotations.reject', $quotation->id) }}" method="POST"
@@ -118,14 +114,14 @@
                             </li>
                         @endif
                         <li>
-                            <hr class="dropdown-divider border-white/10">
+                            <hr class="dropdown-divider border-secondary border-opacity-10/10">
                         </li>
                         <li>
                             <form action="{{ route('quotations.destroy', $quotation->id) }}" method="POST"
                                 data-confirm="تحذير: هذا الإجراء سيقوم بحذف العرض نهائياً من قاعدة البيانات. هل أنت متأكد؟"
                                 data-confirm-title="حذف عرض السعر">
                                 @csrf @method('DELETE')
-                                <button class="dropdown-item text-danger"><i class="bi bi-trash me-2"></i> حذف</button>
+                                <button class="dropdown-item text-danger"><i class="bi bi-trash me-2"></i>{{ __('Delete') }}</button>
                             </form>
                         </li>
                     </ul>
@@ -137,38 +133,38 @@
             <!-- Main Content -->
             <div class="col-lg-8">
                 <!-- Items Table -->
-                <div class="glass-panel p-0 rounded-4 overflow-hidden border border-white/10 shadow-lg mb-4">
-                    <div class="bg-white/5 p-4 border-bottom border-white/10">
-                        <h5 class="fw-bold text-white mb-0"><i class="bi bi-list-check me-2 text-info"></i> تفاصيل العرض
+                <div class="glass-panel p-0 rounded-4 overflow-hidden border border-secondary border-opacity-10/10 shadow-lg mb-4">
+                    <div class="bg-surface/5 p-4 border-bottom border-secondary border-opacity-10/10">
+                        <h5 class="fw-bold text-heading mb-0"><i class="bi bi-list-check me-2 text-info"></i> تفاصيل العرض
                         </h5>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-borderless align-middle mb-0">
                             <thead class="bg-gray-900/50 text-gray-400 text-uppercase small">
                                 <tr>
-                                    <th class="ps-4 py-3">المنتج</th>
-                                    <th class="text-center py-3">الكمية</th>
-                                    <th class="text-center py-3">السعر</th>
-                                    <th class="text-center py-3">الخصم</th>
-                                    <th class="text-end pe-4 py-3">الإجمالي</th>
+                                    <th class="ps-4 py-3">{{ __('Product') }}</th>
+                                    <th class="text-center py-3">{{ __('Quantity') }}</th>
+                                    <th class="text-center py-3">{{ __('Price') }}</th>
+                                    <th class="text-center py-3">{{ __('Discount') }}</th>
+                                    <th class="text-end pe-4 py-3">{{ __('Total') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($quotation->lines as $line)
-                                    <tr class="hover:bg-white/5 border-bottom border-white/5">
+                                    <tr class="hover:bg-surface/5 border-bottom border-secondary border-opacity-10/5">
                                         <td class="ps-4 py-3">
-                                            <div class="fw-bold text-white">{{ $line->description }}</div>
+                                            <div class="fw-bold text-body">{{ $line->description }}</div>
                                             <small class="text-gray-500">{{ $line->product->code ?? '-' }}</small>
                                         </td>
                                         <td class="text-center py-3">
-                                            <span class="badge bg-white/10 text-white border border-white/10 rounded-pill px-3">
+                                            <span class="badge bg-surface/10 text-body border border-secondary border-opacity-10/10 rounded-pill px-3">
                                                 {{ $line->quantity + 0 }} {{ $line->unit->name ?? '' }}
                                             </span>
                                         </td>
                                         <td class="text-center py-3 text-gray-300">{{ number_format($line->unit_price, 2) }}
                                         </td>
                                         <td class="text-center py-3 text-gray-300">{{ $line->discount_percent + 0 }}%</td>
-                                        <td class="text-end pe-4 py-3 fw-bold text-white">
+                                        <td class="text-end pe-4 py-3 fw-bold text-body">
                                             {{ number_format($line->line_total, 2) }}
                                         </td>
                                     </tr>
@@ -177,8 +173,8 @@
                             <tfoot class="bg-gray-900/50">
                                 <tr>
                                     <td colspan="3"></td>
-                                    <td class="text-end py-3 text-gray-400 small text-uppercase">المجموع الفرعي</td>
-                                    <td class="text-end pe-4 py-3 fw-bold text-white">
+                                    <td class="text-end py-3 text-gray-400 small text-uppercase">{{ __('Subtotal') }}</td>
+                                    <td class="text-end pe-4 py-3 fw-bold text-body">
                                         {{ number_format($quotation->subtotal, 2) }}
                                     </td>
                                 </tr>
@@ -192,14 +188,14 @@
                                 @endif
                                 <tr>
                                     <td colspan="3"></td>
-                                    <td class="text-end py-2 text-gray-400 small">الضريبة</td>
+                                    <td class="text-end py-2 text-gray-400 small">{{ __('Tax') }}</td>
                                     <td class="text-end pe-4 py-2 text-gray-300">
                                         {{ number_format($quotation->tax_amount, 2) }}
                                     </td>
                                 </tr>
                                 <tr>
                                     <td colspan="3"></td>
-                                    <td class="text-end py-4 text-white fs-5 fw-bold">الإجمالي النهائي</td>
+                                    <td class="text-end py-4 text-body fs-5 fw-bold">الإجمالي النهائي</td>
                                     <td class="text-end pe-4 py-4 text-success fs-4 fw-bold text-glow">
                                         {{ number_format($quotation->total, 2) }}
                                     </td>
@@ -212,17 +208,17 @@
                 <!-- Notes & Terms -->
                 <div class="row g-4">
                     <div class="col-md-6">
-                        <div class="glass-panel p-4 rounded-4 h-100 border border-white/10">
+                        <div class="glass-panel p-4 rounded-4 h-100 border border-secondary border-opacity-10/10">
                             <h6 class="text-gray-400 fw-bold mb-3 small text-uppercase"><i
-                                    class="bi bi-chat-left-text me-2"></i> ملاحظات</h6>
-                            <p class="text-white mb-0 small opacity-75">{{ $quotation->notes ?: 'لا توجد ملاحظات' }}</p>
+                                    class="bi bi-chat-left-text me-2"></i>{{ __('Notes') }}</h6>
+                            <p class="text-body mb-0 small opacity-75">{{ $quotation->notes ?: 'لا توجد ملاحظات' }}</p>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="glass-panel p-4 rounded-4 h-100 border border-white/10">
+                        <div class="glass-panel p-4 rounded-4 h-100 border border-secondary border-opacity-10/10">
                             <h6 class="text-gray-400 fw-bold mb-3 small text-uppercase"><i
                                     class="bi bi-shield-check me-2"></i> الشروط والأحكام</h6>
-                            <p class="text-white mb-0 small opacity-75">{{ $quotation->terms ?: 'لا توجد شروط خاصة' }}</p>
+                            <p class="text-body mb-0 small opacity-75">{{ $quotation->terms ?: 'لا توجد شروط خاصة' }}</p>
                         </div>
                     </div>
                 </div>
@@ -232,9 +228,9 @@
             <div class="col-lg-4">
                 <!-- Customer Card -->
                 <div
-                    class="glass-panel p-4 rounded-4 border border-white/10 shadow-lg mb-4 position-relative overflow-hidden">
+                    class="glass-panel p-4 rounded-4 border border-secondary border-opacity-10/10 shadow-lg mb-4 position-relative overflow-hidden">
                     <div class="absolute-glow top-0 end-0 bg-blue-500/10"></div>
-                    <h5 class="fw-bold text-white mb-4 border-bottom border-white/10 pb-3">معلومات العميل</h5>
+                    <h5 class="fw-bold text-heading mb-4 border-bottom border-secondary border-opacity-10/10 pb-3">معلومات العميل</h5>
 
                     @if($quotation->customer)
                         <div class="d-flex align-items-center gap-3 mb-4">
@@ -243,7 +239,7 @@
                                 <span class="fs-5 fw-bold">{{ substr($quotation->customer->name, 0, 1) }}</span>
                             </div>
                             <div>
-                                <h5 class="fw-bold text-white mb-0">{{ $quotation->customer->name }}</h5>
+                                <h5 class="fw-bold text-heading mb-0">{{ $quotation->customer->name }}</h5>
                                 <small class="text-gray-400">{{ $quotation->customer->phone ?? 'لا يوجد هاتف' }}</small>
                             </div>
                         </div>
@@ -256,7 +252,7 @@
                             <div class="d-flex justify-content-between">
                                 <span class="text-gray-500">النوع:</span>
                                 <span
-                                    class="badge bg-white/5 border border-white/10">{{ $quotation->customer->type_label }}</span>
+                                    class="badge bg-surface/5 border border-secondary border-opacity-10/10">{{ $quotation->customer->type_label }}</span>
                             </div>
                         </div>
                     @else
@@ -266,7 +262,7 @@
                                 <i class="bi bi-people-fill fs-4"></i>
                             </div>
                             <div>
-                                <h5 class="fw-bold text-white mb-0">استهداف نوع عملاء</h5>
+                                <h5 class="fw-bold text-heading mb-0">استهداف نوع عملاء</h5>
                                 <small class="text-cyan-400 fw-bold">{{ $quotation->target_customer_type_label }}</small>
                             </div>
                         </div>
@@ -279,16 +275,16 @@
                 </div>
 
                 <!-- Meta Info -->
-                <div class="glass-panel p-4 rounded-4 border border-white/10 shadow-lg">
-                    <h5 class="fw-bold text-white mb-4 border-bottom border-white/10 pb-3">معلومات النظام</h5>
+                <div class="glass-panel p-4 rounded-4 border border-secondary border-opacity-10/10 shadow-lg">
+                    <h5 class="fw-bold text-heading mb-4 border-bottom border-secondary border-opacity-10/10 pb-3">معلومات النظام</h5>
                     <div class="vstack gap-3 small">
                         <div class="d-flex justify-content-between text-gray-400">
                             <span>بواسطة:</span>
-                            <span class="text-white">{{ $quotation->creator->name ?? 'System' }}</span>
+                            <span class="text-body">{{ $quotation->creator->name ?? 'System' }}</span>
                         </div>
                         <div class="d-flex justify-content-between text-gray-400">
                             <span>تاريخ الإنشاء:</span>
-                            <span class="text-white">{{ $quotation->created_at->format('Y-m-d H:i') }}</span>
+                            <span class="text-body">{{ $quotation->created_at->format('Y-m-d H:i') }}</span>
                         </div>
                         @if($quotation->approved_by)
                             <div class="d-flex justify-content-between text-gray-400">
@@ -308,7 +304,7 @@
 
     <style>
         .glass-panel {
-            background: rgba(30, 41, 59, 0.7);
+            background: var(--glass-bg);
             backdrop-filter: blur(20px);
         }
 
@@ -325,9 +321,9 @@
         }
 
         .btn-glass-outline {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
+            background: var(--btn-glass-bg);
+            border: 1px solid var(--btn-glass-border);
+            color: var(--text-primary);
         }
 
         .btn-glass-outline:hover {

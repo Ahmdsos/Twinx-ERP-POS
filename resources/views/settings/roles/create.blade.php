@@ -6,10 +6,9 @@
     <div class="row justify-content-center">
         <div class="col-lg-10">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="text-white fw-bold"><i class="bi bi-shield-plus me-2"></i> إضافة دور وظيفي جديد</h2>
+                <h2 class="text-heading fw-bold"><i class="bi bi-shield-plus me-2"></i> إضافة دور وظيفي جديد</h2>
                 <a href="{{ route('roles.index') }}" class="btn btn-outline-light">
-                    <i class="bi bi-arrow-right me-2"></i> رجوع
-                </a>
+                    <i class="bi bi-arrow-right me-2"></i>{{ __('Back') }}</a>
             </div>
 
             <div class="glass-card p-4">
@@ -17,13 +16,13 @@
                     @csrf
 
                     <div class="mb-5">
-                        <label class="form-label text-white-50 fs-5">اسم الدور الوظيفي <span
+                        <label class="form-label text-muted fs-5">اسم الدور الوظيفي <span
                                 class="text-danger">*</span></label>
-                        <input type="text" name="name" class="form-control form-control-lg bg-transparent text-white"
+                        <input type="text" name="name" class="form-control form-control-lg bg-transparent text-body"
                             placeholder="مثال: مدير المستودع، محاسب، كاشير مسائي..." required value="{{ old('name') }}">
                     </div>
 
-                    <h5 class="text-white fw-bold mb-4 border-bottom border-secondary pb-2">
+                    <h5 class="text-heading fw-bold mb-4 border-bottom border-secondary pb-2">
                         <i class="bi bi-grid-3x3-gap me-2"></i> جدول الصلاحيات
                     </h5>
 
@@ -43,7 +42,7 @@
                                             <div class="form-check">
                                                 <input class="form-check-input permission-checkbox" type="checkbox"
                                                     name="permissions[]" value="{{ $perm->name }}" id="perm_{{ $perm->id }}">
-                                                <label class="form-check-label text-white-50" for="perm_{{ $perm->id }}">
+                                                <label class="form-check-label text-muted" for="perm_{{ $perm->id }}">
                                                     {{ str_replace($category . '.', '', $perm->name) }}
                                                 </label>
                                             </div>
@@ -65,12 +64,7 @@
     </div>
 
     <style>
-        .glass-card {
-            background: rgba(17, 24, 39, 0.7);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-        }
+        
     </style>
 
     <script>

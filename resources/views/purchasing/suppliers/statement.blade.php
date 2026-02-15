@@ -11,7 +11,7 @@
                     class="btn btn-outline-light btn-sm rounded-circle shadow-sm d-print-none"
                     style="width: 32px; height: 32px;"><i class="bi bi-arrow-right"></i></a>
                 <div>
-                    <h2 class="fw-bold text-white mb-0">كشف حساب مورد</h2>
+                    <h2 class="fw-bold text-heading mb-0">كشف حساب مورد</h2>
                     <div class="d-flex align-items-center gap-2 text-gray-400">
                         <span class="fw-bold text-cyan-400">{{ $supplier->name }}</span>
                         <span class="font-monospace">({{ $supplier->code }})</span>
@@ -21,8 +21,7 @@
 
             <div class="d-flex gap-2 d-print-none">
                 <button onclick="window.print()" class="btn btn-outline-cyan">
-                    <i class="bi bi-printer me-2"></i>طباعة
-                </button>
+                    <i class="bi bi-printer me-2"></i>{{ __('Print') }}</button>
                 @if($closingBalance > 0)
                 <a href="{{ route('supplier-payments.create', ['supplier_id' => $supplier->id, 'amount' => $closingBalance]) }}" class="btn btn-action-purple">
                     <i class="bi bi-cash-stack me-2"></i>سداد الرصيد
@@ -45,7 +44,7 @@
                         value="{{ $endDate }}">
                 </div>
                 <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100 bg-gradient-cyan border-0">تحديث</button>
+                    <button type="submit" class="btn btn-primary w-100 bg-gradient-cyan border-0">{{ __('Update') }}</button>
                 </div>
             </form>
         </div>
@@ -55,7 +54,7 @@
             <div class="col-md-3">
                 <div class="glass-panel p-3 text-center border-top border-4 border-gray-600">
                     <span class="text-gray-400 x-small fw-bold d-block mb-1">رصيد افتتاحي</span>
-                    <h4 class="text-white fw-bold mb-0 {{ $openingBalance > 0 ? 'text-red-400' : 'text-green-400' }}">
+                    <h4 class="text-heading fw-bold mb-0 {{ $openingBalance > 0 ? 'text-red-400' : 'text-green-400' }}">
                         {{ number_format(abs($openingBalance), 2) }}
                         <span class="x-small text-gray-500">{{ $openingBalance > 0 ? 'له' : 'عليه' }}</span>
                     </h4>
@@ -64,7 +63,7 @@
             <div class="col-md-3">
                 <div class="glass-panel p-3 text-center border-top border-4 border-cyan-500">
                     <span class="text-cyan-400 x-small fw-bold d-block mb-1">إجمالي الحركات المدينة</span>
-                    <h4 class="text-white fw-bold mb-0">
+                    <h4 class="text-heading fw-bold mb-0">
                         {{ number_format($transactions->sum('debit'), 2) }}
                     </h4>
                 </div>
@@ -72,15 +71,15 @@
             <div class="col-md-3">
                 <div class="glass-panel p-3 text-center border-top border-4 border-green-500">
                     <span class="text-green-400 x-small fw-bold d-block mb-1">إجمالي الحركات الدائنة</span>
-                    <h4 class="text-white fw-bold mb-0">
+                    <h4 class="text-heading fw-bold mb-0">
                         {{ number_format($transactions->sum('credit'), 2) }}
                     </h4>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="glass-panel p-3 text-center border-top border-4 border-purple-500">
-                    <span class="text-purple-400 x-small fw-bold d-block mb-1">الرصيد الختامي</span>
-                    <h4 class="text-white fw-bold mb-0 {{ $closingBalance > 0 ? 'text-red-400' : 'text-green-400' }}">
+                    <span class="text-purple-400 x-small fw-bold d-block mb-1">{{ __('Closing Balance') }}</span>
+                    <h4 class="text-heading fw-bold mb-0 {{ $closingBalance > 0 ? 'text-red-400' : 'text-green-400' }}">
                         {{ number_format(abs($closingBalance), 2) }}
                         <span class="x-small text-gray-500">{{ $closingBalance > 0 ? 'له' : 'عليه' }}</span>
                     </h4>
@@ -94,13 +93,13 @@
                 <table class="table table-dark-custom table-striped align-middle mb-0">
                     <thead>
                         <tr>
-                            <th>التاريخ</th>
+                            <th>{{ __('Date') }}</th>
                             <th>نوع الحركة</th>
                             <th>المرجع #</th>
                             <th>البيان</th>
                             <th class="text-end">مدين (فواتير)</th>
                             <th class="text-end">دائن (مدفوعات)</th>
-                            <th class="text-end">الرصيد</th>
+                            <th class="text-end">{{ __('Balance') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -130,10 +129,10 @@
                                     @endif
                                 </td>
                                 <td class="font-monospace text-gray-400">{{ $trx['reference'] }}</td>
-                                <td class="text-white">{{ $trx['description'] }}</td>
-                                <td class="text-end text-white">{{ $trx['debit'] > 0 ? number_format($trx['debit'], 2) : '-' }}
+                                <td class="text-body">{{ $trx['description'] }}</td>
+                                <td class="text-end text-body">{{ $trx['debit'] > 0 ? number_format($trx['debit'], 2) : '-' }}
                                 </td>
-                                <td class="text-end text-white">
+                                <td class="text-end text-body">
                                     {{ $trx['credit'] > 0 ? number_format($trx['credit'], 2) : '-' }}</td>
                                 <td class="text-end fw-bold {{ $trx['balance'] > 0 ? 'text-red-400' : 'text-green-400' }}">
                                     {{ number_format(abs($trx['balance']), 2) }}
@@ -168,14 +167,14 @@
 
         .table-dark-custom th {
             background: rgba(0, 0, 0, 0.4);
-            color: #94a3b8;
+            color: var(--text-secondary);
             font-weight: 600;
         }
 
         .form-control-dark {
             background: rgba(15, 23, 42, 0.6) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            color: white !important;
+            border: 1px solid var(--btn-glass-border); !important;
+            color: var(--text-primary); !important;
         }
 
         @media print {

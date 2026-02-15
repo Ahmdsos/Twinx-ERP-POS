@@ -9,7 +9,7 @@
             <div class="d-flex align-items-center gap-3">
                 <a href="{{ route('purchase-invoices.index') }}" class="btn btn-outline-light btn-sm rounded-circle shadow-sm" style="width: 32px; height: 32px;"><i class="bi bi-arrow-right"></i></a>
                 <div>
-                    <h2 class="fw-bold text-white mb-0">فاتورة شراء</h2>
+                    <h2 class="fw-bold text-heading mb-0">فاتورة شراء</h2>
                     <div class="d-flex align-items-center gap-2">
                         <span class="text-gray-400 font-monospace">{{ $purchaseInvoice->invoice_number }}</span>
                         @php
@@ -29,8 +29,7 @@
             </div>
             <div class="d-flex gap-2">
                 <a href="{{ route('purchase-invoices.print', $purchaseInvoice->id) }}" target="_blank" class="btn btn-outline-light d-flex align-items-center gap-2">
-                    <i class="bi bi-printer"></i> طباعة
-                </a>
+                    <i class="bi bi-printer"></i>{{ __('Print') }}</a>
                 @if($purchaseInvoice->balance_due > 0)
                 <a href="{{ route('supplier-payments.create', ['supplier_id' => $purchaseInvoice->supplier_id, 'invoice_id' => $purchaseInvoice->id, 'amount' => $purchaseInvoice->balance_due]) }}" class="btn btn-action-purple">
                     <i class="bi bi-cash-stack me-2"></i> سداد المستحق
@@ -43,28 +42,28 @@
             <!-- Invoice Details -->
             <div class="col-md-9">
                 <div class="glass-panel p-0 overflow-hidden mb-4">
-                    <div class="p-4 border-bottom border-white-5">
+                    <div class="p-4 border-bottom border-secondary border-opacity-10-5">
                         <div class="row g-4">
                             <div class="col-md-4">
                                 <label class="text-gray-500 x-small fw-bold text-uppercase mb-1">المورد</label>
                                 <a href="{{ route('suppliers.show', $purchaseInvoice->supplier_id) }}" class="d-flex align-items-center gap-2 text-decoration-none group">
-                                    <div class="avatar-xs bg-cyan-500 rounded-circle text-white d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px;">
+                                    <div class="avatar-xs bg-cyan-500 rounded-circle text-body d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px;">
                                         {{ strtoupper(substr($purchaseInvoice->supplier->name, 0, 1)) }}
                                     </div>
                                     <div>
-                                        <h6 class="text-white fw-bold mb-0 group-hover-text-cyan transition-all">{{ $purchaseInvoice->supplier->name }}</h6>
+                                        <h6 class="text-heading fw-bold mb-0 group-hover-text-cyan transition-all">{{ $purchaseInvoice->supplier->name }}</h6>
                                         <span class="text-gray-500 x-small">{{ $purchaseInvoice->supplier->phone }}</span>
                                     </div>
                                 </a>
                             </div>
                             <div class="col-md-3">
-                                <label class="text-gray-500 x-small fw-bold text-uppercase mb-1">تاريخ الفاتورة</label>
-                                <p class="text-white fw-bold mb-0">{{ $purchaseInvoice->invoice_date->format('Y-m-d') }}</p>
+                                <label class="text-gray-500 x-small fw-bold text-uppercase mb-1">{{ __('Invoice Date') }}</label>
+                                <p class="text-body fw-bold mb-0">{{ $purchaseInvoice->invoice_date->format('Y-m-d') }}</p>
                                 <span class="text-gray-500 x-small">استحقاق: {{ $purchaseInvoice->due_date->format('Y-m-d') }}</span>
                             </div>
                             <div class="col-md-3">
                                 <label class="text-gray-500 x-small fw-bold text-uppercase mb-1">مرجع المورد</label>
-                                <p class="text-white font-monospace mb-0">{{ $purchaseInvoice->supplier_invoice_number }}</p>
+                                <p class="text-body font-monospace mb-0">{{ $purchaseInvoice->supplier_invoice_number }}</p>
                             </div>
                             <div class="col-md-2">
                                 <label class="text-gray-500 x-small fw-bold text-uppercase mb-1">سند الاستلام</label>
@@ -83,30 +82,30 @@
                             <thead>
                                 <tr>
                                     <th class="ps-4">المتتج</th>
-                                    <th class="text-center">الكمية</th>
-                                    <th class="text-center">الوحدة</th>
-                                    <th class="text-end">سعر الوحدة</th>
-                                    <th class="text-end pe-4">الإجمالي</th>
+                                    <th class="text-center">{{ __('Quantity') }}</th>
+                                    <th class="text-center">{{ __('Unit') }}</th>
+                                    <th class="text-end">{{ __('Unit Price') }}</th>
+                                    <th class="text-end pe-4">{{ __('Total') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($purchaseInvoice->lines as $line)
                                     <tr>
                                         <td class="ps-4">
-                                            <h6 class="text-white mb-0">{{ $line->description }}</h6>
+                                            <h6 class="text-heading mb-0">{{ $line->description }}</h6>
                                             <span class="text-gray-500 x-small code-font">{{ $line->product->sku ?? '' }}</span>
                                         </td>
                                         <td class="text-center fw-bold text-cyan-300">{{ $line->quantity }}</td>
                                         <td class="text-center text-gray-400 x-small">{{ $line->product->unit->name ?? '-' }}</td>
                                         <td class="text-end text-gray-300">{{ number_format($line->unit_price, 2) }}</td>
-                                        <td class="text-end fw-bold text-white pe-4">{{ number_format($line->line_total, 2) }}</td>
+                                        <td class="text-end fw-bold text-body pe-4">{{ number_format($line->line_total, 2) }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
-                            <tfoot class="bg-white bg-opacity-5 border-top border-white-10">
+                            <tfoot class="bg-surface bg-opacity-5 border-top border-secondary border-opacity-10-10">
                                 <tr>
-                                    <td colspan="4" class="text-end text-gray-400 py-3">الإجمالي</td>
-                                    <td class="text-end fw-bold text-white fs-5 py-3 pe-4">{{ number_format($purchaseInvoice->subtotal, 2) }}</td>
+                                    <td colspan="4" class="text-end text-gray-400 py-3">{{ __('Total') }}</td>
+                                    <td class="text-end fw-bold text-body fs-5 py-3 pe-4">{{ number_format($purchaseInvoice->subtotal, 2) }}</td>
                                 </tr>
                                 <tr>
                                     <td colspan="4" class="text-end text-gray-400 border-0 pb-3"> + الضريبة</td>
@@ -123,14 +122,14 @@
 
                 <!-- Payments History -->
                 @if($purchaseInvoice->paymentAllocations->count() > 0)
-                <h6 class="text-white fw-bold mb-3 mt-4"><i class="bi bi-clock-history me-2"></i>سجل السداد</h6>
+                <h6 class="text-heading fw-bold mb-3 mt-4"><i class="bi bi-clock-history me-2"></i>سجل السداد</h6>
                 <div class="glass-panel p-0 overflow-hidden">
                     <table class="table table-dark-custom align-middle mb-0">
                         <thead>
                             <tr>
                                 <th class="ps-4">رقم السند</th>
-                                <th>التاريخ</th>
-                                <th>طريقة الدفع</th>
+                                <th>{{ __('Date') }}</th>
+                                <th>{{ __('Payment Method') }}</th>
                                 <th class="text-end pe-4">المبلغ المخصوم</th>
                             </tr>
                         </thead>
@@ -144,7 +143,7 @@
                                     </td>
                                     <td class="text-gray-400">{{ $allocation->payment->payment_date->format('Y-m-d') }}</td>
                                     <td>{{ $allocation->payment->payment_method }}</td>
-                                    <td class="text-end text-white fw-bold pe-4">{{ number_format($allocation->amount, 2) }}</td>
+                                    <td class="text-end text-body fw-bold pe-4">{{ number_format($allocation->amount, 2) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -160,15 +159,15 @@
                     
                     <div class="d-flex justify-content-between mb-2">
                         <span class="text-gray-400">قيمة الفاتورة</span>
-                        <span class="text-white fw-bold">{{ number_format($purchaseInvoice->total, 2) }}</span>
+                        <span class="text-body fw-bold">{{ number_format($purchaseInvoice->total, 2) }}</span>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
                         <span class="text-green-400">تم سداد</span>
                         <span class="text-green-400 fw-bold">-{{ number_format($purchaseInvoice->paid_amount, 2) }}</span>
                     </div>
-                    <div class="border-top border-white-10 pt-2 mt-2">
+                    <div class="border-top border-secondary border-opacity-10-10 pt-2 mt-2">
                         <div class="d-flex justify-content-between aligns-items-center">
-                            <span class="text-red-400 fw-bold">المتبقي</span>
+                            <span class="text-red-400 fw-bold">{{ __('Balance Due') }}</span>
                             <span class="text-red-400 fw-bold fs-5">{{ number_format($purchaseInvoice->balance_due, 2) }}</span>
                         </div>
                     </div>
@@ -176,7 +175,7 @@
 
                 @if($purchaseInvoice->notes)
                 <div class="glass-panel p-4">
-                    <h6 class="text-gray-400 x-small fw-bold text-uppercase mb-2">ملاحظات</h6>
+                    <h6 class="text-gray-400 x-small fw-bold text-uppercase mb-2">{{ __('Notes') }}</h6>
                     <p class="text-gray-300 small mb-0">{{ $purchaseInvoice->notes }}</p>
                 </div>
                 @endif
@@ -187,10 +186,10 @@
     <style>
         .glass-panel { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; backdrop-filter: blur(12px); }
         .table-dark-custom { --bs-table-bg: transparent; --bs-table-border-color: rgba(255, 255, 255, 0.05); }
-        .table-dark-custom th { background: rgba(255, 255, 255, 0.05); color: #94a3b8; font-weight: 600; padding: 1rem; }
+        .table-dark-custom th { background: var(--btn-glass-bg); color: var(--text-secondary); font-weight: 600; padding: 1rem; }
         .btn-action-purple {
             background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
-            border: none; color: white; padding: 8px 16px; border-radius: 8px; transition: all 0.3s;
+            border: none; color: var(--text-primary); padding: 8px 16px; border-radius: 8px; transition: all 0.3s;
         }
         .btn-action-purple:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4); }
     </style>

@@ -10,7 +10,7 @@
                 <a href="{{ route('purchase-orders.index') }}" class="btn btn-outline-light btn-sm rounded-circle shadow-sm"
                     style="width: 32px; height: 32px;"><i class="bi bi-arrow-right"></i></a>
                 <div>
-                    <h2 class="fw-bold text-white mb-0">تفاصيل أمر الشراء</h2>
+                    <h2 class="fw-bold text-heading mb-0">{{ __('Purchase Order Details') }}</h2>
                     <div class="d-flex align-items-center gap-2">
                         <span class="text-gray-400 font-monospace">{{ $purchaseOrder->po_number }}</span>
                         <span
@@ -23,8 +23,7 @@
             <div class="d-flex gap-2">
                 @if($purchaseOrder->status->value === 'draft')
                     <a href="{{ route('purchase-orders.edit', $purchaseOrder->id) }}" class="btn btn-outline-light">
-                        <i class="bi bi-pencil"></i> تعديل
-                    </a>
+                        <i class="bi bi-pencil"></i>{{ __('Edit') }}</a>
                     <form action="{{ route('purchase-orders.approve', $purchaseOrder->id) }}" method="POST">
                         @csrf
                         <button type="submit" class="btn btn-action-blue">
@@ -44,24 +43,24 @@
             <!-- Order Details -->
             <div class="col-md-9">
                 <div class="glass-panel p-0 overflow-hidden mb-4">
-                    <div class="p-4 border-bottom border-white-5">
+                    <div class="p-4 border-bottom border-secondary border-opacity-10-5">
                         <div class="row g-4">
                             <div class="col-md-4">
                                 <label class="text-gray-500 x-small fw-bold text-uppercase mb-1">المورد</label>
-                                <h6 class="text-white fw-bold mb-0">{{ $purchaseOrder->supplier->name }}</h6>
+                                <h6 class="text-heading fw-bold mb-0">{{ $purchaseOrder->supplier->name }}</h6>
                                 <span class="text-gray-500 x-small">{{ $purchaseOrder->supplier->phone }}</span>
                             </div>
                             <div class="col-md-3">
                                 <label class="text-gray-500 x-small fw-bold text-uppercase mb-1">تاريخ الطلب</label>
-                                <p class="text-white fw-bold mb-0">{{ $purchaseOrder->order_date->format('Y-m-d') }}</p>
+                                <p class="text-body fw-bold mb-0">{{ $purchaseOrder->order_date->format('Y-m-d') }}</p>
                             </div>
                             <div class="col-md-3">
                                 <label class="text-gray-500 x-small fw-bold text-uppercase mb-1">المخزن المستلم</label>
-                                <p class="text-white mb-0">{{ $purchaseOrder->warehouse->name }}</p>
+                                <p class="text-body mb-0">{{ $purchaseOrder->warehouse->name }}</p>
                             </div>
                             <div class="col-md-2">
-                                <label class="text-gray-500 x-small fw-bold text-uppercase mb-1">المرجع</label>
-                                <p class="text-white font-monospace mb-0">{{ $purchaseOrder->reference ?? '-' }}</p>
+                                <label class="text-gray-500 x-small fw-bold text-uppercase mb-1">{{ __('Reference') }}</label>
+                                <p class="text-body font-monospace mb-0">{{ $purchaseOrder->reference ?? '-' }}</p>
                             </div>
                         </div>
                     </div>
@@ -71,30 +70,30 @@
                         <table class="table table-dark-custom align-middle mb-0">
                             <thead>
                                 <tr>
-                                    <th class="ps-4">المنتج</th>
-                                    <th class="text-center">الكمية</th>
-                                    <th class="text-end">سعر الوحدة</th>
-                                    <th class="text-end pe-4">الإجمالي</th>
+                                    <th class="ps-4">{{ __('Product') }}</th>
+                                    <th class="text-center">{{ __('Quantity') }}</th>
+                                    <th class="text-end">{{ __('Unit Price') }}</th>
+                                    <th class="text-end pe-4">{{ __('Total') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($purchaseOrder->lines as $line)
                                     <tr>
                                         <td class="ps-4">
-                                            <h6 class="text-white mb-0">{{ $line->product->name }}</h6>
+                                            <h6 class="text-heading mb-0">{{ $line->product->name }}</h6>
                                             <span class="text-gray-500 x-small code-font">{{ $line->product->sku }}</span>
                                         </td>
                                         <td class="text-center fw-bold text-blue-300">{{ $line->quantity }}</td>
                                         <td class="text-end text-gray-300">{{ number_format($line->unit_price, 2) }}</td>
-                                        <td class="text-end fw-bold text-white pe-4">{{ number_format($line->line_total, 2) }}
+                                        <td class="text-end fw-bold text-body pe-4">{{ number_format($line->line_total, 2) }}
                                         </td>
                                     </tr>
                                 @endforeach
                             </tbody>
-                            <tfoot class="bg-black bg-opacity-20 border-top border-white-10">
+                            <tfoot class="bg-black bg-opacity-20 border-top border-secondary border-opacity-10-10">
                                 <tr>
-                                    <td colspan="3" class="text-end text-gray-400 py-3">الإجمالي</td>
-                                    <td class="text-end fw-bold text-white fs-5 py-3 pe-4">
+                                    <td colspan="3" class="text-end text-gray-400 py-3">{{ __('Total') }}</td>
+                                    <td class="text-end fw-bold text-body fs-5 py-3 pe-4">
                                         {{ number_format($purchaseOrder->total_amount, 2) }}</td>
                                 </tr>
                             </tfoot>
@@ -107,7 +106,7 @@
             <div class="col-md-3">
                 @if($purchaseOrder->notes)
                     <div class="glass-panel p-4 mb-4">
-                        <h6 class="text-gray-400 x-small fw-bold text-uppercase mb-2">ملاحظات</h6>
+                        <h6 class="text-gray-400 x-small fw-bold text-uppercase mb-2">{{ __('Notes') }}</h6>
                         <p class="text-gray-300 small mb-0">{{ $purchaseOrder->notes }}</p>
                     </div>
                 @endif
@@ -116,7 +115,7 @@
                     <div class="glass-panel p-4">
                         <h6 class="text-gray-400 x-small fw-bold text-uppercase mb-2">معلومات الاعتماد</h6>
                         <div class="d-flex align-items-center gap-2">
-                            <div class="avatar-xs bg-green-500 rounded-circle text-white d-flex align-items-center justify-content-center"
+                            <div class="avatar-xs bg-green-500 rounded-circle text-body d-flex align-items-center justify-content-center"
                                 style="width: 24px; height: 24px;">
                                 <i class="bi bi-check small"></i>
                             </div>
@@ -143,7 +142,7 @@
 
         .table-dark-custom th {
             background: rgba(0, 0, 0, 0.2);
-            color: #94a3b8;
+            color: var(--text-secondary);
             font-weight: 600;
             padding: 1rem;
         }
@@ -151,7 +150,7 @@
         .btn-action-blue {
             background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
             border: none;
-            color: white;
+            color: var(--text-primary);
             padding: 8px 16px;
             border-radius: 8px;
         }
@@ -159,7 +158,7 @@
         .btn-action-green {
             background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
             border: none;
-            color: white;
+            color: var(--text-primary);
             padding: 8px 16px;
             border-radius: 8px;
         }

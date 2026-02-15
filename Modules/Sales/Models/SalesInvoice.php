@@ -60,6 +60,27 @@ class SalesInvoice extends Model
         'exchange_rate' => 'decimal:4',
     ];
 
+    /**
+     * Virtual Attributes for SSOT Reporting
+     */
+
+    /**
+     * Net Revenue: Subtotal minus global discount. 
+     * This excluding tax and delivery regardless of tax_inclusive setting.
+     */
+    public function getNetRevenueAttribute(): float
+    {
+        return (float) (($this->subtotal ?? 0) - ($this->discount_amount ?? 0));
+    }
+
+    /**
+     * Gross Total: The actual amount the customer pays (Total).
+     */
+    public function getGrossTotalAttribute(): float
+    {
+        return (float) ($this->total ?? 0);
+    }
+
     // Implement HasDocumentNumber trait methods
     public function getDocumentPrefix(): string
     {
@@ -90,6 +111,16 @@ class SalesInvoice extends Model
     // ========================================
     // Relationships
     // ========================================
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\User::class, 'created_by');
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\User::class, 'created_by');
+    }
 
     public function customer(): BelongsTo
     {
@@ -166,8 +197,34 @@ class SalesInvoice extends Model
             'subtotal' => $subtotal,
             'tax_amount' => $taxAmount,
             'total' => $total,
-            // Calculate balance due based on total and paid amount
-            'balance_due' => max(0, $total - $this->paid_amount),
+        ]);
+
+        // Calculate balance due based on total and paid amount
+        $balanceDue = max(0, $total - $this->paid_amount);
+
+        // Determine correct status based on payment
+        $status = $this->status;
+
+        if ($this->paid_amount > 0) {
+            if ($balanceDue > 0) {
+                // Determine if it was PENDING/DRAFT, switch to PARTIAL
+                // If it was PAID but balance is > 0, switch to PARTIAL
+                $status = SalesInvoiceStatus::PARTIAL;
+            } else {
+                // Balance is 0 or less -> PAID
+                $status = SalesInvoiceStatus::PAID;
+            }
+        } elseif ($balanceDue <= 0 && $total > 0) {
+            // Edge case: Paid=0, Total=0? No, Total>0. Balance<=0 means Total <= Paid(0)? Impossible if Total>0.
+            // Unless Paid is negative? (Refund scenario).
+            // If Total=0, handled below.
+        } else if ($total == 0) {
+            $status = SalesInvoiceStatus::PAID;
+        }
+
+        $this->update([
+            'balance_due' => $balanceDue,
+            'status' => $status,
         ]);
     }
 

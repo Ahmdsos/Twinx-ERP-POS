@@ -12,7 +12,7 @@
                     <i class="bi bi-arrow-right"></i>
                 </a>
                 <div>
-                    <h3 class="fw-bold text-white mb-0">تاريخ الائتمان والفواتير</h3>
+                    <h3 class="fw-bold text-heading mb-0">تاريخ الائتمان والفواتير</h3>
                     <p class="text-gray-400 mb-0 small">{{ $customer->name }}</p>
                 </div>
             </div>
@@ -24,15 +24,15 @@
                 <div class="card bg-slate-800 border-slate-700 h-100">
                     <div class="card-body">
                         <small class="text-gray-400">إجمالي المديونية</small>
-                        <h4 class="text-white fw-bold mb-0 mt-2">{{ number_format($stats->total_balance, 2) }}</h4>
+                        <h4 class="text-heading fw-bold mb-0 mt-2">{{ number_format($stats->total_balance, 2) }}</h4>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card bg-slate-800 border-slate-700 h-100">
                     <div class="card-body">
-                        <small class="text-gray-400">حد الائتمان</small>
-                        <h4 class="text-white fw-bold mb-0 mt-2">{{ number_format($customer->credit_limit, 2) }}</h4>
+                        <small class="text-gray-400">{{ __('Credit Limit') }}</small>
+                        <h4 class="text-heading fw-bold mb-0 mt-2">{{ number_format($customer->credit_limit, 2) }}</h4>
                     </div>
                 </div>
             </div>
@@ -59,19 +59,19 @@
         <!-- Invoices Table -->
         <div class="card bg-slate-900 border-slate-800">
             <div class="card-header bg-transparent border-slate-800">
-                <h5 class="text-white mb-0">سجل الفواتير</h5>
+                <h5 class="text-heading mb-0">سجل الفواتير</h5>
             </div>
             <div class="table-responsive">
                 <table class="table table-dark table-hover mb-0 align-middle">
                     <thead>
                         <tr>
-                            <th class="p-3">رقم الفاتورة</th>
-                            <th class="p-3">التاريخ</th>
+                            <th class="p-3">{{ __('Invoice Number') }}</th>
+                            <th class="p-3">{{ __('Date') }}</th>
                             <th class="p-3">تاريخ الاستحقاق</th>
-                            <th class="p-3 text-end">القيمة</th>
-                            <th class="p-3 text-end">المدفوع</th>
-                            <th class="p-3 text-end">المتبقي</th>
-                            <th class="p-3 text-center">الحالة</th>
+                            <th class="p-3 text-end">{{ __('Value') }}</th>
+                            <th class="p-3 text-end">{{ __('Paid Amount') }}</th>
+                            <th class="p-3 text-end">{{ __('Balance Due') }}</th>
+                            <th class="p-3 text-center">{{ __('Status') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -88,17 +88,17 @@
                                 <td class="p-3 text-end fw-bold">{{ number_format($inv->balance, 2) }}</td>
                                 <td class="p-3 text-center">
                                     @if($inv->balance == 0)
-                                        <span class="badge bg-green-500 bg-opacity-20 text-green-300">خالصة</span>
+                                        <span class="badge bg-green-500 bg-opacity-20 text-green-300">{{ __('Settled') }}</span>
                                     @elseif($inv->paid > 0)
-                                        <span class="badge bg-orange-500 bg-opacity-20 text-orange-300">جزئي</span>
+                                        <span class="badge bg-orange-500 bg-opacity-20 text-orange-300">{{ __('Partial') }}</span>
                                     @else
-                                        <span class="badge bg-red-500 bg-opacity-20 text-red-300">غير مدفوع</span>
+                                        <span class="badge bg-red-500 bg-opacity-20 text-red-300">{{ __('Unpaid') }}</span>
                                     @endif
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center py-5 text-gray-500">لا توجد فواتير</td>
+                                <td colspan="7" class="text-center py-5 text-gray-500">{{ __('No invoices') }}</td>
                             </tr>
                         @endforelse
                     </tbody>

@@ -9,10 +9,10 @@
                 <!-- Header -->
                 <div class="text-center mb-5">
                     <div class="d-inline-flex align-items-center justify-content-center icon-box-lg mb-3 shadow-neon-amber">
-                        <i class="bi bi-pencil-square fs-2 text-white"></i>
+                        <i class="bi bi-pencil-square fs-2 text-body"></i>
                     </div>
-                    <h3 class="fw-bold text-white tracking-wide">تعديل بيانات المستودع</h3>
-                    <p class="text-gray-400">تحديث: <span class="text-amber-400 fw-bold">{{ $warehouse->name }}</span></p>
+                    <h3 class="fw-bold text-heading tracking-wide">تعديل بيانات المستودع</h3>
+                    <p class="text-secondary">تحديث: <span class="text-amber-400 fw-bold">{{ $warehouse->name }}</span></p>
                 </div>
 
                 <!-- Glass Card Content -->
@@ -29,10 +29,10 @@
                                     class="form-label text-amber-400 small fw-bold text-uppercase tracking-wider ps-1">كود
                                     المستودع</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-dark-input border-end-0 text-gray-500"><i
+                                    <span class="input-group-text bg-surface-secondary-input border-end-0 text-gray-500"><i
                                             class="bi bi-qr-code"></i></span>
                                     <input type="text" value="{{ $warehouse->code }}"
-                                        class="form-control form-control-dark border-start-0 ps-0 text-gray-400 font-monospace"
+                                        class="form-control form-control border-start-0 ps-0 text-secondary font-monospace"
                                         disabled style="background: rgba(0,0,0,0.5) !important;">
                                 </div>
                                 <div class="form-text text-gray-600 x-small ms-1 mt-1">لا يمكن تعديل كود المستودع</div>
@@ -42,22 +42,22 @@
                                     class="form-label text-amber-400 small fw-bold text-uppercase tracking-wider ps-1">اسم
                                     المستودع <span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-dark-input border-end-0 text-gray-500"><i
+                                    <span class="input-group-text bg-surface-secondary-input border-end-0 text-gray-500"><i
                                             class="bi bi-tag-fill"></i></span>
                                     <input type="text" name="name" value="{{ old('name', $warehouse->name) }}"
-                                        class="form-control form-control-dark border-start-0 ps-0 text-white placeholder-gray-600 focus-ring-amber"
+                                        class="form-control form-control border-start-0 ps-0 text-body placeholder-gray-600 focus-ring-amber"
                                         placeholder="اسم المستودع..." required>
                                 </div>
                             </div>
 
                             <div class="col-md-12">
                                 <label
-                                    class="form-label text-amber-400 small fw-bold text-uppercase tracking-wider ps-1">العنوان</label>
+                                    class="form-label text-amber-400 small fw-bold text-uppercase tracking-wider ps-1">{{ __('Address') }}</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-dark-input border-end-0 text-gray-500"><i
+                                    <span class="input-group-text bg-surface-secondary-input border-end-0 text-gray-500"><i
                                             class="bi bi-geo-alt-fill"></i></span>
                                     <input type="text" name="address" value="{{ old('address', $warehouse->address) }}"
-                                        class="form-control form-control-dark border-start-0 ps-0 text-white placeholder-gray-600 focus-ring-amber"
+                                        class="form-control form-control border-start-0 ps-0 text-body placeholder-gray-600 focus-ring-amber"
                                         placeholder="العنوان بالتفصيل">
                                 </div>
                             </div>
@@ -67,10 +67,10 @@
                                     class="form-label text-amber-400 small fw-bold text-uppercase tracking-wider ps-1">رقم
                                     الهاتف</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-dark-input border-end-0 text-gray-500"><i
+                                    <span class="input-group-text bg-surface-secondary-input border-end-0 text-gray-500"><i
                                             class="bi bi-telephone-fill"></i></span>
                                     <input type="text" name="phone" value="{{ old('phone', $warehouse->phone) }}"
-                                        class="form-control form-control-dark border-start-0 ps-0 text-white placeholder-gray-600 focus-ring-amber"
+                                        class="form-control form-control border-start-0 ps-0 text-body placeholder-gray-600 focus-ring-amber"
                                         placeholder="01xxxxxxxxx">
                                 </div>
                             </div>
@@ -80,10 +80,10 @@
                                     class="form-label text-amber-400 small fw-bold text-uppercase tracking-wider ps-1">البريد
                                     الإلكتروني</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-dark-input border-end-0 text-gray-500"><i
+                                    <span class="input-group-text bg-surface-secondary-input border-end-0 text-gray-500"><i
                                             class="bi bi-envelope-fill"></i></span>
                                     <input type="email" name="email" value="{{ old('email', $warehouse->email) }}"
-                                        class="form-control form-control-dark border-start-0 ps-0 text-white placeholder-gray-600 focus-ring-amber"
+                                        class="form-control form-control border-start-0 ps-0 text-body placeholder-gray-600 focus-ring-amber"
                                         placeholder="email@example.com">
                                 </div>
                             </div>
@@ -91,7 +91,7 @@
 
                         <div class="row g-4 mb-5">
                             <div class="col-md-6">
-                                <div class="d-flex align-items-center justify-content-between p-3 rounded-3 border border-white-10 bg-white-5 transition-all hover:bg-white-10 cursor-pointer"
+                                <div class="d-flex align-items-center justify-content-between p-3 rounded-3 border border-secondary border-opacity-10-10 bg-surface-5 transition-all hover:bg-surface-10 cursor-pointer"
                                     onclick="document.getElementById('isActiveCheck').click()">
                                     <div class="d-flex align-items-center gap-3">
                                         <div
@@ -99,7 +99,7 @@
                                             <i class="bi bi-power"></i>
                                         </div>
                                         <div>
-                                            <h6 class="fw-bold text-white mb-0">تفعيل المستودع</h6>
+                                            <h6 class="fw-bold text-heading mb-0">تفعيل المستودع</h6>
                                             <p
                                                 class="mb-0 {{ $warehouse->is_active ? 'text-success' : 'text-danger' }} x-small">
                                                 {{ $warehouse->is_active ? 'نشط حالياً' : 'معطل حالياً' }}</p>
@@ -114,14 +114,14 @@
                             </div>
 
                             <div class="col-md-6">
-                                <div class="d-flex align-items-center justify-content-between p-3 rounded-3 border border-white-10 bg-white-5 transition-all hover:bg-white-10 cursor-pointer"
+                                <div class="d-flex align-items-center justify-content-between p-3 rounded-3 border border-secondary border-opacity-10-10 bg-surface-5 transition-all hover:bg-surface-10 cursor-pointer"
                                     onclick="document.getElementById('isDefaultCheck').click()">
                                     <div class="d-flex align-items-center gap-3">
                                         <div class="icon-box-sm bg-amber bg-opacity-10 text-amber-400">
                                             <i class="bi bi-star-fill"></i>
                                         </div>
                                         <div>
-                                            <h6 class="fw-bold text-white mb-0">تعيين كافتراضي</h6>
+                                            <h6 class="fw-bold text-heading mb-0">تعيين كافتراضي</h6>
                                             <p class="mb-0 text-gray-500 x-small">تعيين كمستودع رئيسي للنظام</p>
                                         </div>
                                     </div>
@@ -134,11 +134,10 @@
                         </div>
 
                         <!-- Actions -->
-                        <div class="d-flex justify-content-between align-items-center pt-4 border-top border-white-10">
+                        <div class="d-flex justify-content-between align-items-center pt-4 border-top border-secondary border-opacity-10-10">
                             <a href="{{ route('warehouses.index') }}"
-                                class="btn btn-link text-gray-400 text-decoration-none hover-text-white d-flex align-items-center gap-2">
-                                <i class="bi bi-arrow-right"></i> إلغاء
-                            </a>
+                                class="btn btn-link text-secondary text-decoration-none hover-text-white d-flex align-items-center gap-2">
+                                <i class="bi bi-arrow-right"></i>{{ __('Cancel') }}</a>
                             <button type="submit"
                                 class="btn btn-action-amber px-5 py-2 rounded-pill fw-bold shadow-neon-amber d-flex align-items-center gap-2">
                                 <i class="bi bi-save"></i> حفظ التعديلات
@@ -173,13 +172,13 @@
         .bg-dark-input {
             background: rgba(15, 23, 42, 0.6) !important;
             border-color: rgba(255, 255, 255, 0.1) !important;
-            color: #94a3b8;
+            color: var(--text-secondary);
         }
 
         .form-control-dark {
             background: rgba(15, 23, 42, 0.6) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            color: white !important;
+            border: 1px solid var(--btn-glass-border); !important;
+            color: var(--text-primary); !important;
             padding: 0.8rem 1rem;
         }
 
@@ -197,7 +196,7 @@
         .btn-action-amber {
             background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
             border: none;
-            color: white;
+            color: var(--text-primary);
             transition: all 0.3s;
         }
 
@@ -210,15 +209,15 @@
             color: #475569;
         }
 
-        .bg-white-5 {
+        .bg-surface-5 {
             background: rgba(255, 255, 255, 0.02);
         }
 
-        .bg-white-10 {
-            background: rgba(255, 255, 255, 0.05);
+        .bg-surface-10 {
+            background: var(--btn-glass-bg);
         }
 
-        .border-white-10 {
+        .border-secondary border-opacity-10-10 {
             border-color: rgba(255, 255, 255, 0.05) !important;
         }
 

@@ -7,7 +7,7 @@
     <div class="dashboard-wrapper">
         <div class="row align-items-center mb-4">
             <div class="col-md-6">
-                <h3 class="fw-black text-white mb-0">أسطول التوصيل</h3>
+                <h3 class="fw-black text-heading mb-0">أسطول التوصيل</h3>
                 <p class="text-secondary small opacity-75 mt-1">
                     <i class="bi bi-truck text-primary me-1"></i>
                     متابعة السائقين، حالات التوصيل، وتقييم الأداء الميداني.
@@ -22,7 +22,7 @@
     <!-- Stats Section -->
     <div class="row g-4 mb-4">
         <div class="col-md-12">
-            <div class="glass-card rounded-4 p-4 border-white border-opacity-10">
+            <div class="glass-card rounded-4 p-4 border-secondary border-opacity-10 border-opacity-10">
                 <div class="d-flex align-items-center gap-3">
                     <div class="icon-box rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center"
                         style="width: 48px; height: 48px;">
@@ -30,7 +30,7 @@
                     </div>
                     <div>
                         <span class="text-secondary x-small d-block fw-bold">إجمالي السائقين</span>
-                        <h4 class="text-white fw-black mb-0">{{ $stats['total'] }}</h4>
+                        <h4 class="text-heading fw-black mb-0">{{ $stats['total'] }}</h4>
                     </div>
                 </div>
             </div>
@@ -38,15 +38,15 @@
     </div>
 
     <!-- Filter Section -->
-    <div class="glass-card rounded-4 p-4 mb-4 border-white border-opacity-10">
+    <div class="glass-card rounded-4 p-4 mb-4 border-secondary border-opacity-10 border-opacity-10">
         <form action="{{ route('hr.delivery.index') }}" method="GET" class="row g-3 align-items-end">
             <div class="col-md-7">
                 <label class="form-label text-secondary small fw-bold">بحث شامل</label>
                 <div class="input-group">
-                    <span class="input-group-text bg-white bg-opacity-5 border-white border-opacity-10 text-secondary"><i
+                    <span class="input-group-text bg-white bg-opacity-5 border-secondary border-opacity-10 border-opacity-10 text-secondary"><i
                             class="bi bi-search"></i></span>
                     <input type="text" name="search"
-                        class="form-control bg-white bg-opacity-5 text-white border-white border-opacity-10 shadow-none"
+                        class="form-control bg-white bg-opacity-5 text-body border-secondary border-opacity-10 border-opacity-10 shadow-none"
                         placeholder="اسم السائق، الكود، أو لوحة السيارة..." value="{{ request('search') }}">
                 </div>
             </div>
@@ -62,7 +62,7 @@
     </div>
 
     <!-- Table Section -->
-    <div class="glass-card rounded-4 overflow-hidden border-white border-opacity-10">
+    <div class="glass-card rounded-4 overflow-hidden border-secondary border-opacity-10 border-opacity-10">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead>
@@ -74,9 +74,9 @@
                         <th class="pe-4 py-3 text-end text-secondary small fw-bold border-0">الإجراءات</th>
                     </tr>
                 </thead>
-                <tbody class="text-white">
+                <tbody class="text-heading">
                     @forelse($drivers as $driver)
-                        <tr class="border-bottom border-white border-opacity-5">
+                        <tr class="border-bottom border-secondary border-opacity-10 border-opacity-5">
                             <td class="ps-4 py-3">
                                 <div class="d-flex align-items-center gap-3">
                                     <div
@@ -136,7 +136,7 @@
             </table>
         </div>
         @if($drivers->hasPages())
-            <div class="p-4 border-top border-white border-opacity-10">
+            <div class="p-4 border-top border-secondary border-opacity-10 border-opacity-10">
                 {{ $drivers->links() }}
             </div>
         @endif

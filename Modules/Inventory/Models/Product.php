@@ -168,6 +168,14 @@ class Product extends Model
     }
 
     /**
+     * Sales Returns lines for this product
+     */
+    public function returns(): HasMany
+    {
+        return $this->hasMany(\Modules\Sales\Models\SalesReturnLine::class);
+    }
+
+    /**
      * Get primary image
      */
     public function getPrimaryImageAttribute(): ?ProductImage
@@ -315,6 +323,6 @@ class Product extends Model
 
     public function brand(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\Brand::class);
+        return $this->belongsTo(\Modules\Inventory\Models\Brand::class);
     }
 }

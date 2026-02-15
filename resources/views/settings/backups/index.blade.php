@@ -4,8 +4,8 @@
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h4 class="mb-1 fw-bold text-white">النسخ الاحتياطية</h4>
-                <p class="text-white-50 mb-0">إدارة النسخ الاحتياطية لقاعدة البيانات</p>
+                <h4 class="mb-1 fw-bold text-heading">{{ __('Backups') }}</h4>
+                <p class="text-body-50 mb-0">إدارة النسخ الاحتياطية لقاعدة البيانات</p>
             </div>
             <div>
                 <a href="{{ route('settings.backup.create') }}" class="btn btn-primary d-flex align-items-center gap-2">
@@ -34,13 +34,13 @@
         <div class="glass-card mb-4 p-4 border border-primary border-opacity-25">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
-                    <h5 class="text-white fw-bold mb-1"><i class="bi bi-database-check me-2 text-primary"></i> حالة النظام
+                    <h5 class="text-heading fw-bold mb-1"><i class="bi bi-database-check me-2 text-primary"></i> حالة النظام
                         الحالية</h5>
-                    <p class="text-white-50 mb-0 small">بيانات النسخة الحية (Live)</p>
+                    <p class="text-body-50 mb-0 small">بيانات النسخة الحية (Live)</p>
                 </div>
                 <div class="text-end">
-                    <div class="display-6 fw-bold text-white">
-                        {{ App\Http\Controllers\BackupController::formatBytes($currentSystemSize ?? 0) }}
+                    <div class="display-6 fw-bold text-body">
+                        {{ Modules\Core\Http\Controllers\BackupController::formatBytes($currentSystemSize ?? 0) }}
                     </div>
                     <div class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25">Active
                         Database</div>
@@ -50,15 +50,15 @@
 
         <!-- Backups List -->
         <div class="glass-card table-responsive mb-4">
-            <h5 class="text-white fw-bold px-4 pt-4 mb-3"><i class="bi bi-archive me-2"></i> أرشيف النسخ الاحتياطية</h5>
+            <h5 class="text-heading fw-bold px-4 pt-4 mb-3"><i class="bi bi-archive me-2"></i> أرشيف النسخ الاحتياطية</h5>
             <table class="table table-dark table-hover mb-0 align-middle">
                 <thead class="text-secondary small text-uppercase">
                     <tr>
                         <th class="ps-4">اسم الملف</th>
                         <th>الحجم</th>
-                        <th>تاريخ الإنشاء</th>
+                        <th>{{ __('Created At') }}</th>
                         <th>مقارنة (Diff)</th>
-                        <th class="text-end pe-4">إجراءات</th>
+                        <th class="text-end pe-4">{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -66,14 +66,14 @@
                         <tr>
                             <td class="ps-4">
                                 <div class="d-flex align-items-center">
-                                    <div class="icon-square bg-secondary bg-opacity-10 text-white rounded me-3">
+                                    <div class="icon-square bg-secondary bg-opacity-10 text-body rounded me-3">
                                         <i class="bi bi-filetype-sql fs-4"></i>
                                     </div>
-                                    <div class="text-white fw-medium font-monospace">{{ $backup['name'] }}</div>
+                                    <div class="text-body fw-medium font-monospace">{{ $backup['name'] }}</div>
                                 </div>
                             </td>
-                            <td class="text-white-50">{{ $backup['size'] }}</td>
-                            <td class="text-white-50" dir="ltr">{{ $backup['created_at']->format('Y-m-d H:i') }}</td>
+                            <td class="text-muted">{{ $backup['size'] }}</td>
+                            <td class="text-muted" dir="ltr">{{ $backup['created_at']->format('Y-m-d H:i') }}</td>
                             <td>
                                 <!-- Simple size comparison visual -->
                                 @if(abs(($backup['raw_size'] ?? 0) - $currentSystemSize) < 1024)
@@ -89,7 +89,7 @@
                             <td class="text-end pe-4">
                                 <div class="d-flex justify-content-end gap-2">
                                     <a href="{{ route('settings.backup.compare', $backup['name']) }}"
-                                        class="btn btn-sm btn-info text-dark fw-bold d-flex align-items-center gap-1"
+                                        class="btn btn-sm btn-info text-body fw-bold d-flex align-items-center gap-1"
                                         title="مقارنة">
                                         <i class="bi bi-scale"></i>
                                         <span class="d-none d-md-inline">مقارنة</span>
@@ -101,13 +101,13 @@
                                     </a>
 
                                     <a href="{{ route('settings.backup.download', $backup['name']) }}"
-                                        class="btn btn-sm btn-outline-light" title="تحميل">
+                                        class="btn btn-sm btn-outline-light" title="{{ __('Download') }}">
                                         <i class="bi bi-download"></i>
                                     </a>
 
                                     <form action="{{ route('settings.backup.restore', $backup['name']) }}" method="POST"
                                         class="d-inline"
-                                        data-confirm="⚠️ مقارنة سريعة:\nالنسخة الحالية: {{ App\Http\Controllers\BackupController::formatBytes($currentSystemSize) }}\nالنسخة المختارة: {{ $backup['size'] }}\n\nسيتم استبدال قاعدة البيانات بالكامل. هل أنت متأكد؟">
+                                        data-confirm="⚠️ مقارنة سريعة:\nالنسخة الحالية: {{ Modules\Core\Http\Controllers\BackupController::formatBytes($currentSystemSize) }}\nالنسخة المختارة: {{ $backup['size'] }}\n\nسيتم استبدال قاعدة البيانات بالكامل. هل أنت متأكد؟">
                                         @csrf
                                         <button type="submit" class="btn btn-sm btn-danger px-3 fw-bold" title="استعادة النظام">
                                             <i class="bi bi-arrow-counterclockwise me-1"></i> استعادة
@@ -120,7 +120,7 @@
                                         @method('DELETE')
                                         <button type="submit"
                                             class="btn btn-sm btn-outline-danger border-0 opacity-50 hover-opacity-100"
-                                            title="حذف">
+                                            title="{{ __('Delete') }}">
                                             <i class="bi bi-x-lg"></i>
                                         </button>
                                     </form>
@@ -129,7 +129,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center py-5 text-white-50">
+                            <td colspan="5" class="text-center py-5 text-muted">
                                 <i class="bi bi-cloud-slash fs-1 d-block mb-3 opacity-50"></i>
                                 لا توجد نسخ احتياطية حالياً
                             </td>
@@ -141,21 +141,21 @@
 
         <!-- Restoration History -->
         <div class="glass-card p-4 mb-4">
-            <h5 class="text-white fw-bold mb-3"><i class="bi bi-clock-history me-2 text-info"></i> سجل الاستعادات السابق
+            <h5 class="text-heading fw-bold mb-3"><i class="bi bi-clock-history me-2 text-info"></i> سجل الاستعادات السابق
                 (History)</h5>
             <div class="table-responsive">
-                <table class="table table-sm table-borderless text-white-50 align-middle">
+                <table class="table table-sm table-borderless text-muted align-middle">
                     <thead>
                         <tr class="border-bottom border-secondary border-opacity-25 text-uppercase small">
                             <th class="py-2">بواسطة</th>
                             <th>التفاصيل</th>
-                            <th class="text-end">التاريخ</th>
+                            <th class="text-end">{{ __('Date') }}</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($restorationHistory as $log)
                             <tr>
-                                <td class="py-2 text-white">
+                                <td class="py-2 text-body">
                                     <span class="d-flex align-items-center gap-2">
                                         <i class="bi bi-person-circle"></i>
                                         {{ $log->user_name }}
@@ -166,7 +166,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="3" class="text-center py-4 text-white-50">
+                                <td colspan="3" class="text-center py-4 text-muted">
                                     <i class="bi bi-clock-history fs-3 d-block mb-2 opacity-50"></i>
                                     لم يتم إجراء أي عمليات استعادة للنظام بعد.
                                 </td>
@@ -179,14 +179,14 @@
 
         <!-- Upload Section -->
         <div class="glass-card mt-4 p-4 border-dashed border-secondary border-opacity-25">
-            <h5 class="text-white mb-3"><i class="bi bi-upload me-2"></i> استيراد نسخة خارجية</h5>
+            <h5 class="text-heading mb-3"><i class="bi bi-upload me-2"></i> استيراد نسخة خارجية</h5>
             <form action="{{ route('settings.backup.upload') }}" method="POST" enctype="multipart/form-data"
                 class="row align-items-end g-3">
                 @csrf
                 <div class="col-md-8">
-                    <label class="form-label text-white-50 small">ملف SQL</label>
+                    <label class="form-label text-muted small">ملف SQL</label>
                     <input type="file" name="backup_file"
-                        class="form-control bg-transparent text-white border-secondary border-opacity-25" required>
+                        class="form-control bg-transparent text-body border-secondary border-opacity-25" required>
                 </div>
                 <div class="col-md-4">
                     <button type="submit" class="btn btn-secondary w-100">

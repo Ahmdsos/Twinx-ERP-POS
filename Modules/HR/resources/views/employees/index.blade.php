@@ -8,7 +8,7 @@
         <!-- Header & Stats -->
         <div class="row g-4 mb-4 align-items-center">
             <div class="col-md-6 text-start">
-                <h2 class="text-white fw-black mb-0">إدارة <span class="text-primary">الموظفين</span></h2>
+                <h2 class="text-heading fw-black mb-0">إدارة <span class="text-primary">الموظفين</span></h2>
                 <p class="text-secondary small mt-2 opacity-75">إدارة بيانات الفريق، الرواتب، والوثائق الرسمية في مكان واحد.
                 </p>
             </div>
@@ -25,48 +25,48 @@
         <!-- Metrics Bar -->
         <div class="row g-3 mb-4">
             <div class="col-md-3">
-                <div class="glass-card p-3 rounded-4 border-white border-opacity-10 h-100 bg-dark bg-opacity-25">
+                <div class="glass-card p-3 rounded-4 border-secondary border-opacity-10 border-opacity-10 h-100 bg-surface-secondary bg-opacity-25">
                     <div class="d-flex align-items-center gap-3">
                         <div class="p-3 bg-primary bg-opacity-10 rounded-3 text-primary"><i
                                 class="bi bi-people-fill fs-4"></i></div>
                         <div>
                             <div class="text-secondary x-small fw-bold opacity-75">إجمالي الموظفين</div>
-                            <div class="h4 text-white mb-0">{{ $stats['total'] }}</div>
+                            <div class="h4 text-heading mb-0">{{ $stats['total'] }}</div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="glass-card p-3 rounded-4 border-white border-opacity-10 h-100 bg-dark bg-opacity-25">
+                <div class="glass-card p-3 rounded-4 border-secondary border-opacity-10 border-opacity-10 h-100 bg-surface-secondary bg-opacity-25">
                     <div class="d-flex align-items-center gap-3">
                         <div class="p-3 bg-success bg-opacity-10 rounded-3 text-success"><i
                                 class="bi bi-check-circle-fill fs-4"></i></div>
                         <div>
                             <div class="text-secondary x-small fw-bold opacity-75">نشط حالياً</div>
-                            <div class="h4 text-white mb-0">{{ $stats['active'] }}</div>
+                            <div class="h4 text-heading mb-0">{{ $stats['active'] }}</div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="glass-card p-3 rounded-4 border-white border-opacity-10 h-100 bg-dark bg-opacity-25">
+                <div class="glass-card p-3 rounded-4 border-secondary border-opacity-10 border-opacity-10 h-100 bg-surface-secondary bg-opacity-25">
                     <div class="d-flex align-items-center gap-3">
                         <div class="p-3 bg-warning bg-opacity-10 rounded-3 text-warning"><i
                                 class="bi bi-clock-history fs-4"></i></div>
                         <div>
                             <div class="text-secondary x-small fw-bold opacity-75">في إجازة</div>
-                            <div class="h4 text-white mb-0">{{ $stats['on_leave'] }}</div>
+                            <div class="h4 text-heading mb-0">{{ $stats['on_leave'] }}</div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="glass-card p-3 rounded-4 border-white border-opacity-10 h-100 bg-dark bg-opacity-25">
+                <div class="glass-card p-3 rounded-4 border-secondary border-opacity-10 border-opacity-10 h-100 bg-surface-secondary bg-opacity-25">
                     <div class="d-flex align-items-center gap-3">
                         <div class="p-3 bg-info bg-opacity-10 rounded-3 text-info"><i class="bi bi-wallet2 fs-4"></i></div>
                         <div>
                             <div class="text-secondary x-small fw-bold opacity-75">كتلة الرواتب</div>
-                            <div class="h4 text-white mb-0">{{ number_format($stats['total_salaries'], 0) }}</div>
+                            <div class="h4 text-heading mb-0">{{ number_format($stats['total_salaries'], 0) }}</div>
                         </div>
                     </div>
                 </div>
@@ -74,23 +74,23 @@
         </div>
 
         <!-- Filters & Table -->
-        <div class="glass-card rounded-4 border-white border-opacity-10 overflow-hidden shadow-lg bg-dark bg-opacity-40">
+        <div class="glass-card rounded-4 border-secondary border-opacity-10 border-opacity-10 overflow-hidden shadow-lg bg-surface-secondary bg-opacity-40">
             <!-- Filter Header -->
-            <div class="p-4 border-bottom border-white border-opacity-5 bg-dark bg-opacity-25">
+            <div class="p-4 border-bottom border-secondary border-opacity-10 border-opacity-5 bg-surface-secondary bg-opacity-25">
                 <form action="{{ route('hr.employees.index') }}" method="GET" class="row g-3 align-items-end">
                     <div class="col-md-4">
                         <div class="input-group">
                             <span
-                                class="input-group-text bg-white bg-opacity-5 border-white border-opacity-10 text-secondary border-end-0 rounded-start-pill ps-3"><i
+                                class="input-group-text bg-white bg-opacity-5 border-secondary border-opacity-10 border-opacity-10 text-secondary border-end-0 rounded-start-pill ps-3"><i
                                     class="bi bi-search"></i></span>
                             <input type="text" name="search"
-                                class="form-control bg-white bg-opacity-5 border-white border-opacity-10 text-white shadow-none rounded-end-pill py-2"
+                                class="form-control bg-white bg-opacity-5 border-secondary border-opacity-10 border-opacity-10 text-body shadow-none rounded-end-pill py-2"
                                 placeholder="ابحث بالاسم، الكود، أو القسم..." value="{{ request('search') }}">
                         </div>
                     </div>
                     <div class="col-md-3 text-start">
                         <select name="status"
-                            class="form-select bg-dark border-white border-opacity-10 text-white shadow-none rounded-pill py-2">
+                            class="form-select bg-surface-secondary border-secondary border-opacity-10 border-opacity-10 text-body shadow-none rounded-pill py-2">
                             <option value="">كل الحالات...</option>
                             @foreach(Modules\HR\Models\Employee::getStatusLabels() as $val => $label)
                                 <option value="{{ $val }}" {{ request('status') == $val ? 'selected' : '' }}>{{ $label }}</option>
@@ -99,12 +99,12 @@
                     </div>
                     <div class="col-md-3">
                         <input type="text" name="department"
-                            class="form-control bg-white bg-opacity-5 border-white border-opacity-10 text-white shadow-none rounded-pill py-2"
+                            class="form-control bg-white bg-opacity-5 border-secondary border-opacity-10 border-opacity-10 text-body shadow-none rounded-pill py-2"
                             placeholder="القسم..." value="{{ request('department') }}">
                     </div>
                     <div class="col-md-2">
                         <button type="submit"
-                            class="btn btn-secondary w-100 rounded-pill py-2 fw-bold border-0 bg-white bg-opacity-10 text-white">
+                            class="btn btn-secondary w-100 rounded-pill py-2 fw-bold border-0 bg-white bg-opacity-10 text-body">
                             <i class="bi bi-funnel me-1"></i> تصفية
                         </button>
                     </div>
@@ -113,9 +113,9 @@
 
             <!-- Table Content -->
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0 text-white text-start">
+                <table class="table table-hover align-middle mb-0 text-heading text-start">
                     <thead>
-                        <tr class="bg-white bg-opacity-5 border-bottom border-white border-opacity-10">
+                        <tr class="bg-white bg-opacity-5 border-bottom border-secondary border-opacity-10 border-opacity-10">
                             <th class="ps-4 py-3 border-0 text-secondary x-small fw-black text-uppercase">الموظف</th>
                             <th class="py-3 border-0 text-secondary x-small fw-black text-uppercase">الكود</th>
                             <th class="py-3 border-0 text-secondary x-small fw-black text-uppercase text-center">القسم /
@@ -129,7 +129,7 @@
                     </thead>
                     <tbody>
                         @forelse($employees as $employee)
-                            <tr class="border-bottom border-white border-opacity-5">
+                            <tr class="border-bottom border-secondary border-opacity-10 border-opacity-5">
                                 <td class="ps-4 py-3">
                                     <div class="d-flex align-items-center gap-3">
                                         <div class="avatar-box rounded-3 bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold shadow-sm"
@@ -144,7 +144,7 @@
                                 </td>
                                 <td class="py-3">
                                     <span
-                                        class="badge bg-white bg-opacity-10 text-white px-3 py-2 rounded-pill x-small fw-bold">
+                                        class="badge bg-white bg-opacity-10 text-body px-3 py-2 rounded-pill x-small fw-bold">
                                         {{ $employee->employee_code }}
                                     </span>
                                 </td>
@@ -154,7 +154,7 @@
                                 </td>
                                 <td class="py-3 text-center">
                                     <div class="fw-black text-primary">{{ number_format($employee->basic_salary, 2) }}</div>
-                                    <div class="x-small text-secondary opacity-50 text-white">ج.م</div>
+                                    <div class="x-small text-secondary opacity-50 text-heading">ج.م</div>
                                 </td>
                                 <td class="py-3 text-center">
                                     <span
@@ -197,7 +197,7 @@
             </div>
 
             @if($employees->hasPages())
-                <div class="p-4 border-top border-white border-opacity-5">
+                <div class="p-4 border-top border-secondary border-opacity-10 border-opacity-5">
                     {{ $employees->links() }}
                 </div>
             @endif

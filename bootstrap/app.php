@@ -13,6 +13,11 @@ return Application::configure(basePath: dirname(__DIR__))
         apiPrefix: 'api',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Apply locale on every web request
+        $middleware->web(append: [
+            \App\Http\Middleware\SetLocale::class,
+        ]);
+
         $middleware->alias([
             'license' => \App\Http\Middleware\LicenseCheckMiddleware::class,
         ]);

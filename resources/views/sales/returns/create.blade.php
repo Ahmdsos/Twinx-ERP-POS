@@ -10,9 +10,9 @@
 
                 <!-- Header Actions -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h4 class="fw-bold text-white mb-0">تسجيل مرتجع مبيعات جديد</h4>
+                    <h4 class="fw-bold text-heading mb-0">تسجيل مرتجع مبيعات جديد</h4>
                     <div class="d-flex gap-2">
-                        <a href="{{ route('sales-returns.index') }}" class="btn btn-glass-outline">إلغاء</a>
+                        <a href="{{ route('sales-returns.index') }}" class="btn btn-glass-outline">{{ __('Cancel') }}</a>
                         <button type="submit" class="btn btn-primary px-4 fw-bold shadow-lg">
                             <i class="bi bi-save me-2"></i> حفظ المرتجع
                         </button>
@@ -23,9 +23,9 @@
                 <div class="glass-card p-4 mb-4">
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <label class="form-label text-gray-300">العميل <span class="text-danger">*</span></label>
+                            <label class="form-label text-gray-300">{{ __('Customer') }}<span class="text-danger">*</span></label>
                             <select name="customer_id" x-model="customerId" @change="loadInvoices"
-                                class="form-select form-select-lg bg-transparent text-white border-secondary" required>
+                                class="form-select form-select-lg bg-transparent text-body border-secondary" required>
                                 <option value="">اختر العميل...</option>
                                 @foreach($customers as $customer)
                                     <option value="{{ $customer->id }}">{{ $customer->name }}</option>
@@ -36,7 +36,7 @@
                         <div class="col-md-3">
                             <label class="form-label text-gray-300">فاتورة مرجعية (اختياري)</label>
                             <select name="sales_invoice_id" x-model="invoiceId" @change="loadInvoiceItems"
-                                class="form-select bg-transparent text-white border-secondary" :disabled="!customerId">
+                                class="form-select bg-transparent text-body border-secondary" :disabled="!customerId">
                                 <option value="">-- بدون فاتورة (مرتجع حر) --</option>
                                 <template x-for="invoice in invoices" :key="invoice.id">
                                     <option :value="invoice.id"
@@ -49,7 +49,7 @@
                         <div class="col-md-3">
                             <label class="form-label text-gray-300">المخزن (الاستلام) <span
                                     class="text-danger">*</span></label>
-                            <select name="warehouse_id" class="form-select bg-transparent text-white border-secondary"
+                            <select name="warehouse_id" class="form-select bg-transparent text-body border-secondary"
                                 required>
                                 @foreach($warehouses as $warehouse)
                                     <option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>
@@ -57,9 +57,9 @@
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label text-gray-300">تاريخ المرتجع <span class="text-danger">*</span></label>
+                            <label class="form-label text-gray-300">{{ __('Return Date') }}<span class="text-danger">*</span></label>
                             <input type="date" name="return_date"
-                                class="form-control bg-transparent text-white border-secondary" value="{{ date('Y-m-d') }}"
+                                class="form-control bg-transparent text-body border-secondary" value="{{ date('Y-m-d') }}"
                                 required>
                         </div>
                     </div>
@@ -68,7 +68,7 @@
                 <!-- Items Table -->
                 <div class="glass-card p-4 mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="text-white mb-0">الأصناف المرتجعة</h5>
+                        <h5 class="text-heading mb-0">الأصناف المرتجعة</h5>
                         <button type="button" @click="addItem()" class="btn btn-sm btn-outline-info">
                             <i class="bi bi-plus-lg me-1"></i> إضافة صنف يدوي
                         </button>
@@ -83,11 +83,11 @@
                         <table class="table table-borderless align-middle mb-0">
                             <thead class="text-gray-400 border-bottom border-secondary border-opacity-25 small">
                                 <tr>
-                                    <th width="35%">المنتج</th>
+                                    <th width="35%">{{ __('Product') }}</th>
                                     <th width="15%">حالة الصنف</th>
-                                    <th width="12%">الكمية</th>
+                                    <th width="12%">{{ __('Quantity') }}</th>
                                     <th width="15%">سعر الاسترجاع</th>
-                                    <th width="15%">الإجمالي</th>
+                                    <th width="15%">{{ __('Total') }}</th>
                                     <th width="5%"></th>
                                 </tr>
                             </thead>
@@ -96,7 +96,7 @@
                                     <tr class="border-bottom border-secondary border-opacity-10">
                                         <td>
                                             <select :name="'items['+index+'][product_id]'" x-model="item.product_id"
-                                                class="form-select bg-transparent text-white border-secondary fs-6"
+                                                class="form-select bg-transparent text-body border-secondary fs-6"
                                                 required>
                                                 <option value="">اختر المنتج...</option>
                                                 @foreach($products as $product)
@@ -108,7 +108,7 @@
                                         </td>
                                         <td>
                                             <select :name="'items['+index+'][condition]'" x-model="item.condition"
-                                                class="form-select bg-transparent text-white border-secondary fs-6">
+                                                class="form-select bg-transparent text-body border-secondary fs-6">
                                                 <option value="resalable">صالح للبيع</option>
                                                 <option value="damaged">تالف / معيب</option>
                                             </select>
@@ -116,13 +116,13 @@
                                         <td>
                                             <input type="number" step="0.01" :name="'items['+index+'][quantity]'"
                                                 x-model="item.quantity"
-                                                class="form-control bg-transparent text-white border-secondary text-center"
+                                                class="form-control bg-transparent text-body border-secondary text-center"
                                                 min="0.01" required>
                                         </td>
                                         <td>
                                             <input type="number" step="0.01" :name="'items['+index+'][unit_price]'"
                                                 x-model="item.unit_price"
-                                                class="form-control bg-transparent text-white border-secondary text-center"
+                                                class="form-control bg-transparent text-body border-secondary text-center"
                                                 min="0" required>
                                         </td>
                                         <td class="text-end fw-bold text-info">
@@ -140,9 +140,9 @@
                             <tfoot class="border-top border-secondary border-opacity-25">
                                 <tr>
                                     <td colspan="4" class="text-end py-3 text-gray-300">الإجمالي الكلي:</td>
-                                    <td class="text-end py-3 text-white fw-bold fs-5">
+                                    <td class="text-end py-3 text-body fw-bold fs-5">
                                         <span x-text="grandTotal"></span> <small
-                                            class="fs-6 fw-normal text-gray-500">ج.م</small>
+                                            class="fs-6 fw-normal text-gray-500">{{ __('EGP') }}</small>
                                     </td>
                                     <td></td>
                                 </tr>
@@ -160,7 +160,7 @@
                 <!-- Notes -->
                 <div class="glass-card p-4">
                     <label class="form-label text-gray-300">ملاحظات إضافية</label>
-                    <textarea name="notes" class="form-control bg-transparent text-white border-secondary" rows="3"
+                    <textarea name="notes" class="form-control bg-transparent text-body border-secondary" rows="3"
                         placeholder="أدخل أي تفاصيل إضافية حول سبب الإرجاع..."></textarea>
                 </div>
             </form>
@@ -169,22 +169,17 @@
 
     @push('styles')
         <style>
-            .glass-card {
-                background: rgba(30, 41, 59, 0.7);
-                backdrop-filter: blur(20px);
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                border-radius: 12px;
-            }
+            
 
             .btn-glass-outline {
-                background: rgba(255, 255, 255, 0.05);
+                background: var(--btn-glass-bg);
                 border: 1px solid rgba(255, 255, 255, 0.2);
-                color: white;
+                color: var(--text-primary);
             }
 
             .btn-icon-glass {
-                background: rgba(255, 255, 255, 0.05);
-                border: 1px solid rgba(255, 255, 255, 0.1);
+                background: var(--btn-glass-bg);
+                border: 1px solid var(--btn-glass-border);
                 border-radius: 50%;
                 width: 32px;
                 height: 32px;
@@ -198,12 +193,12 @@
                 background-color: rgba(30, 41, 59, 0.9);
                 border-color: #3b82f6;
                 box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25);
-                color: white;
+                color: var(--text-primary);
             }
 
             option {
-                background-color: #1e293b;
-                color: white;
+                background-color: var(--input-bg);
+                color: var(--text-primary);
             }
         </style>
     @endpush
@@ -221,13 +216,34 @@
                     loadingInvoices: false,
                     loadingLines: false,
 
-                    init() {
-                        // Initialize if needed
+
+
+                    async init() {
+                        // Check for URL params
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const invoiceId = urlParams.get('invoice_id');
+                        const customerId = urlParams.get('customer_id');
+
+                        if (customerId) {
+                            this.customerId = customerId;
+                            await this.loadInvoices(); // Wait for invoices to load
+
+                            if (invoiceId) {
+                                // Check if invoice exists in the list (it should)
+                                const invoiceExists = this.invoices.some(inv => inv.id == invoiceId);
+                                if (invoiceExists) {
+                                    this.invoiceId = invoiceId;
+                                    await this.loadInvoiceItems();
+                                }
+                            }
+                        }
                     },
 
                     async loadInvoices() {
                         this.invoices = [];
-                        this.invoiceId = '';
+                        // Don't clear invoiceId if we are initializing (it might be set)
+                        // this.invoiceId = ''; 
+
                         if (!this.customerId) return;
 
                         this.loadingInvoices = true;

@@ -5,8 +5,8 @@
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h4 class="fw-bold text-white mb-1">الخزينة والبنوك</h4>
-            <div class="text-white-50 small">سندات الصرف والقبض</div>
+            <h4 class="fw-bold text-heading mb-1">{{ __('Treasury & Banks') }}</h4>
+            <div class="text-muted small">سندات الصرف والقبض</div>
         </div>
         <div class="d-flex gap-2">
             <a href="{{ route('treasury.create-receipt') }}" class="btn btn-success shadow-lg fw-bold px-4 py-2">
@@ -20,16 +20,16 @@
 
     <div class="glass-card">
         <div class="table-responsive">
-            <table class="table align-middle text-white mb-0 custom-table">
+            <table class="table align-middle text-body mb-0 custom-table">
                 <thead>
                     <tr>
-                        <th class="px-4 py-4 text-white-50 fw-normal">رقم السند</th>
-                        <th class="py-4 text-white-50 fw-normal">التاريخ</th>
-                        <th class="py-4 text-white-50 fw-normal">النوع</th>
-                        <th class="py-4 text-white-50 fw-normal">الخزينة / البنك</th>
-                        <th class="py-4 text-white-50 fw-normal">الحساب المقابل</th>
-                        <th class="py-4 text-white-50 fw-normal text-end">المبلغ</th>
-                        <th class="px-4 py-4 text-end text-white-50 fw-normal">إجراءات</th>
+                        <th class="px-4 py-4 text-secondary-50 fw-normal">رقم السند</th>
+                        <th class="py-4 text-secondary-50 fw-normal">{{ __('Date') }}</th>
+                        <th class="py-4 text-secondary-50 fw-normal">{{ __('Type') }}</th>
+                        <th class="py-4 text-secondary-50 fw-normal">الخزينة / البنك</th>
+                        <th class="py-4 text-secondary-50 fw-normal">الحساب المقابل</th>
+                        <th class="py-4 text-secondary-50 fw-normal text-end">{{ __('Amount') }}</th>
+                        <th class="px-4 py-4 text-end text-secondary-50 fw-normal">{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -72,7 +72,7 @@
                             <td colspan="7" class="text-center py-5">
                                 <div class="d-flex flex-column align-items-center justify-content-center py-5 opacity-50">
                                     <i class="bi bi-wallet2 display-1 mb-4"></i>
-                                    <h4 class="text-white-50">لا توجد حركات</h4>
+                                    <h4 class="text-heading-50">لا توجد حركات</h4>
                                     <div class="d-flex gap-2 mt-3">
                                         <a href="{{ route('treasury.create-receipt') }}"
                                             class="btn btn-outline-success rounded-pill px-4">سند قبض جديد</a>
@@ -86,26 +86,18 @@
                 </tbody>
             </table>
         </div>
-        <div class="card-footer bg-transparent border-top border-white border-opacity-10 py-4">
+        <div class="card-footer bg-transparent border-top border-secondary border-opacity-10 border-opacity-10 py-4">
             {{ $transactions->links('partials.pagination') }}
         </div>
     </div>
 
     <style>
-        .glass-card {
-            background: rgba(17, 24, 39, 0.7);
-            backdrop-filter: blur(30px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            min-height: 400px;
-        }
+        
 
         .custom-table thead th {
             background-color: rgba(255, 255, 255, 0.03);
             letter-spacing: 0.5px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            border-bottom: 1px solid var(--border-color);
         }
 
         .table-row-hover {
@@ -114,7 +106,7 @@
         }
 
         .table-row-hover:hover {
-            background-color: rgba(255, 255, 255, 0.05);
+            background-color: var(--table-head-bg);
             transform: translateY(-1px);
         }
 
@@ -123,8 +115,8 @@
         }
 
         .btn-glass {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: var(--btn-glass-bg);
+            border: 1px solid var(--btn-glass-border);
             border-radius: 8px;
             width: 32px;
             height: 32px;

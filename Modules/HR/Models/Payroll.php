@@ -107,8 +107,8 @@ class Payroll extends Model implements AccountableContract
 
     public function getJournalLines(): array
     {
-        $expAccountCode = \App\Models\Setting::getValue('acc_salaries_exp');
-        $payableAccountCode = \App\Models\Setting::getValue('acc_salaries_payable');
+        $expAccountCode = \Modules\Core\Models\Setting::getValue('acc_salaries_exp');
+        $payableAccountCode = \Modules\Core\Models\Setting::getValue('acc_salaries_payable');
 
         $expAccount = \Modules\Accounting\Models\Account::where('code', $expAccountCode)->first();
         $payableAccount = \Modules\Accounting\Models\Account::where('code', $payableAccountCode)->first();

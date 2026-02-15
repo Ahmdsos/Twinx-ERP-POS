@@ -6,10 +6,9 @@
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="text-white fw-bold"><i class="bi bi-person-plus me-2"></i> إضافة مستخدم جديد</h2>
+                <h2 class="text-heading fw-bold"><i class="bi bi-person-plus me-2"></i> إضافة مستخدم جديد</h2>
                 <a href="{{ route('users.index') }}" class="btn btn-outline-light">
-                    <i class="bi bi-arrow-right me-2"></i> رجوع
-                </a>
+                    <i class="bi bi-arrow-right me-2"></i>{{ __('Back') }}</a>
             </div>
 
             <div class="glass-card p-4">
@@ -18,30 +17,30 @@
                     
                     <div class="row g-4 mb-4">
                         <div class="col-md-6">
-                            <label class="form-label text-white-50">الاسم بالكامل <span class="text-danger">*</span></label>
-                            <input type="text" name="name" class="form-control bg-transparent text-white" required value="{{ old('name') }}">
+                            <label class="form-label text-muted">الاسم بالكامل <span class="text-danger">*</span></label>
+                            <input type="text" name="name" class="form-control bg-transparent text-body" required value="{{ old('name') }}">
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label text-white-50">البريد الإلكتروني <span class="text-danger">*</span></label>
-                            <input type="email" name="email" class="form-control bg-transparent text-white" required value="{{ old('email') }}">
+                            <label class="form-label text-muted">{{ __('Email') }}<span class="text-danger">*</span></label>
+                            <input type="email" name="email" class="form-control bg-transparent text-body" required value="{{ old('email') }}">
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label text-white-50">كلمة المرور <span class="text-danger">*</span></label>
-                            <input type="password" name="password" class="form-control bg-transparent text-white" required minlength="8">
+                            <label class="form-label text-muted">{{ __('Password') }}<span class="text-danger">*</span></label>
+                            <input type="password" name="password" class="form-control bg-transparent text-body" required minlength="8">
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label text-white-50">تأكيد كلمة المرور <span class="text-danger">*</span></label>
-                            <input type="password" name="password_confirmation" class="form-control bg-transparent text-white" required>
+                            <label class="form-label text-muted">{{ __('Confirm Password') }}<span class="text-danger">*</span></label>
+                            <input type="password" name="password_confirmation" class="form-control bg-transparent text-body" required>
                         </div>
                     </div>
 
-                    <h5 class="text-white fw-bold mb-3 border-bottom border-secondary pb-2">الصلاحيات والأدوار</h5>
+                    <h5 class="text-heading fw-bold mb-3 border-bottom border-secondary pb-2">الصلاحيات والأدوار</h5>
                     
                     <div class="mb-4">
-                        <label class="form-label text-white-50 d-block mb-3">اختر دور المستخدم:</label>
+                        <label class="form-label text-muted d-block mb-3">اختر دور المستخدم:</label>
                         <div class="d-flex gap-3 flex-wrap">
                             @foreach($roles as $role)
                                 <div class="form-check form-check-inline custom-radio-card">
@@ -57,7 +56,7 @@
 
                     <div class="form-check form-switch mb-4">
                         <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" checked>
-                        <label class="form-check-label text-white" for="is_active">حساب نشط (يمكنه تسجيل الدخول)</label>
+                        <label class="form-check-label text-body" for="is_active">حساب نشط (يمكنه تسجيل الدخول)</label>
                     </div>
 
                     <div class="text-end">
@@ -71,12 +70,7 @@
     </div>
 
     <style>
-        .glass-card {
-            background: rgba(17, 24, 39, 0.7);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-        }
+        
 
         .custom-radio-card {
             margin: 0;
@@ -94,13 +88,13 @@
             color: rgba(255, 255, 255, 0.7);
             cursor: pointer;
             transition: all 0.2s;
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--btn-glass-bg);
         }
 
         .custom-radio-card .form-check-input:checked + .form-check-label {
             background: rgba(59, 130, 246, 0.2);
             border-color: #3b82f6;
-            color: white;
+            color: var(--text-primary);
             box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
         }
     </style>

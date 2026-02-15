@@ -153,7 +153,7 @@
                         <td>الخصم:</td>
                         <td class="text-end text-danger">{{ number_format($purchaseInvoice->discount_amount, 2) }}</td>
                     </tr>
-                    <tr class="table-dark text-white fw-bold">
+                    <tr class="table-dark text-body fw-bold">
                         <td class="fs-5">الإجمالي المستحق:</td>
                         <td class="text-end fs-5">{{ number_format($purchaseInvoice->total, 2) }}</td>
                     </tr>

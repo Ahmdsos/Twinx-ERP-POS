@@ -24,7 +24,7 @@ class AccountingTest extends TestCase
     {
         parent::setUp();
 
-        $this->user = User::factory()->create();
+        $this->user = $this->createUserWithPermissions(['finance.manage']);
 
         // Create test accounts
         Account::create([

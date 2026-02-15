@@ -14,8 +14,8 @@
                         <i class="bi bi-arrow-right"></i>
                     </a>
                     <div>
-                        <h3 class="fw-bold text-white mb-0 tracking-wide">تعديل المنتج</h3>
-                        <p class="text-gray-400 mb-0 small">تحديث بيانات <span
+                        <h3 class="fw-bold text-heading mb-0 tracking-wide">{{ __('Edit Product') }}</h3>
+                        <p class="text-secondary mb-0 small">تحديث بيانات <span
                                 class="text-purple-400 fw-bold">{{ $product->name }}</span> ({{ $product->sku }})</p>
                     </div>
                 </div>

@@ -11,7 +11,7 @@
                     class="btn btn-link text-secondary text-decoration-none p-0 mb-2 d-inline-flex align-items-center gap-2">
                     <i class="bi bi-arrow-right"></i> والعودة لأسطول التوصيل
                 </a>
-                <h3 class="fw-black text-white mb-0">تسجيل سائق جديد</h3>
+                <h3 class="fw-black text-heading mb-0">تسجيل سائق جديد</h3>
                 <p class="text-secondary small opacity-75 mt-1">قم باختيار موظف حالي وتزويده بصلاحيات التوصيل والبيانات
                     اللوجستية.</p>
             </div>
@@ -21,7 +21,7 @@
             <div class="col-lg-8">
                 <form action="{{ route('hr.delivery.store') }}" method="POST">
                     @csrf
-                    <div class="glass-card rounded-4 p-4 mb-4 border-white border-opacity-10">
+                    <div class="glass-card rounded-4 p-4 mb-4 border-secondary border-opacity-10 border-opacity-10">
                         <h5 class="text-primary fw-bold mb-4 d-flex align-items-center gap-2">
                             <i class="bi bi-person-badge"></i> اختيار الموظف والبيانات الأساسية
                         </h5>
@@ -30,11 +30,11 @@
                                 <label class="form-label text-secondary small fw-bold">الموظف المرشح <span
                                         class="text-danger">*</span></label>
                                 <select name="employee_id"
-                                    class="form-select bg-dark text-white border-secondary shadow-none @error('employee_id') is-invalid @enderror"
+                                    class="form-select bg-surface-secondary text-body border-secondary shadow-none @error('employee_id') is-invalid @enderror"
                                     required>
-                                    <option value="" class="bg-dark text-secondary">-- اختر موظف نشط من القائمة --</option>
+                                    <option value="" class="bg-surface-secondary text-secondary">-- اختر موظف نشط من القائمة --</option>
                                     @foreach($employees as $employee)
-                                        <option value="{{ $employee->id }}" class="bg-dark text-white" {{ old('employee_id') == $employee->id ? 'selected' : '' }}>
+                                        <option value="{{ $employee->id }}" class="bg-surface-secondary text-body" {{ old('employee_id') == $employee->id ? 'selected' : '' }}>
                                             {{ $employee->full_name }} ({{ $employee->employee_code }}) -
                                             {{ $employee->position }}
                                         </option>
@@ -48,21 +48,21 @@
                             <div class="col-md-6 text-start">
                                 <label class="form-label text-secondary small fw-bold">رقم رخصة القيادة</label>
                                 <input type="text" name="license_number"
-                                    class="form-control bg-dark text-white border-secondary shadow-none"
+                                    class="form-control bg-surface-secondary text-body border-secondary shadow-none"
                                     value="{{ old('license_number') }}" placeholder="أدخل رقم الرخصة...">
                             </div>
 
                             <div class="col-md-6 text-start">
                                 <label class="form-label text-secondary small fw-bold">تاريخ انتهاء الرخصة</label>
                                 <input type="date" name="license_expiry"
-                                    class="form-control bg-dark text-white border-secondary shadow-none"
+                                    class="form-control bg-surface-secondary text-body border-secondary shadow-none"
                                     value="{{ old('license_expiry') }}">
                             </div>
 
                             <div class="col-12 text-start">
                                 <label class="form-label text-secondary small fw-bold">بيانات و وصف المركبة</label>
                                 <input type="text" name="vehicle_info"
-                                    class="form-control bg-dark text-white border-secondary shadow-none"
+                                    class="form-control bg-surface-secondary text-body border-secondary shadow-none"
                                     value="{{ old('vehicle_info') }}"
                                     placeholder="مثلاً: تويوتا هيلوكس 2024 - رقم اللوحة (أ ب ج 123)">
                             </div>

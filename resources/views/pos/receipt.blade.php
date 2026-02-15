@@ -5,22 +5,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>فاتورة #{{ $invoice->invoice_number }}</title>
+    <!-- Professional Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <style>
         @page {
             margin: 0;
-            size: 80mm 297mm;
-            /* Auto height usually handled by printer drivers */
+            size: 80mm auto;
         }
 
         body {
-            font-family: 'Tahoma', 'Arial', sans-serif;
+            font-family: 'Cairo', 'Tahoma', 'Arial', sans-serif;
             margin: 0;
-            padding: 5mm;
-            width: 70mm;
-            /* 80mm paper - margins */
-            font-size: 12px;
+            padding: 0;
+            width: 100%;
+            background: #fff;
+            display: flex;
+            justify-content: center;
+            font-size: 11px;
             color: #000;
-            line-height: 1.4;
+            line-height: 1.3;
+        }
+
+        .container {
+            width: 76mm;
+            padding: 2mm 3mm;
+            margin: 0 auto;
+            box-sizing: border-box;
         }
 
         .text-center {
@@ -31,317 +41,342 @@
             text-align: left;
         }
 
-        /* RTL flip */
         .fw-bold {
-            font-weight: bold;
+            font-weight: 700;
         }
 
-        .dashed-line {
-            border-top: 1px dashed #000;
-            margin: 5px 0;
-            width: 100%;
+        .divider {
+            height: 1px;
+            background: repeating-linear-gradient(to right, #000 0, #000 3px, transparent 3px, transparent 6px);
+            margin: 8px 0;
         }
 
         .header {
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
         .logo {
-            max-width: 80%;
+            max-width: 50mm;
             height: auto;
-            margin-bottom: 5px;
-            filter: grayscale(100%);
-            /* Thermal printers normally are B&W */
+            margin-bottom: 8px;
+            filter: grayscale(100%) contrast(1.2);
         }
 
-        .store-name {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 2px;
-        }
-
-        .store-info {
-            font-size: 10px;
-            margin-bottom: 2px;
-        }
-
-        .invoice-details {
+        .meta-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
             margin-bottom: 10px;
-            font-size: 11px;
+            font-size: 9.5px;
         }
 
-        .customer-info {
-            border: 1px solid #000;
-            padding: 5px;
-            margin-bottom: 10px;
-            border-radius: 4px;
+        .meta-item {
+            padding: 3px 5px;
+            background: #f9f9f9;
+            border-radius: 3px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 10px;
+            margin-top: 5px;
         }
 
         th {
-            border-bottom: 1px solid #000;
+            border-bottom: 2px solid #000;
             text-align: right;
-            padding: 2px 0;
+            padding: 5px 0;
             font-size: 11px;
         }
 
         td {
-            padding: 3px 0;
+            padding: 6px 0;
+            border-bottom: 1px solid #eee;
             vertical-align: top;
         }
 
-        .col-qty {
-            width: 15%;
-            text-align: center;
-        }
-
-        .col-item {
-            width: 55%;
-        }
-
-        .col-price {
-            width: 30%;
-            text-align: left;
-        }
-
-        .totals {
-            margin-top: 10px;
-        }
-
-        .totals-row {
+        .summary-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 2px;
+            padding: 2px 0;
         }
 
-        .total-final {
-            font-size: 16px;
-            font-weight: bold;
-            border-top: 2px solid #000;
-            padding-top: 5px;
-            margin-top: 5px;
+        .grand-total-box {
+            background: #000;
+            color: #fff;
+            padding: 8px;
+            margin-top: 10px;
+            border-radius: 4px;
+        }
+
+        .grand-total-box span {
+            font-size: 18px;
+            font-weight: 700;
         }
 
         .footer {
-            margin-top: 20px;
+            margin-top: 15px;
             text-align: center;
-            font-size: 10px;
         }
 
-        .barcode {
+        .qr-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             margin-top: 10px;
         }
+
+        #qrcode canvas,
+        #qrcode img {
+            width: 100px !important;
+            height: 100px !important;
+        }
+
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+            }
+
+            .no-print {
+                display: none;
+            }
+        }
     </style>
+    <!-- QR Code Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 
-<body onload="window.print()">
-    <!-- Header -->
-    <div class="header text-center">
-        <!-- Optional Logo -->
-        @if(\App\Models\Setting::getValue('printer_show_logo', true) && \App\Models\Setting::getValue('company_logo'))
-            <img src="{{ Storage::url(\App\Models\Setting::getValue('company_logo')) }}" class="logo">
+<body onload="processReceipt()">
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            @if(\App\Models\Setting::getValue('printer_show_logo', true) && \App\Models\Setting::getValue('company_logo'))
+                <div class="text-center">
+                    <img src="{{ Storage::url(\App\Models\Setting::getValue('company_logo')) }}" class="logo">
+                </div>
+            @endif
+
+            <div class="text-center">
+                <div style="font-size: 18px; font-weight: 700;">
+                    {{ \App\Models\Setting::getValue('company_name', 'Twinx ERP') }}</div>
+
+                @php
+                    $headerCustom = \App\Models\Setting::getValue('pos_receipt_header_custom');
+                    $address = \App\Models\Setting::getValue('company_address');
+                    $phone = \App\Models\Setting::getValue('company_phone');
+                    $email = \App\Models\Setting::getValue('company_email');
+                    $taxNumber = \App\Models\Setting::getValue('company_tax_number');
+                @endphp
+
+                @if($headerCustom)
+                    <div style="font-size: 12px; font-weight: 700; margin-top: 2px;">{{ $headerCustom }}</div>
+                @endif
+
+                <div style="font-size: 10px; margin-top: 2px; opacity: 0.8;">
+                    @if($address)
+                    <div>{{ $address }}</div> @endif
+                    @if($phone || $email)
+                        <div>
+                            @if($phone) <span>الهاتف: {{ $phone }}</span> @endif
+                            @if($phone && $email) <span> | </span> @endif
+                            @if($email) <span>{{ $email }}</span> @endif
+                        </div>
+                    @endif
+                    @if($taxNumber)
+                    <div>الرقم الضريبي: {{ $taxNumber }}</div> @endif
+                </div>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Order Information Meta -->
+        <div class="meta-grid">
+            <div class="meta-item"><b>الرقم:</b> {{ $invoice->invoice_number }}</div>
+            <div class="meta-item"><b>الوقت:</b> {{ $invoice->created_at->format('Y-m-d H:i') }}</div>
+            <div class="meta-item"><b>الكاشير:</b> {{ $invoice->creator->name ?? 'Admin' }}</div>
+        </div>
+
+        @if($invoice->is_delivery)
+            <div class="text-center">
+                <div
+                    style="display: inline-block; padding: 2px 12px; border: 2px solid #000; border-radius: 30px; font-size: 11px; font-weight: 700; margin-bottom: 10px;">
+                    🛵 فاتورة توصيل
+                </div>
+            </div>
         @endif
 
-        <div class="store-name">{{ \App\Models\Setting::getValue('company_name', config('app.name')) }}</div>
-        <div class="store-info">{{ \App\Models\Setting::getValue('company_address', 'العنوان غير محدد') }}</div>
-        <div class="store-info">هاتف: {{ \App\Models\Setting::getValue('company_phone', '-') }}</div>
-    </div>
+        <div class="divider"></div>
 
-    <div class="dashed-line"></div>
-
-    <!-- Invoice Details -->
-    <div class="invoice-details">
-        <div style="display: flex; justify-content: space-between;">
-            <span>رقم الفاتورة:</span>
-            <span class="fw-bold">{{ $invoice->invoice_number }}</span>
-        </div>
-        <div style="display: flex; justify-content: space-between;">
-            <span>التاريخ:</span>
-            <span>{{ $invoice->created_at->format('Y-m-d H:i') }}</span>
-        </div>
-        <div style="display: flex; justify-content: space-between;">
-            <span>الكاشير:</span>
-            <span>{{ auth()->user()->name ?? 'Admin' }}</span>
-        </div>
-    </div>
-
-    <!-- Customer Info -->
-    @if($invoice->customer)
-        <div class="customer-info">
-            <div style="display: flex; justify-content: space-between;">
-                <span>العميل:</span>
-                <span class="fw-bold">{{ $invoice->customer->name }}</span>
-            </div>
-            @if($invoice->customer->code !== 'WALK-IN')
-                <div style="display: flex; justify-content: space-between; font-size: 10px; margin-top: 2px;">
-                    <span>النوع:</span>
-                    <span>
-                        @php
-                            $labels = [
-                                'consumer' => 'فرد (Consumer)',
-                                'company' => 'شركة (Company)',
-                                'distributor' => 'موزع معتمد (Distributor)',
-                                'wholesale' => 'تاجر جملة (Wholesale)',
-                                'half_wholesale' => 'نص جملة (Half Wholesale)',
-                                'quarter_wholesale' => 'ربع جملة (Quarter Wholesale)',
-                                'technician' => 'فني / مقاول (Technician)',
-                                'employee' => 'موظف (Employee)',
-                                'vip' => 'عميل مميز (VIP)'
-                            ];
-                            echo $labels[$invoice->customer->type] ?? $invoice->customer->type;
-                        @endphp
-                    </span>
-                </div>
-            @endif
-        </div>
-    @endif
-
-    @if($invoice->is_delivery)
-        <div class="customer-info" style="margin-top: 5px;">
-            <div style="font-weight: bold; margin-bottom: 2px; border-bottom: 1px dashed #ccc;">بيانات التوصيل:</div>
-
-            @if($invoice->shipping_address)
-                <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
-                    <span>العنوان:</span>
-                    <span style="max-width: 70%; text-align: left; font-size: 11px;">{{ $invoice->shipping_address }}</span>
-                </div>
-            @endif
-
-            @if($invoice->driver)
-                <div style="display: flex; justify-content: space-between;">
-                    <span>السائق:</span>
-                    <span class="fw-bold">{{ $invoice->driver->name }}</span>
-                </div>
-            @endif
-        </div>
-    @endif
-
-    <!-- Items -->
-    <table>
-        <thead>
-            <tr>
-                <th class="col-item">الصنف</th>
-                <th class="col-qty">الكمية</th>
-                <th class="col-price">الإجمالي</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($invoice->lines as $line)
+        <!-- Items Table -->
+        <table>
+            <thead>
                 <tr>
-                    <td class="col-item">
-                        {{ $line->product->name }}
-                        @if($line->discount_amount > 0)
-                            <div style="font-size: 10px; color: #555;">
-                                سعر: {{ number_format($line->unit_price, 2) }}
-                                <br>
-                                خصم: <span
-                                    style="text-decoration: line-through">{{ number_format($line->discount_amount, 2) }}</span>
-                            </div>
-                        @elseif($line->unit_price != $line->product->selling_price)
-                            <div style="font-size: 10px; color: #555;">@ {{ number_format($line->unit_price, 2) }}</div>
-                        @endif
-                    </td>
-                    <td class="col-qty">{{ $line->quantity + 0 }}</td>
-                    <td class="col-price">
-                        {{ number_format($line->line_total, 2) }}
-                    </td>
+                    <th style="width: 50%;">الصنف</th>
+                    <th style="width: 15%; text-align: center;">الكمية</th>
+                    <th style="width: 15%; text-align: center;">السعر</th>
+                    <th style="width: 20%; text-align: left;">الإجمالي</th>
                 </tr>
-            @endforeach
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach($invoice->lines as $line)
+                    <tr>
+                        <td class="fw-bold">{{ $line->product->name }}</td>
+                        <td class="text-center">{{ $line->quantity + 0 }}</td>
+                        <td class="text-center">{{ number_format($line->unit_price, 2) }}</td>
+                        <td class="text-end">{{ number_format($line->line_total, 2) }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
 
-    <div class="dashed-line"></div>
+        <!-- Totals -->
+        <div style="margin-top: 10px;">
+            @php
+                $grossItemsTotal = $invoice->lines->sum(fn($l) => $l->quantity * $l->unit_price);
+                $lineDiscounts = $invoice->lines->sum('discount_amount');
+                $globalDiscount = $invoice->discount_amount ?? 0;
+                $totalDiscount = $lineDiscounts + $globalDiscount;
+            @endphp
 
-    <!-- Totals -->
-    <div class="totals">
-        <div class="totals-row">
-            <span>المجموع:</span>
-            <span>{{ number_format($invoice->subtotal, 2) }}</span>
-        </div>
-
-        @if($invoice->discount_amount > 0)
-            <div class="totals-row">
-                <span>الخصم:</span>
-                <span>-{{ number_format($invoice->discount_amount, 2) }}</span>
+            <div class="summary-row">
+                <span>إجمالي الأصناف:</span>
+                <span>{{ number_format($grossItemsTotal, 2) }}</span>
             </div>
-        @endif
 
-        @if($invoice->is_delivery && $invoice->delivery_fee > 0)
-            <div class="totals-row">
-                <span>توصيل:</span>
-                <span>{{ number_format($invoice->delivery_fee, 2) }}</span>
-            </div>
-        @endif
-
-        <div class="totals-row">
-            <span>ضريبة
-                ({{ $invoice->lines->first()->tax_percent ?? \App\Models\Setting::getValue('default_tax_rate', 0) }}%):</span>
-            <span>{{ number_format($invoice->tax_amount, 2) }}</span>
-        </div>
-
-        <div class="totals-row total-final">
-            <span>الإجمالي:</span>
-            <span>{{ number_format($invoice->total, 2) }}</span>
-        </div>
-
-        @if($invoice->paymentAllocations->isNotEmpty())
-            @foreach($invoice->paymentAllocations as $allocation)
-                <div class="totals-row" style="margin-top: 2px;">
-                    <span>مدفوع ({{ 
-                                        match ($allocation->payment->payment_method) {
-                        'cash' => 'نقد',
-                        'card' => 'شبكة',
-                        'credit' => 'آجل',
-                        default => $allocation->payment->payment_method
-                    }
-                                    }}):</span>
-                    <span>{{ number_format($allocation->amount, 2) }}</span>
+            @if($totalDiscount > 0)
+                <div class="summary-row" style="color: #c00;">
+                    <span>إجمالي الخصومات (-):</span>
+                    <span>{{ number_format($totalDiscount, 2) }}</span>
                 </div>
-            @endforeach
-        @else
-            <div class="totals-row" style="margin-top: 5px;">
-                <span>المدفوع:</span>
-                <span>{{ number_format($invoice->paid_amount, 2) }}</span>
+            @endif
+
+            @if($invoice->tax_amount > 0)
+                <div class="summary-row">
+                    <span>الضريبة ({{ \App\Models\Setting::getValue('default_tax_rate', 14) }}%):</span>
+                    <span>{{ number_format($invoice->tax_amount, 2) }}</span>
+                </div>
+            @endif
+
+            @if($invoice->delivery_fee > 0)
+                <div class="summary-row">
+                    <span>رسوم التوصيل (+):</span>
+                    <span>{{ number_format($invoice->delivery_fee, 2) }}</span>
+                </div>
+            @endif
+
+            <div class="grand-total-box">
+                <div class="summary-row" style="margin-bottom: 0;">
+                    <span style="font-size: 14px;">الإجمالي النهائي</span>
+                    <span>{{ number_format($invoice->total, 2) }}</span>
+                </div>
             </div>
-        @endif
 
-        @php
-            $change = max(0, $invoice->paid_amount - $invoice->total);
-            $balance = max(0, $invoice->total - $invoice->paid_amount);
-        @endphp
+            <div style="margin-top: 8px;">
+                @if($invoice->paid_amount > 0)
+                    <div class="summary-row">
+                        <span>المبلغ المدفوع:</span>
+                        <span>{{ number_format($invoice->paid_amount, 2) }}</span>
+                    </div>
+                @endif
 
-        @if($change > 0)
-            <div class="totals-row" style="margin-top:5px; border-top: 1px dotted #000; padding-top:2px;">
-                <span>الباقي للعميل:</span>
-                <span style="font-weight: bold; font-size: 14px;">{{ number_format($change, 2) }}</span>
+                @php
+                    $change = max(0, $invoice->paid_amount - $invoice->total);
+                    $balance = max(0, $invoice->total - $invoice->paid_amount);
+                @endphp
+
+                @if($change > 0)
+                    <div class="summary-row" style="font-weight: 700;">
+                        <span>المتبقي للعميل:</span>
+                        <span>{{ number_format($change, 2) }}</span>
+                    </div>
+                @endif
+
+                @if($balance > 0)
+                    <div class="summary-row"
+                        style="color: #d00; font-weight: 700; border: 1px dashed #d00; padding: 4px; border-radius: 4px; margin-top: 5px;">
+                        <span>المتبقي (تحصيل):</span>
+                        <span class="fs-lg">{{ number_format($balance, 2) }}</span>
+                    </div>
+                @endif
             </div>
-        @endif
+        </div>
 
-        @if($balance > 0)
-            <div class="totals-row">
-                <span>المتبقي عليه (آجل):</span>
-                <span style="font-weight: bold;">{{ number_format($balance, 2) }}</span>
+        <!-- Footer -->
+        <div class="footer">
+            <div class="divider"></div>
+
+            @php
+                $footerCustom = \App\Models\Setting::getValue('pos_receipt_footer_custom');
+                $invoiceFooter = \App\Models\Setting::getValue('invoice_footer');
+            @endphp
+
+            @if($footerCustom)
+                <div style="font-weight: 700; margin-bottom: 5px; font-size: 12px;">{{ $footerCustom }}</div>
+            @endif
+
+            @if($invoiceFooter)
+                <div style="font-size: 9.5px; opacity: 0.8; font-style: italic;">{{ $invoiceFooter }}</div>
+            @endif
+
+            @if(!$footerCustom && !$invoiceFooter)
+                <div style="font-size: 10px; opacity: 0.8;">*** شكراً لزيارتكم ***</div>
+            @endif
+
+            <div class="text-center" style="margin: 15px 0;">
+                @php
+                    $barcodeService = app(\App\Services\BarcodeService::class);
+                    $barcodeSvg = $barcodeService->generateBarcodeSvg($invoice->invoice_number, 'C128', 1, 25);
+                @endphp
+                {!! $barcodeSvg !!}
             </div>
-        @endif
-    </div>
 
-    <div class="dashed-line"></div>
+            @if(\App\Models\Setting::getValue('pos_receipt_qr_enabled', true))
+                <div class="qr-section">
+                    <div id="qrcode"></div>
+                </div>
+            @endif
 
-    <!-- Footer -->
-    <div class="footer">
-        <p>{{ \App\Models\Setting::getValue('invoice_footer', 'شكراً لتعاملكم معنا!') }}</p>
-
-        <!-- Simplified Barcode Representation -->
-        <div class="barcode">
-            <img src="https://barcode.tec-it.com/barcode.ashx?data={{ $invoice->invoice_number }}&code=Code128&translate-esc=true&imagetype=Png&hidehrt=false&eclevel=L&dmsize=Default"
-                alt="Barcode" style="max-width: 100%; height: 40px;">
+            <div style="font-size: 8px; margin-top: 15px; opacity: 0.4;">
+                Twinx ERP v1.0 • {{ now()->format('Y') }}
+            </div>
         </div>
     </div>
+
+    <script>
+        function processReceipt() {
+            // Generate QR Code if enabled
+            @if(\App\Models\Setting::getValue('pos_receipt_qr_enabled', true))
+                @php
+                    $customQrLink = \App\Models\Setting::getValue('pos_receipt_qr_link');
+                    // Primary goal: use user-defined link. Fallback: Invoice URL
+                    if (!$customQrLink) {
+                        try {
+                            $customQrLink = route('sales-invoices.show', $invoice->id);
+                        } catch (\Exception $e) {
+                            $customQrLink = url("/sales-invoices/{$invoice->id}");
+                        }
+                    }
+                @endphp
+
+                new QRCode(document.getElementById("qrcode"), {
+                    text: "{!! $customQrLink !!}",
+                    width: 100,
+                    height: 100,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            @endif
+
+            // Trigger Print
+            setTimeout(() => {
+                window.print();
+                // Close window after print if it was a popup (optional)
+                // window.close();
+            }, 500);
+        }
+    </script>
 </body>
 
 </html>

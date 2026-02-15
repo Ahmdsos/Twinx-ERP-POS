@@ -88,6 +88,11 @@ class PurchaseInvoice extends Model
         return $this->hasMany(PurchaseInvoiceLine::class);
     }
 
+    public function returns(): HasMany
+    {
+        return $this->hasMany(PurchaseReturn::class);
+    }
+
     public function journalEntry(): BelongsTo
     {
         return $this->belongsTo(JournalEntry::class);

@@ -11,7 +11,7 @@
                     <i class="bi bi-receipt fs-4"></i>
                 </div>
                 <div>
-                    <h2 class="fw-bold text-white mb-0">إنشاء فاتورة مبيعات</h2>
+                    <h2 class="fw-bold text-heading mb-0">إنشاء فاتورة مبيعات</h2>
                     <p class="text-gray-400 mb-0 x-small">إصدار فاتورة لأمر تسليم منتهي</p>
                 </div>
             </div>
@@ -25,7 +25,7 @@
             <div class="d-flex gap-3">
                 <i class="bi bi-info-circle-fill text-info fs-4"></i>
                 <div>
-                    <h6 class="text-white fw-bold mb-1">تعليمات الإصدار</h6>
+                    <h6 class="text-heading fw-bold mb-1">تعليمات الإصدار</h6>
                     <p class="text-gray-400 mb-0 small">
                         يتم إنشاء فواتير المبيعات حصراً بناءً على <strong>أوامر التسليم (Delivery Orders)</strong> التي تم
                         تسليمها بالفعل (SHIPPED/DELIVERED) ولم يتم فوترتها مسبقاً.
@@ -37,7 +37,7 @@
         <div class="row g-4">
             <!-- Form -->
             <div class="col-md-8">
-                <div class="glass-panel p-4 h-100 position-relative text-white">
+                <div class="glass-panel p-4 h-100 position-relative text-body">
                     <div class="absolute-glow top-0 start-0 bg-cyan-500/10"></div>
 
                     <form action="{{ route('sales-invoices.store') }}" method="POST" id="invoiceForm">
@@ -53,7 +53,7 @@
                                     onchange="window.location.href='{{ route('sales-invoices.create') }}?delivery_order_id=' + this.value">
                                     <option value="" class="text-gray-500">-- اختر أمر التسليم --</option>
                                     @foreach($deliveredOrders as $order)
-                                        <option value="{{ $order->id }}" {{ (isset($deliveryOrder) && $deliveryOrder->id == $order->id) ? 'selected' : '' }} class="text-white bg-gray-900">
+                                        <option value="{{ $order->id }}" {{ (isset($deliveryOrder) && $deliveryOrder->id == $order->id) ? 'selected' : '' }} class="text-body bg-gray-900">
                                             #{{ $order->delivery_number }} | {{ optional($order->salesOrder)->customer->name ?? $order->customer->name ?? 'Unknown' }} |
                                             {{ $order->delivery_date->format('Y-m-d') }}
                                         </option>
@@ -67,7 +67,7 @@
                         @if(isset($deliveryOrder))
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label class="section-label mb-2">تاريخ الفاتورة</label>
+                                    <label class="section-label mb-2">{{ __('Invoice Date') }}</label>
                                     <div class="position-relative">
                                         <i
                                             class="bi bi-calendar-event position-absolute top-50 start-0 translate-middle-y ms-3 text-cyan-400"></i>
@@ -91,7 +91,7 @@
                                         placeholder="أي ملاحظات تظهر على الفاتورة..."></textarea>
                                 </div>
 
-                                <div class="col-12 mt-4 pt-4 border-top border-white/10">
+                                <div class="col-12 mt-4 pt-4 border-top border-secondary border-opacity-10/10">
                                     <button type="submit"
                                         class="btn btn-action-cyan w-100 py-3 fw-bold shadow-neon-cyan hover-scale">
                                         <i class="bi bi-check-circle-fill me-2"></i> تأكيد وإصدار الفاتورة
@@ -111,21 +111,21 @@
             <!-- Preview Selection -->
             <div class="col-md-4">
                 @if(isset($deliveryOrder))
-                    <div class="glass-card p-4 h-100 border border-white/10 position-relative overflow-hidden">
+                    <div class="glass-card p-4 h-100 border border-secondary border-opacity-10/10 position-relative overflow-hidden">
                         <div class="absolute-glow top-0 end-0 bg-purple-500/10"></div>
-                        <h5 class="fw-bold text-white mb-4 border-bottom border-white/10 pb-3">
+                        <h5 class="fw-bold text-heading mb-4 border-bottom border-secondary border-opacity-10/10 pb-3">
                             <i class="bi bi-file-earmark-text me-2 text-purple-400"></i> ملخص الأمر
                             {{ $deliveryOrder->delivery_number }}
                         </h5>
 
                         <div class="mb-4">
-                            <label class="text-gray-500 x-small fw-bold text-uppercase d-block mb-1">العميل</label>
+                            <label class="text-gray-500 x-small fw-bold text-uppercase d-block mb-1">{{ __('Customer') }}</label>
                             <div class="d-flex align-items-center gap-3">
-                                <div class="avatar-xs bg-purple-500 rounded-circle text-white d-flex align-items-center justify-content-center fw-bold"
+                                <div class="avatar-xs bg-purple-500 rounded-circle text-body d-flex align-items-center justify-content-center fw-bold"
                                     style="width: 40px; height: 40px;">
                                     {{ substr(optional($deliveryOrder->salesOrder)->customer->name ?? $deliveryOrder->customer->name ?? '?', 0, 1) }}
                                 </div>
-                                <h6 class="text-white mb-0">{{ optional($deliveryOrder->salesOrder)->customer->name ?? $deliveryOrder->customer->name ?? 'Unknown Customer' }}</h6>
+                                <h6 class="text-heading mb-0">{{ optional($deliveryOrder->salesOrder)->customer->name ?? $deliveryOrder->customer->name ?? 'Unknown Customer' }}</h6>
                             </div>
                         </div>
 
@@ -134,7 +134,7 @@
                             <div class="vstack gap-2">
                                 @foreach($deliveryOrder->lines as $line)
                                     <div
-                                        class="d-flex justify-content-between align-items-center p-2 rounded bg-white/5 border border-white/5">
+                                        class="d-flex justify-content-between align-items-center p-2 rounded bg-surface/5 border border-secondary border-opacity-10/5">
                                         <span class="text-gray-300 small">{{ $line->product->name }}</span>
                                         <span class="badge bg-purple-500/20 text-purple-300">{{ $line->quantity }}</span>
                                     </div>
@@ -148,7 +148,7 @@
                     </div>
                 @else
                     <div
-                        class="glass-card p-4 h-100 d-flex flex-column align-items-center justify-content-center text-center opacity-50 border-dashed border-white/20">
+                        class="glass-card p-4 h-100 d-flex flex-column align-items-center justify-content-center text-center opacity-50 border-dashed border-secondary border-opacity-10/20">
                         <div class="icon-circle bg-gray-800 text-gray-500 mb-3" style="width: 80px; height: 80px;">
                             <i class="bi bi-basket fs-1"></i>
                         </div>
@@ -162,19 +162,14 @@
 
     <style>
         .glass-panel,
-        .glass-card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-        }
+        
 
         .glass-select,
         .glass-input,
         .glass-textarea {
             background: rgba(15, 23, 42, 0.6) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            color: white !important;
+            border: 1px solid var(--btn-glass-border); !important;
+            color: var(--text-primary); !important;
             transition: all 0.3s ease;
         }
 
@@ -191,7 +186,7 @@
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            color: #94a3b8;
+            color: var(--text-secondary);
         }
 
         .h-50px {
@@ -201,7 +196,7 @@
         .btn-action-cyan {
             background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
             border: none;
-            color: white;
+            color: var(--text-primary);
             border-radius: 12px;
             transition: all 0.3s;
         }
@@ -228,9 +223,9 @@
         }
 
         .btn-glass-outline {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
+            background: var(--btn-glass-bg);
+            border: 1px solid var(--btn-glass-border);
+            color: var(--text-primary);
         }
 
         .absolute-glow {

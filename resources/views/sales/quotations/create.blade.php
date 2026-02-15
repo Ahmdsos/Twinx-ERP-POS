@@ -12,15 +12,13 @@
                     <i class="bi bi-file-earmark-richtext fs-4"></i>
                 </div>
                 <div>
-                    <h3 class="fw-bold text-white mb-0" style="letter-spacing: -0.5px;">عرض سعر جديد</h3>
+                    <h3 class="fw-bold text-heading mb-0" style="letter-spacing: -0.5px;">{{ __('New Quotation') }}</h3>
                     <small class="text-blue-300 fw-bold">No. <span class="font-monospace">AUTO-GEN</span></small>
                 </div>
             </div>
 
             <div class="d-flex gap-3">
-                <a href="{{ route('quotations.index') }}" class="btn btn-glass-outline rounded-pill px-4 fw-bold">
-                    إلغاء
-                </a>
+                <a href="{{ route('quotations.index') }}" class="btn btn-glass-outline rounded-pill px-4 fw-bold">{{ __('Cancel') }}</a>
                 <button type="button" @click="submitForm" class="btn btn-gradient-primary rounded-pill px-5 fw-bold shadow-lg hover-scale">
                     <i class="bi bi-send-check-fill me-2"></i> حفظ العرض
                 </button>
@@ -39,12 +37,12 @@
                         <div class="absolute-glow top-0 end-0"></div>
                         <div class="row g-4 position-relative z-10">
                             <div class="col-md-6">
-                                <label class="section-label mb-2">العميل <span class="text-danger">*</span></label>
+                                <label class="section-label mb-2">{{ __('Customer') }}<span class="text-danger">*</span></label>
                                 <div class="position-relative">
                                     <i class="bi bi-person-bounding-box position-absolute top-50 start-0 translate-middle-y ms-3 text-blue-400"></i>
-                                    <select name="customer_id[]" class="form-select glass-select ps-5 text-white fw-bold" style="height: auto; min-height: 50px;" multiple required>
+                                    <select name="customer_id[]" class="form-select glass-select ps-5 text-body fw-bold" style="height: auto; min-height: 50px;" multiple required>
                                         @foreach($customers as $customer)
-                                            <option value="{{ $customer->id }}" class="bg-gray-900 text-white py-2" 
+                                            <option value="{{ $customer->id }}" class="bg-gray-900 text-body py-2" 
                                                 {{ (is_array(old('customer_id')) && in_array($customer->id, old('customer_id'))) || (isset($selectedCustomer) && $selectedCustomer->id == $customer->id) ? 'selected' : '' }}>
                                                 {{ $customer->name }}
                                             </option>
@@ -58,10 +56,10 @@
                                 <label class="section-label mb-2">أو لجميع عملاء النوع (مثل: جملة)</label>
                                 <div class="position-relative">
                                     <i class="bi bi-people position-absolute top-50 start-0 translate-middle-y ms-3 text-cyan-400"></i>
-                                    <select name="target_customer_type" class="form-select glass-select ps-5 text-white fw-bold" style="height: 50px;">
+                                    <select name="target_customer_type" class="form-select glass-select ps-5 text-body fw-bold" style="height: 50px;">
                                         <option value="" class="bg-gray-900 text-slate-500">-- لا ينطبق (اختياري) --</option>
                                         @foreach(\Modules\Sales\Enums\CustomerType::cases() as $type)
-                                            <option value="{{ $type->value }}" class="bg-gray-900 text-white py-2" 
+                                            <option value="{{ $type->value }}" class="bg-gray-900 text-body py-2" 
                                                 {{ old('target_customer_type') == $type->value ? 'selected' : '' }}>
                                                 عملاء: {{ $type->label() }}
                                             </option>
@@ -75,7 +73,7 @@
                                 <label class="section-label mb-2">تاريخ الإصدار</label>
                                 <div class="position-relative">
                                     <i class="bi bi-calendar-event position-absolute top-50 start-0 translate-middle-y ms-3 text-blue-400"></i>
-                                    <input type="date" name="quotation_date" class="form-control glass-input ps-5 text-white fw-bold h-50px" 
+                                    <input type="date" name="quotation_date" class="form-control glass-input ps-5 text-body fw-bold h-50px" 
                                            value="{{ old('quotation_date', date('Y-m-d')) }}">
                                 </div>
                             </div>
@@ -84,7 +82,7 @@
                                 <label class="section-label mb-2 text-warning">تاريخ الانتهاء</label>
                                 <div class="position-relative">
                                     <i class="bi bi-calendar-x position-absolute top-50 start-0 translate-middle-y ms-3 text-warning"></i>
-                                    <input type="date" name="valid_until" class="form-control glass-input ps-5 text-white fw-bold h-50px" 
+                                    <input type="date" name="valid_until" class="form-control glass-input ps-5 text-body fw-bold h-50px" 
                                            value="{{ old('valid_until', date('Y-m-d', strtotime('+15 days'))) }}">
                                 </div>
                             </div>
@@ -93,8 +91,8 @@
 
                     <!-- 2. Items Builder -->
                     <div class="glass-card p-0 mb-4 overflow-hidden min-h-600 d-flex flex-column">
-                        <div class="p-4 border-bottom border-white/10 d-flex justify-content-between align-items-center bg-white/5">
-                            <h5 class="fw-bold text-white mb-0"><i class="bi bi-basket2 me-2 text-info"></i> جدول الأصناف</h5>
+                        <div class="p-4 border-bottom border-secondary border-opacity-10/10 d-flex justify-content-between align-items-center bg-surface/5">
+                            <h5 class="fw-bold text-heading mb-0"><i class="bi bi-basket2 me-2 text-info"></i> جدول الأصناف</h5>
                             <div class="badge bg-blue-500/20 text-blue-300 px-3 py-2 rounded-pill">
                                 <span x-text="items.length"></span> بنود
                             </div>
@@ -102,27 +100,27 @@
 
                         <div class="table-responsive flex-grow-1">
                             <table class="table table-borderless align-middle mb-0">
-                                <thead class="bg-white/5 text-gray-400 text-uppercase small fw-bold">
+                                <thead class="bg-surface/5 text-gray-400 text-uppercase small fw-bold">
                                     <tr>
                                         <th class="ps-4 py-3" style="width: 5%">#</th>
                                         <th class="py-3" style="width: 35%">المنتج / الخدمة</th>
-                                        <th class="text-center py-3" style="width: 12%">الكمية</th>
-                                        <th class="text-center py-3" style="width: 15%">السعر</th>
+                                        <th class="text-center py-3" style="width: 12%">{{ __('Quantity') }}</th>
+                                        <th class="text-center py-3" style="width: 15%">{{ __('Price') }}</th>
                                         <th class="text-center py-3" style="width: 12%">خصم %</th>
-                                        <th class="text-end py-3 pe-4" style="width: 15%">الإجمالي</th>
+                                        <th class="text-end py-3 pe-4" style="width: 15%">{{ __('Total') }}</th>
                                         <th style="width: 6%"></th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <template x-for="(item, index) in items" :key="index">
-                                        <tr class="item-row hover:bg-white/5 transition-colors">
+                                        <tr class="item-row hover:bg-surface/5 transition-colors">
                                             <td class="ps-4 text-gray-500 font-monospace" x-text="index + 1"></td>
 
                                             <!-- Product Select -->
                                             <td class="p-2">
                                                 <div class="position-relative">
                                                     <select :name="'lines[' + index + '][product_id]'" 
-                                                            class="form-select glass-input-sm text-white fw-bold border-0 shadow-none" 
+                                                            class="form-select glass-input-sm text-body fw-bold border-0 shadow-none" 
                                                             x-model="item.product_id" 
                                                             @change="updateProductDetails(index, $event)" required>
                                                         <option value="" class="bg-gray-900">اختر منتج...</option>
@@ -142,14 +140,14 @@
                                             <!-- Qty -->
                                             <td class="p-2">
                                                 <input type="number" :name="'lines[' + index + '][quantity]'" 
-                                                       class="form-control glass-input-number text-center text-white fw-bold" 
+                                                       class="form-control glass-input-number text-center text-body fw-bold" 
                                                        x-model.number="item.quantity" min="1" step="0.01" required>
                                             </td>
 
                                             <!-- Price -->
                                             <td class="p-2">
                                                 <input type="number" :name="'lines[' + index + '][unit_price]'" 
-                                                       class="form-control glass-input-number text-center text-white fw-bold" 
+                                                       class="form-control glass-input-number text-center text-body fw-bold" 
                                                        x-model.number="item.unit_price" min="0" step="0.01" required>
                                             </td>
 
@@ -165,7 +163,7 @@
 
                                             <!-- Total -->
                                             <td class="p-2 text-end pe-4">
-                                                <div class="fw-bold fs-6 text-white" x-text="formatMoney(calculateLineTotal(item))"></div>
+                                                <div class="fw-bold fs-6 text-body" x-text="formatMoney(calculateLineTotal(item))"></div>
                                             </td>
 
                                             <!-- Delete -->
@@ -181,7 +179,7 @@
                         </div>
 
                         <div class="p-0">
-                            <button type="button" class="btn btn-dark w-100 py-3 text-success fw-bold hover-bg-success-dark transition-all rounded-0 border-top border-white/10" @click="addItem()">
+                            <button type="button" class="btn btn-dark w-100 py-3 text-success fw-bold hover-bg-success-dark transition-all rounded-0 border-top border-secondary border-opacity-10/10" @click="addItem()">
                                 <i class="bi bi-plus-circle-fill me-2 fs-5 align-middle"></i> إضافة سطر جديد
                             </button>
                         </div>
@@ -191,12 +189,12 @@
                      <div class="glass-card p-4">
                         <div class="row g-4">
                             <div class="col-md-6">
-                                <label class="section-label mb-2"><i class="bi bi-chat-text me-1"></i> ملاحظات</label>
-                                <textarea name="notes" class="form-control glass-textarea text-white" rows="3" placeholder="أي ملاحظات إضافية تظهر في العرض..."></textarea>
+                                <label class="section-label mb-2"><i class="bi bi-chat-text me-1"></i>{{ __('Notes') }}</label>
+                                <textarea name="notes" class="form-control glass-textarea text-body" rows="3" placeholder="أي ملاحظات إضافية تظهر في العرض..."></textarea>
                             </div>
                             <div class="col-md-6">
                                 <label class="section-label mb-2"><i class="bi bi-file-text me-1"></i> الشروط والأحكام</label>
-                                <textarea name="terms" class="form-control glass-textarea text-white" rows="3" placeholder="مدة التوريد، طريقة الدفع، الخ..."></textarea>
+                                <textarea name="terms" class="form-control glass-textarea text-body" rows="3" placeholder="مدة التوريد، طريقة الدفع، الخ..."></textarea>
                             </div>
                         </div>
                     </div>
@@ -209,11 +207,11 @@
                             <!-- Neon Glow Effect -->
                             <div class="position-absolute bottom-0 start-50 translate-middle-x w-100 h-50 bg-blue-500/10 blur-3xl rounded-circle pointer-events-none"></div>
 
-                            <h5 class="fw-bold text-white mb-4">ملخص الحساب</h5>
+                            <h5 class="fw-bold text-heading mb-4">ملخص الحساب</h5>
 
                             <div class="d-flex justify-content-between mb-3 text-gray-400">
-                                <span>المجموع الفرعي</span>
-                                <span class="fw-bold text-white" x-text="formatMoney(totals.subtotal)"></span>
+                                <span>{{ __('Subtotal') }}</span>
+                                <span class="fw-bold text-body" x-text="formatMoney(totals.subtotal)"></span>
                             </div>
 
                             <div class="d-flex justify-content-between align-items-center mb-3 text-gray-400">
@@ -227,10 +225,10 @@
 
                             <div class="d-flex justify-content-between mb-4 text-gray-400">
                                 <span>الضريبة ({{ number_format($taxRatePercent, 0) }}%)</span>
-                                <span class="fw-bold text-white" x-text="formatMoney(totals.tax)"></span>
+                                <span class="fw-bold text-body" x-text="formatMoney(totals.tax)"></span>
                             </div>
 
-                            <div class="border-top border-white/10 my-4"></div>
+                            <div class="border-top border-secondary border-opacity-10/10 my-4"></div>
 
                             <div class="text-center mb-4">
                                 <small class="text-gray-500 text-uppercase tracking-widest d-block mb-1">الإجمالي النهائي</small>
@@ -321,18 +319,12 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        .glass-card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-        }
+        
 
         .glass-select, .glass-input, .glass-textarea {
             background: rgba(15, 23, 42, 0.6) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            color: white !important;
+            border: 1px solid var(--btn-glass-border); !important;
+            color: var(--text-primary); !important;
             transition: all 0.3s ease;
         }
 
@@ -354,18 +346,18 @@
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            color: #94a3b8;
+            color: var(--text-secondary);
         }
 
         /* Item Table Inputs */
         .glass-input-sm {
             background: transparent !important;
             border: none !important;
-            color: white !important;
+            color: var(--text-primary); !important;
             padding-left: 0;
         }
         .glass-input-sm:focus {
-            background: rgba(255,255,255,0.05) !important;
+            background: var(--btn-glass-bg); !important;
             box-shadow: none;
         }
 
@@ -387,13 +379,13 @@
         .btn-gradient-primary {
             background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
             border: none;
-            color: white;
+            color: var(--text-primary);
         }
 
         .btn-glass-outline {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: white;
+            background: var(--btn-glass-bg);
+            border: 1px solid var(--btn-glass-border);
+            color: var(--text-primary);
         }
         .btn-glass-outline:hover {
             background: rgba(255,255,255,0.1);

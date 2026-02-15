@@ -80,14 +80,20 @@ class FinancialReportService
         $revenue = $this->getAccountTypeTotal(AccountType::REVENUE, $fromDate, $toDate);
 
         // Expense accounts (5xxx, 6xxx)
-        $expenses = $this->getAccountTypeTotal(AccountType::EXPENSE, $fromDate, $toDate);
+        $totalExpenses = $this->getAccountTypeTotal(AccountType::EXPENSE, $fromDate, $toDate);
+
+        // Calculate COGS (Accounts starting with 50 or 51)
+        // This is a heuristic based on standard chart of accounts
+        $cogs = $this->getAccountPrefixTotal(AccountType::EXPENSE, ['50', '51'], $fromDate, $toDate);
+
+        $operatingExpenses = $totalExpenses - $cogs;
 
         // Get detailed breakdown
         $revenueDetails = $this->getAccountTypeBreakdown(AccountType::REVENUE, $fromDate, $toDate);
         $expenseDetails = $this->getAccountTypeBreakdown(AccountType::EXPENSE, $fromDate, $toDate);
 
-        $grossProfit = $revenue;
-        $netIncome = $revenue - $expenses;
+        $grossProfit = $revenue - $cogs;
+        $netIncome = $revenue - $totalExpenses;
 
         return [
             'period' => [
@@ -99,9 +105,15 @@ class FinancialReportService
                 'total' => round($revenue, 2),
                 'details' => $revenueDetails,
             ],
+            'cogs' => [
+                'total' => round($cogs, 2),
+            ],
+            'operating_expenses' => [
+                'total' => round($operatingExpenses, 2),
+            ],
             'expenses' => [
-                'total' => round($expenses, 2),
-                'details' => $expenseDetails,
+                'total' => round($totalExpenses, 2),
+                'details' => $expenseDetails, // Detailed list
             ],
             'summary' => [
                 'gross_profit' => round($grossProfit, 2),
@@ -160,6 +172,34 @@ class FinancialReportService
     }
 
     /**
+     * Get detailed ledger for an account
+     */
+    public function getAccountLedger(int $accountId, Carbon $fromDate, Carbon $toDate): array
+    {
+        // 1. Calculate Opening Balance (Everything before fromDate)
+        $openingBalance = $this->getAccountBalance($accountId, null, $fromDate->copy()->subDay());
+
+        // 2. Get Transaction Lines
+        $lines = JournalEntryLine::where('account_id', $accountId)
+            ->whereHas('journalEntry', function ($q) use ($fromDate, $toDate) {
+                $q->whereIn('status', [JournalStatus::POSTED, JournalStatus::REVERSED])
+                    ->whereDate('entry_date', '>=', $fromDate)
+                    ->whereDate('entry_date', '<=', $toDate);
+            })
+            ->with(['journalEntry']) // Eager load parent
+            ->join('journal_entries', 'journal_entry_lines.journal_entry_id', '=', 'journal_entries.id')
+            ->orderBy('journal_entries.entry_date')
+            ->orderBy('journal_entries.created_at')
+            ->select('journal_entry_lines.*') // Avoid column collisions
+            ->get();
+
+        return [
+            'opening_balance' => $openingBalance,
+            'lines' => $lines
+        ];
+    }
+
+    /**
      * Get account balance as of date
      */
     protected function getAccountBalance(int $accountId, ?Carbon $fromDate = null, ?Carbon $toDate = null): float
@@ -167,7 +207,7 @@ class FinancialReportService
         $query = JournalEntryLine::query()
             ->where('account_id', $accountId)
             ->whereHas('journalEntry', function ($q) use ($fromDate, $toDate) {
-                $q->where('status', JournalStatus::POSTED);
+                $q->whereIn('status', [JournalStatus::POSTED, JournalStatus::REVERSED]);
                 if ($fromDate) {
                     $q->whereDate('entry_date', '>=', $fromDate);
                 }
@@ -180,6 +220,27 @@ class FinancialReportService
         $credits = (clone $query)->sum('credit');
 
         return $debits - $credits;
+    }
+
+    /**
+     * Get total for account type with specific code prefixes
+     */
+    protected function getAccountPrefixTotal(AccountType $type, array $prefixes, Carbon $fromDate, Carbon $toDate): float
+    {
+        $accountIds = Account::where('type', $type)
+            ->where(function ($q) use ($prefixes) {
+                foreach ($prefixes as $prefix) {
+                    $q->orWhere('code', 'like', $prefix . '%');
+                }
+            })
+            ->pluck('id');
+
+        $total = 0;
+        foreach ($accountIds as $accountId) {
+            $total += abs($this->getAccountBalance($accountId, $fromDate, $toDate));
+        }
+
+        return $total;
     }
 
     /**
@@ -230,6 +291,7 @@ class FinancialReportService
             $balance = abs($this->getAccountBalance($account->id, $fromDate, $toDate));
             if ($balance > 0) {
                 $breakdown[] = [
+                    'id' => $account->id,
                     'code' => $account->code,
                     'name' => $account->name,
                     'period_balance' => round($balance, 2),
@@ -252,6 +314,7 @@ class FinancialReportService
             $balance = abs($this->getAccountBalance($account->id, null, $asOfDate));
             if ($balance > 0) {
                 $breakdown[] = [
+                    'id' => $account->id,
                     'code' => $account->code,
                     'name' => $account->name,
                     'period_balance' => round($balance, 2),

@@ -75,11 +75,9 @@ class DashboardService
         $today = now();
         $thisMonth = $today->copy()->startOfMonth();
 
-        // Sales this month
-        $salesThisMonth = SalesInvoice::query()
-            ->whereDate('invoice_date', '>=', $thisMonth)
-            ->where('status', '!=', \Modules\Sales\Enums\SalesInvoiceStatus::CANCELLED)
-            ->sum('total');
+        // Harmonized metrics
+        $grossSalesThisMonth = $this->getNetSales($thisMonth, $today);
+        $netEarningsThisMonth = $this->getNetRevenue($thisMonth, $today);
 
         // Orders pending
         $pendingOrders = SalesOrder::query()
@@ -91,7 +89,7 @@ class DashboardService
             ->whereIn('status', ['pending', 'partial'])
             ->sum('balance_due');
 
-        // Top 5 customers this month
+        // Top 5 customers this month (Return-Aware)
         $topCustomers = SalesInvoice::query()
             ->select('customer_id', DB::raw('SUM(total) as total_sales'))
             ->whereDate('invoice_date', '>=', $thisMonth)
@@ -100,19 +98,64 @@ class DashboardService
             ->orderByDesc('total_sales')
             ->limit(5)
             ->with('customer:id,code,name')
-            ->get()
-            ->map(fn($i) => [
+            ->get();
+
+        $topCustomersData = $topCustomers->map(function ($i) use ($thisMonth, $today) {
+            // Subtract returns for this specific customer
+            $returns = \Modules\Sales\Models\SalesReturn::where('customer_id', $i->customer_id)
+                ->where('status', \Modules\Sales\Enums\SalesReturnStatus::APPROVED)
+                ->whereBetween('return_date', [$thisMonth, $today])
+                ->sum('total_amount');
+
+            return [
                 'customer_id' => $i->customer_id,
                 'customer_name' => $i->customer?->name ?? 'Unknown',
-                'total_sales' => round($i->total_sales, 2),
-            ]);
+                'total_sales' => round($i->total_sales - $returns, 2),
+            ];
+        })->sortByDesc('total_sales')->values();
 
         return [
-            'sales_this_month' => round($salesThisMonth, 2),
+            'sales_this_month' => round($grossSalesThisMonth, 2),
+            'net_earnings_this_month' => round($netEarningsThisMonth, 2),
             'pending_orders' => $pendingOrders,
             'ar_outstanding' => round($arOutstanding, 2),
-            'top_customers' => $topCustomers,
+            'top_customers' => $topCustomersData,
         ];
+    }
+
+    /**
+     * Centralized Net Sales (Gross Total - Returns)
+     */
+    public function getNetSales(Carbon $startDate, Carbon $endDate): float
+    {
+        $sales = SalesInvoice::whereBetween('invoice_date', [$startDate, $endDate])
+            ->where('status', '!=', \Modules\Sales\Enums\SalesInvoiceStatus::CANCELLED)
+            ->sum('total');
+
+        $returns = \Modules\Sales\Models\SalesReturn::whereBetween('return_date', [$startDate, $endDate])
+            ->where('status', \Modules\Sales\Enums\SalesReturnStatus::APPROVED)
+            ->sum('total_amount');
+
+        return (float) ($sales - $returns);
+    }
+
+    /**
+     * Centralized Net Revenue (Net Revenue - Returns Subtotal)
+     */
+    public function getNetRevenue(Carbon $startDate, Carbon $endDate): float
+    {
+        // This calculates Revenue (Excl Tax/Shipping)
+        $invoices = SalesInvoice::whereBetween('invoice_date', [$startDate, $endDate])
+            ->where('status', '!=', \Modules\Sales\Enums\SalesInvoiceStatus::CANCELLED)
+            ->get();
+
+        $revenue = $invoices->sum(fn($i) => $i->net_revenue);
+
+        $returns = \Modules\Sales\Models\SalesReturn::whereBetween('return_date', [$startDate, $endDate])
+            ->where('status', \Modules\Sales\Enums\SalesReturnStatus::APPROVED)
+            ->sum('subtotal');
+
+        return (float) ($revenue - $returns);
     }
 
     /**
@@ -225,7 +268,7 @@ class DashboardService
             ->whereIn('journal_entry_id', function ($q) {
                 $q->select('id')
                     ->from('journal_entries')
-                    ->where('status', 'posted');
+                    ->whereIn('status', [\Modules\Accounting\Enums\JournalStatus::POSTED, \Modules\Accounting\Enums\JournalStatus::REVERSED]);
             })
             ->selectRaw('SUM(debit) - SUM(credit) as balance')
             ->value('balance') ?? 0;

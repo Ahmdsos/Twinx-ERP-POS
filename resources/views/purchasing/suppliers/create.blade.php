@@ -10,7 +10,7 @@
                 <a href="{{ route('suppliers.index') }}" class="btn btn-outline-light btn-sm rounded-circle shadow-sm"
                     style="width: 32px; height: 32px;"><i class="bi bi-arrow-right"></i></a>
                 <div>
-                    <h2 class="fw-bold text-white mb-0">إضافة مورد جديد</h2>
+                    <h2 class="fw-bold text-heading mb-0">إضافة مورد جديد</h2>
                     <p class="text-gray-400 mb-0 x-small">تسجيل بيانات شريك توريد جديد</p>
                 </div>
             </div>
@@ -30,7 +30,7 @@
         .btn-action-cyan {
             background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
             border: none;
-            color: white;
+            color: var(--text-primary);
             padding: 10px 24px;
             border-radius: 10px;
             transition: all 0.3s;

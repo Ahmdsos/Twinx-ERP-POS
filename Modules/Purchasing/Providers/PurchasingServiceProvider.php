@@ -33,8 +33,15 @@ class PurchasingServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerApiRoutes();
+        $this->registerWebRoutes();
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
         $this->loadViewsFrom(__DIR__ . '/../resources/views', $this->moduleNameLower);
+    }
+
+    protected function registerWebRoutes(): void
+    {
+        Route::middleware('web')
+            ->group(__DIR__ . '/../routes/web.php');
     }
 
     protected function registerApiRoutes(): void

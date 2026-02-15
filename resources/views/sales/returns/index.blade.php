@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'مرتجع المبيعات')
+@section('title', __('Sales Returns'))
 
 @section('content')
     <div class="row g-4">
@@ -9,8 +9,8 @@
             <div class="card border-0 shadow-sm overflow-hidden h-100 bg-info bg-gradient text-white">
                 <div class="card-body p-4 position-relative">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <div class="bg-white bg-opacity-25 rounded-3 p-2">
-                            <i class="bi bi-arrow-return-left fs-4 text-white"></i>
+                        <div class="bg-surface bg-opacity-25 rounded-3 p-2">
+                            <i class="bi bi-arrow-return-left fs-4 text-body"></i>
                         </div>
                     </div>
                     <h2 class="fw-bold mb-1">{{ $returns->total() }}</h2>
@@ -24,8 +24,8 @@
     <div class="card border-0 shadow-sm mt-4 glass-card">
         <div class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center">
             <div>
-                <h5 class="fw-bold mb-0 text-white">مرتجعات المبيعات</h5>
-                <small class="text-white-50">إدارة ومتابعة طلبات الإرجاع</small>
+                <h5 class="fw-bold mb-0 text-heading">مرتجعات المبيعات</h5>
+                <small class="text-muted">إدارة ومتابعة طلبات الإرجاع</small>
             </div>
             <div>
                 <a href="{{ route('sales-returns.create') }}" class="btn btn-primary shadow-sm">
@@ -36,16 +36,16 @@
 
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0 text-white">
-                    <thead class="bg-white bg-opacity-10 text-white-50">
+                <table class="table table-hover align-middle mb-0 text-body">
+                    <thead class="bg-surface bg-opacity-10 text-secondary-50">
                         <tr>
-                            <th class="px-4 py-3">رقم المرتجع</th>
-                            <th class="py-3">العميل</th>
+                            <th class="px-4 py-3">{{ __('Return Number') }}</th>
+                            <th class="py-3">{{ __('Customer') }}</th>
                             <th class="py-3">المخزن</th>
-                            <th class="py-3">التاريخ</th>
-                            <th class="py-3">القيمة</th>
-                            <th class="py-3">الحالة</th>
-                            <th class="px-4 py-3 text-end">إجراءات</th>
+                            <th class="py-3">{{ __('Date') }}</th>
+                            <th class="py-3">{{ __('Value') }}</th>
+                            <th class="py-3">{{ __('Status') }}</th>
+                            <th class="px-4 py-3 text-end">{{ __('Actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -54,12 +54,12 @@
                                 <td class="px-4">
                                     <span class="font-monospace text-info fw-bold">{{ $return->return_number }}</span>
                                     @if($return->sales_invoice_id)
-                                        <div class="small text-white-50">فاتورة: {{ $return->salesInvoice->invoice_number }}</div>
+                                        <div class="small text-muted">فاتورة: {{ $return->salesInvoice->invoice_number }}</div>
                                     @endif
                                 </td>
                                 <td>
                                     <div class="fw-bold">{{ $return->customer->name }}</div>
-                                    <div class="small text-white-50">{{ $return->customer->phone }}</div>
+                                    <div class="small text-muted">{{ $return->customer->phone }}</div>
                                 </td>
                                 <td>{{ $return->warehouse->name }}</td>
                                 <td>{{ $return->return_date->format('Y-m-d') }}</td>
@@ -79,14 +79,14 @@
                                         <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                                             <li><a class="dropdown-item"
                                                     href="{{ route('sales-returns.show', $return->id) }}"><i
-                                                        class="bi bi-eye me-2"></i> عرض التفاصيل</a></li>
+                                                        class="bi bi-eye me-2"></i>{{ __('View Details') }}</a></li>
                                         </ul>
                                     </div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center py-5 text-white-50">
+                                <td colspan="7" class="text-center py-5 text-muted">
                                     <i class="bi bi-inbox fs-1 d-block mb-3 opacity-50"></i>
                                     لا توجد مرتجعات مسجلة حتى الآن
                                 </td>
@@ -102,16 +102,11 @@
     </div>
 
     <style>
-        .glass-card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
-        }
+        
 
         .btn-icon-glass {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: var(--btn-glass-bg);
+            border: 1px solid var(--btn-glass-border);
             border-radius: 50%;
             width: 32px;
             height: 32px;

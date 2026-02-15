@@ -8,22 +8,22 @@
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-5 gap-4">
             <div class="d-flex align-items-center gap-4">
                 <div class="icon-box bg-gradient-purple shadow-neon">
-                    <i class="bi bi-building-fill fs-3 text-white"></i>
+                    <i class="bi bi-building-fill fs-3 text-body"></i>
                 </div>
                 <div>
-                    <h2 class="fw-bold text-white mb-1 tracking-wide">إدارة المخازن</h2>
-                    <p class="mb-0 text-gray-400 small">التحكم في مستودعات الشركة وتوزيع المخزون</p>
+                    <h2 class="fw-bold text-heading mb-1 tracking-wide">إدارة المخازن</h2>
+                    <p class="mb-0 text-secondary small">التحكم في مستودعات الشركة وتوزيع المخزون</p>
                 </div>
             </div>
             <div class="d-flex gap-3">
                 <div class="dropdown">
                     <button
-                        class="btn btn-dark-glass d-flex align-items-center gap-2 border-0 text-gray-300 hover-text-white dropdown-toggle"
+                        class="btn btn-dark-glass d-flex align-items-center gap-2 border-0 text-secondary hover-text-white dropdown-toggle"
                         type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-cloud-download"></i>
-                        <span class="d-none d-md-block">تصدير</span>
+                        <span class="d-none d-md-block">{{ __('Export') }}</span>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-dark bg-slate-900 border-white-10 shadow-neon"
+                    <ul class="dropdown-menu dropdown-menu-dark bg-surface border-secondary border-opacity-10-10 shadow-neon"
                         aria-labelledby="exportDropdown">
                         <li>
                             <a class="dropdown-item d-flex align-items-center gap-2"
@@ -40,9 +40,9 @@
                     </ul>
                 </div>
                 <a href="{{ route('warehouses.import.form') }}"
-                    class="btn btn-dark-glass d-flex align-items-center gap-2 border-0 text-gray-300 hover-text-white">
+                    class="btn btn-dark-glass d-flex align-items-center gap-2 border-0 text-secondary hover-text-white">
                     <i class="bi bi-cloud-upload"></i>
-                    <span class="d-none d-md-block">استيراد</span>
+                    <span class="d-none d-md-block">{{ __('Import') }}</span>
                 </a>
                 <a href="{{ route('warehouses.create') }}"
                     class="btn btn-action-purple d-flex align-items-center gap-2 shadow-lg">
@@ -58,11 +58,11 @@
                 <div class="stat-card glass-panel position-relative overflow-hidden h-100 p-4">
                     <div class="z-1 position-relative">
                         <p class="text-cyan-400 small fw-bold text-uppercase mb-2 tracking-wider">إجمالي المستودعات</p>
-                        <h1 class="fw-bold text-white mb-0 display-4">{{ $warehouses->count() }}</h1>
+                        <h1 class="fw-bold text-heading mb-0 display-4">{{ $warehouses->count() }}</h1>
                         <p class="text-gray-500 small mt-2">موقع تخزين مسجل</p>
                     </div>
                     <i
-                        class="bi bi-geo-alt-fill position-absolute bottom-0 end-0 display-1 text-white opacity-5 transform-scale-150"></i>
+                        class="bi bi-geo-alt-fill position-absolute bottom-0 end-0 display-1 text-body opacity-5 transform-scale-150"></i>
                     <div class="glow-orb bg-cyan-500"></div>
                 </div>
             </div>
@@ -70,11 +70,11 @@
                 <div class="stat-card glass-panel position-relative overflow-hidden h-100 p-4">
                     <div class="z-1 position-relative">
                         <p class="text-emerald-400 small fw-bold text-uppercase mb-2 tracking-wider">قيمة المخزون الكلية</p>
-                        <h1 class="fw-bold text-white mb-0 display-4">{{ number_format($totalValue, 0) }}</h1>
+                        <h1 class="fw-bold text-heading mb-0 display-4">{{ number_format($totalValue, 0) }}</h1>
                         <p class="text-gray-500 small mt-2">جنيه مصري (EGP)</p>
                     </div>
                     <i
-                        class="bi bi-cash-stack position-absolute bottom-0 end-0 display-1 text-white opacity-5 transform-scale-150"></i>
+                        class="bi bi-cash-stack position-absolute bottom-0 end-0 display-1 text-body opacity-5 transform-scale-150"></i>
                     <div class="glow-orb bg-emerald-500"></div>
                 </div>
             </div>
@@ -82,18 +82,18 @@
                 <div class="stat-card glass-panel position-relative overflow-hidden h-100 p-4">
                     <div class="z-1 position-relative">
                         <p class="text-amber-400 small fw-bold text-uppercase mb-2 tracking-wider">عدد الأصناف</p>
-                        <h1 class="fw-bold text-white mb-0 display-4">{{ number_format($totalItems) }}</h1>
+                        <h1 class="fw-bold text-heading mb-0 display-4">{{ number_format($totalItems) }}</h1>
                         <p class="text-gray-500 small mt-2">صنف مخزني (SKUs)</p>
                     </div>
                     <i
-                        class="bi bi-box-seam-fill position-absolute bottom-0 end-0 display-1 text-white opacity-5 transform-scale-150"></i>
+                        class="bi bi-box-seam-fill position-absolute bottom-0 end-0 display-1 text-body opacity-5 transform-scale-150"></i>
                     <div class="glow-orb bg-amber-500"></div>
                 </div>
             </div>
         </div>
 
         <!-- Warehouses Grid -->
-        <h5 class="fw-bold text-white mb-4 ps-2 border-start border-4 border-purple border-opacity-50">قائمة المستودعات</h5>
+        <h5 class="fw-bold text-heading mb-4 ps-2 border-start border-4 border-purple border-opacity-50">قائمة المستودعات</h5>
 
         <div class="row g-4">
             @forelse($warehouses as $warehouse)
@@ -105,15 +105,15 @@
                             </div>
                         @endif
 
-                        <div class="p-4 border-bottom border-white-10">
+                        <div class="p-4 border-bottom border-secondary border-opacity-10-10">
                             <div class="d-flex align-items-center gap-3">
-                                <div class="icon-square bg-white bg-opacity-5 text-purple-400 border border-white-10">
+                                <div class="icon-square bg-surface bg-opacity-5 text-purple-400 border border-secondary border-opacity-10-10">
                                     <i class="bi bi-shop fs-4"></i>
                                 </div>
                                 <div>
-                                    <h5 class="fw-bold text-white mb-1">
+                                    <h5 class="fw-bold text-heading mb-1">
                                         <a href="{{ route('warehouses.show', $warehouse) }}"
-                                            class="text-decoration-none text-white hover-text-purple">{{ $warehouse->name }}</a>
+                                            class="text-decoration-none text-body hover-text-purple">{{ $warehouse->name }}</a>
                                     </h5>
                                     <div class="small text-gray-500 font-monospace">{{ $warehouse->code }}</div>
                                 </div>
@@ -122,29 +122,29 @@
 
                         <div class="p-4">
                             <div class="d-flex flex-column gap-3 mb-4">
-                                <div class="d-flex align-items-center gap-3 text-gray-400 small">
+                                <div class="d-flex align-items-center gap-3 text-secondary small">
                                     <i class="bi bi-geo-alt text-cyan-400"></i>
                                     <span class="text-truncate">{{ $warehouse->address ?? 'لا يوجد عنوان' }}</span>
                                 </div>
-                                <div class="d-flex align-items-center gap-3 text-gray-400 small">
+                                <div class="d-flex align-items-center gap-3 text-secondary small">
                                     <i class="bi bi-telephone text-emerald-400"></i>
                                     <span>{{ $warehouse->phone ?? '-' }}</span>
                                 </div>
-                                <div class="d-flex align-items-center gap-3 text-gray-400 small">
+                                <div class="d-flex align-items-center gap-3 text-secondary small">
                                     <i class="bi bi-person-circle text-amber-400"></i>
                                     <span>{{ $warehouse->manager->name ?? 'غير محدد' }}</span>
                                 </div>
                             </div>
 
-                            <div class="bg-slate-900 bg-opacity-50 rounded-3 p-3 mb-4 border border-white-5">
+                            <div class="bg-surface bg-opacity-50 rounded-3 p-3 mb-4 border border-secondary border-opacity-10-5">
                                 <div class="row text-center">
-                                    <div class="col-6 border-end border-white-10">
+                                    <div class="col-6 border-end border-secondary border-opacity-10-10">
                                         <p class="text-gray-500 x-small text-uppercase mb-1">قيمة الممتلكات</p>
-                                        <div class="fw-bold text-white">{{ number_format($warehouse->stock_value, 0) }}</div>
+                                        <div class="fw-bold text-body">{{ number_format($warehouse->stock_value, 0) }}</div>
                                     </div>
                                     <div class="col-6">
                                         <p class="text-gray-500 x-small text-uppercase mb-1">عدد الأصناف</p>
-                                        <div class="fw-bold text-white">{{ $warehouse->stocks_count }}</div>
+                                        <div class="fw-bold text-body">{{ $warehouse->stocks_count }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -158,26 +158,24 @@
                                 </div>
 
                                 <div class="dropdown">
-                                    <button class="btn btn-icon-only text-gray-400 hover-text-white" type="button"
+                                    <button class="btn btn-icon-only text-secondary hover-text-white" type="button"
                                         data-bs-toggle="dropdown">
                                         <i class="bi bi-three-dots"></i>
                                     </button>
                                     <ul
-                                        class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-neon-sm border-white-10">
+                                        class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-neon-sm border-secondary border-opacity-10-10">
                                         <li>
                                             <a class="dropdown-item d-flex align-items-center gap-2"
                                                 href="{{ route('warehouses.show', $warehouse) }}">
-                                                <i class="bi bi-eye text-cyan-400"></i> عرض التفاصيل
-                                            </a>
+                                                <i class="bi bi-eye text-cyan-400"></i>{{ __('View Details') }}</a>
                                         </li>
                                         <li>
                                             <a class="dropdown-item d-flex align-items-center gap-2"
                                                 href="{{ route('warehouses.edit', $warehouse) }}">
-                                                <i class="bi bi-pencil text-warning"></i> تعديل
-                                            </a>
+                                                <i class="bi bi-pencil text-warning"></i>{{ __('Edit') }}</a>
                                         </li>
                                         <li>
-                                            <hr class="dropdown-divider border-white-10">
+                                            <hr class="dropdown-divider border-secondary border-opacity-10-10">
                                         </li>
                                         <li>
                                             <form action="{{ route('warehouses.destroy', $warehouse) }}" method="POST"
@@ -186,8 +184,7 @@
                                                 @method('DELETE')
                                                 <button type="submit"
                                                     class="dropdown-item d-flex align-items-center gap-2 text-danger">
-                                                    <i class="bi bi-trash"></i> حذف
-                                                </button>
+                                                    <i class="bi bi-trash"></i>{{ __('Delete') }}</button>
                                             </form>
                                         </li>
                                     </ul>
@@ -200,7 +197,7 @@
                 <div class="col-12">
                     <div class="glass-panel text-center py-5">
                         <div class="icon mb-3 text-gray-600"><i class="bi bi-building-slash display-4"></i></div>
-                        <h5 class="text-gray-400">لا توجد مستودعات</h5>
+                        <h5 class="text-secondary">لا توجد مستودعات</h5>
                         <p class="text-gray-600 mb-0">قم بإضافة أول مستودع لبدء إدارة مخزونك</p>
                         <a href="{{ route('warehouses.create') }}" class="btn btn-outline-purple btn-sm mt-3">إضافة مستودع</a>
                     </div>
@@ -211,16 +208,11 @@
 
     <style>
         /* Premium Theme Variables (Purple Variant) */
-        :root {
-            --bg-dark: #0f172a;
-            --glass-bg: rgba(30, 41, 59, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --purple-glow: 0 0 20px rgba(168, 85, 247, 0.3);
-        }
+        /* :root override removed for theme compatibility */
 
         /* Core Layout */
         .btn-dark-glass {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--btn-glass-bg);
             border: 1px solid var(--glass-border);
             transition: all 0.3s;
         }
@@ -233,7 +225,7 @@
         .btn-action-purple {
             background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%);
             border: none;
-            color: white;
+            color: var(--text-primary);
             transition: all 0.3s;
             box-shadow: var(--purple-glow);
         }
@@ -263,7 +255,7 @@
             align-items: center;
             justify-content: center;
             border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--btn-glass-border);
         }
 
         .bg-gradient-purple {
@@ -317,7 +309,7 @@
         }
 
         .text-gray-400 {
-            color: #94a3b8 !important;
+            color: var(--text-secondary); !important;
         }
 
         .text-gray-500 {

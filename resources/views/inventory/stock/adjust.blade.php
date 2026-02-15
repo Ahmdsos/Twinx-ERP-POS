@@ -9,10 +9,10 @@
                 <!-- Header -->
                 <div class="text-center mb-5">
                     <div class="d-inline-flex align-items-center justify-content-center icon-box-lg mb-3 shadow-neon-cyan">
-                        <i class="bi bi-sliders fs-2 text-white"></i>
+                        <i class="bi bi-sliders fs-2 text-body"></i>
                     </div>
-                    <h3 class="fw-bold text-white tracking-wide">تسوية المخزون اليدوية</h3>
-                    <p class="text-gray-400">تعديل كميات المخزون الحالية (عجز / زيادة)</p>
+                    <h3 class="fw-bold text-heading tracking-wide">تسوية المخزون اليدوية</h3>
+                    <p class="text-secondary">تعديل كميات المخزون الحالية (عجز / زيادة)</p>
                 </div>
 
                 <!-- Glass Card Content -->
@@ -29,10 +29,10 @@
                                     class="form-label text-cyan-400 small fw-bold text-uppercase tracking-wider ps-1">المستودع
                                     <span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-dark-input border-end-0 text-gray-500"><i
+                                    <span class="input-group-text bg-surface-secondary-input border-end-0 text-gray-500"><i
                                             class="bi bi-building"></i></span>
                                     <select name="warehouse_id" id="warehouseSelect"
-                                        class="form-select form-select-dark border-start-0 ps-0 text-white cursor-pointer"
+                                        class="form-select form-select border-start-0 ps-0 text-body cursor-pointer"
                                         required>
                                         <option value="" selected disabled>-- اختر المستودع --</option>
                                         @foreach($warehouses as $warehouse)
@@ -45,13 +45,12 @@
                             <!-- Product Select -->
                             <div class="col-md-6">
                                 <label
-                                    class="form-label text-cyan-400 small fw-bold text-uppercase tracking-wider ps-1">المنتج
-                                    <span class="text-danger">*</span></label>
+                                    class="form-label text-cyan-400 small fw-bold text-uppercase tracking-wider ps-1">{{ __('Product') }}<span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-dark-input border-end-0 text-gray-500"><i
+                                    <span class="input-group-text bg-surface-secondary-input border-end-0 text-gray-500"><i
                                             class="bi bi-box-seam"></i></span>
                                     <select name="product_id" id="productSelect"
-                                        class="form-select form-select-dark border-start-0 ps-0 text-white cursor-pointer"
+                                        class="form-select form-select border-start-0 ps-0 text-body cursor-pointer"
                                         required>
                                         <option value="" selected disabled>-- اختر المنتج --</option>
                                         @foreach($products as $product)
@@ -65,14 +64,14 @@
 
                         <!-- Current Stock Display (AJAX) -->
                         <div id="stockDisplay"
-                            class="d-none mb-4 p-4 rounded-3 bg-slate-900 bg-opacity-50 border border-white-5 transition-all">
+                            class="d-none mb-4 p-4 rounded-3 bg-surface bg-opacity-50 border border-secondary border-opacity-10-5 transition-all">
                             <div class="row text-center align-items-center">
-                                <div class="col-4 border-end border-white-10">
+                                <div class="col-4 border-end border-secondary border-opacity-10-10">
                                     <p class="text-gray-500 x-small text-uppercase mb-1">الكمية الحالية</p>
-                                    <h4 class="fw-bold text-white mb-0" id="currentQty">0</h4>
+                                    <h4 class="fw-bold text-heading mb-0" id="currentQty">0</h4>
                                     <span class="text-gray-600 small" id="unitDisplay">-</span>
                                 </div>
-                                <div class="col-4 border-end border-white-10">
+                                <div class="col-4 border-end border-secondary border-opacity-10-10">
                                     <p class="text-gray-500 x-small text-uppercase mb-1">المحجوز</p>
                                     <h4 class="fw-bold text-warning mb-0" id="reservedQty">0</h4>
                                 </div>
@@ -89,10 +88,10 @@
                                     class="form-label text-cyan-400 small fw-bold text-uppercase tracking-wider ps-1">الكمية
                                     الجديدة (الجرده) <span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-dark-input border-end-0 text-gray-500"><i
+                                    <span class="input-group-text bg-surface-secondary-input border-end-0 text-gray-500"><i
                                             class="bi bi-list-ol"></i></span>
                                     <input type="number" step="0.01" name="new_quantity" id="newQuantity"
-                                        class="form-control form-control-dark border-start-0 ps-0 text-white placeholder-gray-600 focus-ring-cyan fw-bold fs-5"
+                                        class="form-control form-control border-start-0 ps-0 text-body placeholder-gray-600 focus-ring-cyan fw-bold fs-5"
                                         placeholder="0.00" required>
                                 </div>
                                 <div class="form-text text-gray-500 ms-1" id="diffText">أدخل الكمية الموجودة فعلياً في
@@ -104,10 +103,10 @@
                                     class="form-label text-cyan-400 small fw-bold text-uppercase tracking-wider ps-1">تحديث
                                     التكلفة (اختياري)</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-dark-input border-end-0 text-gray-500"><i
+                                    <span class="input-group-text bg-surface-secondary-input border-end-0 text-gray-500"><i
                                             class="bi bi-currency-dollar"></i></span>
                                     <input type="number" step="0.01" name="new_unit_cost"
-                                        class="form-control form-control-dark border-start-0 ps-0 text-white placeholder-gray-600 focus-ring-cyan"
+                                        class="form-control form-control border-start-0 ps-0 text-body placeholder-gray-600 focus-ring-cyan"
                                         placeholder="اترك فارغاً للإبقاء على التكلفة الحالية">
                                 </div>
                             </div>
@@ -117,16 +116,15 @@
                             <label class="form-label text-cyan-400 small fw-bold text-uppercase tracking-wider ps-1">سبب
                                 التسوية</label>
                             <textarea name="reason"
-                                class="form-control form-control-dark text-white placeholder-gray-600 focus-ring-cyan"
+                                class="form-control form-control text-body placeholder-gray-600 focus-ring-cyan"
                                 rows="3" placeholder="مثال: جرد سنوي، تلف بضاعة، خطأ في الإدخال..." required></textarea>
                         </div>
 
                         <!-- Actions -->
-                        <div class="d-flex justify-content-between align-items-center pt-4 border-top border-white-10">
+                        <div class="d-flex justify-content-between align-items-center pt-4 border-top border-secondary border-opacity-10-10">
                             <a href="{{ route('stock.index') }}"
-                                class="btn btn-link text-gray-400 text-decoration-none hover-text-white d-flex align-items-center gap-2">
-                                <i class="bi bi-arrow-right"></i> إلغاء
-                            </a>
+                                class="btn btn-link text-secondary text-decoration-none hover-text-white d-flex align-items-center gap-2">
+                                <i class="bi bi-arrow-right"></i>{{ __('Cancel') }}</a>
                             <button type="submit"
                                 class="btn btn-action-cyan px-5 py-2 rounded-pill fw-bold shadow-neon-cyan d-flex align-items-center gap-2">
                                 <i class="bi bi-check-lg"></i> تأكيد التسوية
@@ -209,14 +207,14 @@
         .bg-dark-input {
             background: rgba(15, 23, 42, 0.6) !important;
             border-color: rgba(255, 255, 255, 0.1) !important;
-            color: #94a3b8;
+            color: var(--text-secondary);
         }
 
         .form-control-dark,
         .form-select-dark {
             background: rgba(15, 23, 42, 0.6) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            color: white !important;
+            border: 1px solid var(--btn-glass-border); !important;
+            color: var(--text-primary); !important;
             padding: 0.8rem 1rem;
         }
 
@@ -230,7 +228,7 @@
         .btn-action-cyan {
             background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
             border: none;
-            color: white;
+            color: var(--text-primary);
             transition: all 0.3s;
         }
 
@@ -243,11 +241,11 @@
             color: #475569;
         }
 
-        .bg-white-5 {
+        .bg-surface-5 {
             background: rgba(255, 255, 255, 0.02);
         }
 
-        .border-white-10 {
+        .border-secondary border-opacity-10-10 {
             border-color: rgba(255, 255, 255, 0.05) !important;
         }
 

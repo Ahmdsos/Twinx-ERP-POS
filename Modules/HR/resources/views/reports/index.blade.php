@@ -7,7 +7,7 @@
     <div class="dashboard-wrapper">
         <div class="row align-items-center mb-4">
             <div class="col-md-6">
-                <h3 class="fw-black text-white mb-0">مركز التقارير الإدارية</h3>
+                <h3 class="fw-black text-heading mb-0">مركز التقارير الإدارية</h3>
                 <p class="text-secondary small opacity-75 mt-1">توليد تقارير تحليلية دقيقة للحضور، الانصراف، والرواتب لفترات
                     زمنية محددة.</p>
             </div>
@@ -15,9 +15,9 @@
 
         <div class="row justify-content-center">
             <div class="col-lg-6">
-                <div class="glass-card rounded-4 border-white border-opacity-10 overflow-hidden shadow-lg">
-                    <div class="card-header bg-white bg-opacity-5 py-4 border-bottom border-white border-opacity-10 px-4">
-                        <h5 class="mb-0 text-white fw-bold d-flex align-items-center gap-2">
+                <div class="glass-card rounded-4 border-secondary border-opacity-10 border-opacity-10 overflow-hidden shadow-lg">
+                    <div class="card-header bg-white bg-opacity-5 py-4 border-bottom border-secondary border-opacity-10 border-opacity-10 px-4">
+                        <h5 class="mb-0 text-heading fw-bold d-flex align-items-center gap-2">
                             <i class="bi bi-file-earmark-bar-graph text-primary"></i> معايير استخراج التقرير
                         </h5>
                     </div>
@@ -30,13 +30,13 @@
                                     <div class="col-6 text-start">
                                         <label class="x-small text-secondary mb-1">من تاريخ</label>
                                         <input type="date" name="from_date"
-                                            class="form-control bg-white bg-opacity-5 text-white border-white border-opacity-10 shadow-none h-48"
+                                            class="form-control bg-white bg-opacity-5 text-body border-secondary border-opacity-10 border-opacity-10 shadow-none h-48"
                                             required value="{{ now()->startOfMonth()->format('Y-m-d') }}">
                                     </div>
                                     <div class="col-6 text-start">
                                         <label class="x-small text-secondary mb-1">إلى تاريخ</label>
                                         <input type="date" name="to_date"
-                                            class="form-control bg-white bg-opacity-5 text-white border-white border-opacity-10 shadow-none h-48"
+                                            class="form-control bg-white bg-opacity-5 text-body border-secondary border-opacity-10 border-opacity-10 shadow-none h-48"
                                             required value="{{ now()->format('Y-m-d') }}">
                                     </div>
                                 </div>
@@ -45,10 +45,10 @@
                             <div class="mb-4 text-start">
                                 <label class="form-label text-secondary small fw-bold">تحديد الموظف (اختياري)</label>
                                 <select name="employee_id"
-                                    class="form-select bg-white bg-opacity-5 text-white border-white border-opacity-10 shadow-none h-48">
-                                    <option value="" class="bg-dark">استخراج لكل طاقم العمل</option>
+                                    class="form-select bg-white bg-opacity-5 text-body border-secondary border-opacity-10 border-opacity-10 shadow-none h-48">
+                                    <option value="" class="bg-surface-secondary">استخراج لكل طاقم العمل</option>
                                     @foreach($employees as $employee)
-                                        <option value="{{ $employee->id }}" class="bg-dark">{{ $employee->full_name }}
+                                        <option value="{{ $employee->id }}" class="bg-surface-secondary">{{ $employee->full_name }}
                                             ({{ $employee->employee_code }})</option>
                                     @endforeach
                                 </select>

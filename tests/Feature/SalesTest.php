@@ -24,7 +24,7 @@ class SalesTest extends TestCase
     {
         parent::setUp();
 
-        $this->user = User::factory()->create();
+        $this->user = $this->createUserWithPermissions(['sales.manage']);
 
         // Create required dependencies
         Category::create(['name' => 'Test', 'code' => 'TST']);

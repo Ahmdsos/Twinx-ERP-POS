@@ -8,10 +8,10 @@
         <div class="d-flex justify-content-between align-items-center mb-5">
             <div class="d-flex align-items-center gap-4">
                 <div class="icon-box bg-gradient-green shadow-neon-green">
-                    <i class="bi bi-box-seam fs-3 text-white"></i>
+                    <i class="bi bi-box-seam fs-3 text-body"></i>
                 </div>
                 <div>
-                    <h2 class="fw-bold text-white mb-1 tracking-wide">استلام بضاعة (GRN)</h2>
+                    <h2 class="fw-bold text-heading mb-1 tracking-wide">استلام بضاعة (GRN)</h2>
                     <p class="mb-0 text-gray-400 small">إثبات استلام البضائع من الموردين ودخولها المخازن</p>
                 </div>
             </div>
@@ -22,22 +22,22 @@
         </div>
 
         <!-- Filters (Glass) -->
-        <div class="bg-slate-900 bg-opacity-50 border border-white-5 rounded-4 p-4 mb-5">
+        <div class="bg-slate-900 bg-opacity-50 border border-secondary border-opacity-10-5 rounded-4 p-4 mb-5">
             <form action="{{ route('grns.index') }}" method="GET" class="row g-3 align-items-end">
                 <div class="col-md-3">
-                    <label class="form-label text-green-400 x-small fw-bold text-uppercase ps-1">بحث</label>
+                    <label class="form-label text-green-400 x-small fw-bold text-uppercase ps-1">{{ __('Search') }}</label>
                     <div class="input-group">
                         <span class="input-group-text bg-dark-input border-end-0 text-gray-500"><i
                                 class="bi bi-search"></i></span>
                         <input type="text" name="search"
-                            class="form-control form-control-dark border-start-0 ps-0 text-white placeholder-gray-600 focus-ring-green"
+                            class="form-control form-control-dark border-start-0 ps-0 text-body placeholder-gray-600 focus-ring-green"
                             value="{{ request('search') }}" placeholder="رقم السند / أمر الشراء...">
                     </div>
                 </div>
 
                 <div class="col-md-3">
-                    <label class="form-label text-green-400 x-small fw-bold text-uppercase ps-1">الحالة</label>
-                    <select name="status" class="form-select form-select-dark text-white cursor-pointer hover:bg-white-5">
+                    <label class="form-label text-green-400 x-small fw-bold text-uppercase ps-1">{{ __('Status') }}</label>
+                    <select name="status" class="form-select form-select-dark text-body cursor-pointer hover:bg-surface-5">
                         <option value="">-- الكل --</option>
                         @foreach($statuses as $status)
                             <option value="{{ $status->value }}" {{ request('status') == $status->value ? 'selected' : '' }}>
@@ -49,8 +49,7 @@
 
                 <div class="col-md-3">
                     <button type="submit" class="btn btn-green-glass w-100 fw-bold">
-                        <i class="bi bi-funnel"></i> تصفية
-                    </button>
+                        <i class="bi bi-funnel"></i>{{ __('Filter') }}</button>
                 </div>
             </form>
         </div>
@@ -65,9 +64,9 @@
                             <th>المورد</th>
                             <th>أمر الشراء</th>
                             <th>تاريخ الاستلام</th>
-                            <th>المستلم</th>
-                            <th>الحالة</th>
-                            <th class="pe-4 text-end">إجراءات</th>
+                            <th>{{ __('Recipient') }}</th>
+                            <th>{{ __('Status') }}</th>
+                            <th class="pe-4 text-end">{{ __('Actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -75,14 +74,14 @@
                             <tr class="table-row-hover position-relative group-hover-actions">
                                 <td class="ps-4 font-monospace text-green-300">
                                     <a href="{{ route('grns.show', $grn->id) }}"
-                                        class="text-decoration-none text-green-300 hover-text-white">
+                                        class="text-decoration-none text-green-300 hover-text-body">
                                         {{ $grn->grn_number }}
                                     </a>
                                 </td>
-                                <td class="fw-bold text-white">{{ $grn->supplier->name }}</td>
+                                <td class="fw-bold text-body">{{ $grn->supplier->name }}</td>
                                 <td class="font-monospace text-gray-400">
                                     <a href="{{ route('purchase-orders.show', $grn->purchase_order_id) }}"
-                                        class="text-gray-400 text-decoration-none hover-text-white">
+                                        class="text-gray-400 text-decoration-none hover-text-body">
                                         {{ $grn->purchaseOrder->po_number }}
                                     </a>
                                 </td>
@@ -103,12 +102,12 @@
                                 </td>
                                 <td class="pe-4 text-end">
                                     <div class="d-flex justify-content-end gap-2 opacity-0 group-hover-visible transition-all">
-                                        <a href="{{ route('grns.show', $grn->id) }}" class="btn-icon-glass" title="عرض">
+                                        <a href="{{ route('grns.show', $grn->id) }}" class="btn-icon-glass" title="{{ __('View') }}">
                                             <i class="bi bi-eye"></i>
                                         </a>
                                         @if($grn->status->value == 'completed' && !$grn->invoice)
                                             <a href="{{ route('purchase-invoices.create', ['grn_id' => $grn->id]) }}"
-                                                class="btn-icon-glass text-cyan-400 hover-cyan" title="إنشاء فاتورة">
+                                                class="btn-icon-glass text-cyan-400 hover-cyan" title="{{ __('Create Invoice') }}">
                                                 <i class="bi bi-receipt"></i>
                                             </a>
                                         @endif
@@ -130,7 +129,7 @@
             </div>
 
             @if($grns->hasPages())
-                <div class="p-4 border-top border-white-5">
+                <div class="p-4 border-top border-secondary border-opacity-10-5">
                     {{ $grns->links() }}
                 </div>
             @endif
@@ -175,7 +174,7 @@
         .btn-action-green {
             background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
             border: none;
-            color: white;
+            color: var(--text-primary);
             padding: 10px 24px;
             border-radius: 10px;
             transition: all 0.3s;
@@ -197,15 +196,15 @@
 
         .btn-green-glass:hover {
             background: rgba(34, 197, 94, 0.25);
-            color: white;
+            color: var(--text-primary);
             border-color: #4ade80;
         }
 
         .form-control-dark,
         .form-select-dark {
             background: rgba(15, 23, 42, 0.6) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            color: white !important;
+            border: 1px solid var(--btn-glass-border); !important;
+            color: var(--text-primary); !important;
         }
 
         .focus-ring-green:focus {
@@ -215,7 +214,7 @@
 
         .bg-dark-input {
             background: rgba(15, 23, 42, 0.8) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid var(--btn-glass-border); !important;
         }
 
         .table-dark-custom {
@@ -226,7 +225,7 @@
 
         .table-dark-custom th {
             background: rgba(0, 0, 0, 0.2);
-            color: #94a3b8;
+            color: var(--text-secondary);
             font-weight: 600;
             padding: 1rem;
         }
@@ -246,14 +245,14 @@
             align-items: center;
             justify-content: center;
             border-radius: 6px;
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--btn-glass-bg);
             color: #cbd5e1;
             transition: 0.2s;
         }
 
         .btn-icon-glass:hover {
             background: rgba(255, 255, 255, 0.1);
-            color: white;
+            color: var(--text-primary);
         }
     </style>
 @endsection

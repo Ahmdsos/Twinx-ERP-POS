@@ -41,7 +41,16 @@ trait HasDocumentNumber
         // Get the last document number for this year
         // Use lockForUpdate() to prevent race conditions during concurrent creation
         // This ensures only one request can read/increment at a time
-        $lastDocument = static::query()
+        $query = static::query();
+
+        // Essential: Include soft-deleted records to prevent unique constraint violations
+        // If the last record was deleted (e.g. during edit/re-generation), we must still acknowledge its number
+        // to generate the *next* number, rather than trying to reuse the deleted one.
+        if (in_array(\Illuminate\Database\Eloquent\SoftDeletes::class, class_uses_recursive(static::class))) {
+            $query->withTrashed();
+        }
+
+        $lastDocument = $query
             ->where($this->getDocumentNumberField(), 'like', "{$prefix}-{$year}-%")
             ->orderByDesc($this->getDocumentNumberField())
             ->lockForUpdate()

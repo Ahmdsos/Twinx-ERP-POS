@@ -9,13 +9,12 @@
             <div class="d-flex align-items-center gap-3">
                 <a href="{{ route('purchase-invoices.index') }}" class="btn btn-outline-light btn-sm rounded-circle shadow-sm" style="width: 32px; height: 32px;"><i class="bi bi-arrow-right"></i></a>
                 <div>
-                    <h2 class="fw-bold text-white mb-0">فاتورة شراء جديدة</h2>
+                    <h2 class="fw-bold text-heading mb-0">فاتورة شراء جديدة</h2>
                     <p class="text-gray-400 mb-0 x-small">تسجيل بضاعة واردة واستحقاق مالي</p>
                 </div>
             </div>
             <button type="submit" form="invoiceForm" class="btn btn-action-cyan fw-bold shadow-lg d-flex align-items-center gap-2">
-                <i class="bi bi-save"></i> حفظ الفاتورة
-            </button>
+                <i class="bi bi-save"></i>{{ __('Save Invoice') }}</button>
         </div>
 
         <form action="{{ route('purchase-invoices.store') }}" method="POST" id="invoiceForm">
@@ -29,18 +28,17 @@
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h5 class="text-cyan-400 fw-bold mb-0"><i class="bi bi-basket me-2"></i>أصناف الفاتورة</h5>
                             <button type="button" class="btn btn-sm btn-outline-cyan" onclick="addNewRow()">
-                                <i class="bi bi-plus-lg me-1"></i> إضافة صنف
-                            </button>
+                                <i class="bi bi-plus-lg me-1"></i>{{ __('Add Item') }}</button>
                         </div>
                         
                         <div class="table-responsive">
                             <table class="table table-dark-custom align-middle" id="itemsTable">
                                 <thead>
                                     <tr>
-                                        <th style="width: 40%">المنتج</th>
-                                        <th style="width: 15%">الكمية</th>
-                                        <th style="width: 20%">سعر الوحدة</th>
-                                        <th style="width: 20%">الإجمالي</th>
+                                        <th style="width: 40%">{{ __('Product') }}</th>
+                                        <th style="width: 15%">{{ __('Quantity') }}</th>
+                                        <th style="width: 20%">{{ __('Unit Price') }}</th>
+                                        <th style="width: 20%">{{ __('Total') }}</th>
                                         <th style="width: 5%"></th>
                                     </tr>
                                 </thead>
@@ -59,7 +57,7 @@
                 <!-- Sidebar (Right) -->
                 <div class="col-md-3">
                     <div class="glass-panel p-4 mb-4">
-                        <h5 class="text-white fw-bold mb-4 border-bottom border-white-5 pb-2">بيانات الفاتورة</h5>
+                        <h5 class="text-heading fw-bold mb-4 border-bottom border-secondary border-opacity-10-5 pb-2">بيانات الفاتورة</h5>
                         
 
                         <div class="mb-3">
@@ -95,7 +93,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label text-gray-400 x-small fw-bold">تاريخ الفاتورة <span class="text-danger">*</span></label>
+                            <label class="form-label text-gray-400 x-small fw-bold">{{ __('Invoice Date') }}<span class="text-danger">*</span></label>
                             <input type="date" name="invoice_date" class="form-control form-control-dark focus-ring-cyan" 
                                 value="{{ old('invoice_date', date('Y-m-d')) }}" required>
                         </div>
@@ -117,15 +115,15 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label text-gray-400 x-small fw-bold">ملاحظات</label>
+                            <label class="form-label text-gray-400 x-small fw-bold">{{ __('Notes') }}</label>
                             <textarea name="notes" class="form-control form-control-dark focus-ring-cyan" rows="2">{{ isset($grn) ? 'فاتورة عن إذن استلام: ' . $grn->grn_number : '' }}</textarea>
                         </div>
 
                         <!-- ... (Payment Section Unchanged) ... -->
-                        <div class="border-top border-white-5 pt-3 mt-3">
+                        <div class="border-top border-secondary border-opacity-10-5 pt-3 mt-3">
                             <div class="form-check form-switch mb-3">
                                 <input class="form-check-input" type="checkbox" id="payNowCheck" onchange="togglePayment(this)">
-                                <label class="form-check-label text-white small fw-bold" for="payNowCheck">دفع مبلغ فوري (مقدم)؟</label>
+                                <label class="form-check-label text-body small fw-bold" for="payNowCheck">دفع مبلغ فوري (مقدم)؟</label>
                             </div>
 
                             <div id="paymentSection" class="d-none">
@@ -134,11 +132,11 @@
                                     <input type="number" step="0.01" name="paid_amount" id="paidAmount" class="form-control form-control-sm form-control-dark" placeholder="0.00" oninput="updateRemaining()">
                                 </div>
                                 <div class="mb-2">
-                                    <label class="text-gray-500 x-small">طريقة الدفع</label>
+                                    <label class="text-gray-500 x-small">{{ __('Payment Method') }}</label>
                                     <select name="payment_method" class="form-select form-select-sm form-select-dark">
-                                        <option value="cash">نقدي</option>
-                                        <option value="bank_transfer">تحويل بنكي</option>
-                                        <option value="cheque">شيك</option>
+                                        <option value="cash">{{ __('Cash') }}</option>
+                                        <option value="bank_transfer">{{ __('Bank Transfer') }}</option>
+                                        <option value="cheque">{{ __('Check') }}</option>
                                     </select>
                                 </div>
                                 <div class="mb-2">
@@ -157,16 +155,16 @@
                     <div class="glass-panel p-4 bg-gradient-to-br from-slate-900 to-slate-800">
                         <div class="d-flex justify-content-between mb-2">
                             <span class="text-gray-400 small">الإجمالي قبل الضريبة</span>
-                            <span class="text-white fw-bold" id="subtotalDisplay">0.00</span>
+                            <span class="text-body fw-bold" id="subtotalDisplay">0.00</span>
                         </div>
                         <div class="d-flex justify-content-between mb-3">
                             <span class="text-gray-400 small">الضريبة (0%)</span>
-                            <span class="text-white fw-bold">0.00</span>
+                            <span class="text-body fw-bold">0.00</span>
                         </div>
-                        <div class="border-top border-white-10 pt-3 mt-2">
+                        <div class="border-top border-secondary border-opacity-10-10 pt-3 mt-2">
                             <div class="d-flex justify-content-between align-items-center">
                                 <span class="text-cyan-400 fw-bold fs-5">الإجمالي النهائي</span>
-                                <span class="text-white fw-bold fs-4" id="totalDisplay">0.00</span>
+                                <span class="text-body fw-bold fs-4" id="totalDisplay">0.00</span>
                             </div>
                         </div>
                     </div>
@@ -293,21 +291,21 @@
     </script>
 
     <style>
-        .btn-action-cyan { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); color: white; border: none; padding: 10px 24px; border-radius: 10px; }
+        .btn-action-cyan { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); color: var(--text-primary); border: none; padding: 10px 24px; border-radius: 10px; }
         .btn-action-cyan:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(6, 182, 212, 0.4); }
         
         .btn-dashed-cyan { border: 2px dashed rgba(34, 211, 238, 0.3); color: #22d3ee; border-radius: 12px; transition: 0.2s; background: rgba(34, 211, 238, 0.05); }
-        .btn-dashed-cyan:hover { background: rgba(34, 211, 238, 0.1); border-color: #22d3ee; color: white; }
+        .btn-dashed-cyan:hover { background: rgba(34, 211, 238, 0.1); border-color: #22d3ee; color: var(--text-primary); }
 
-        .form-control-dark, .form-select-dark { background: rgba(15, 23, 42, 0.6) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; color: white !important; }
+        .form-control-dark, .form-select-dark { background: rgba(15, 23, 42, 0.6) !important; border: 1px solid var(--btn-glass-border); !important; color: var(--text-primary); !important; }
         .focus-ring-cyan:focus { border-color: #22d3ee !important; box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.1) !important; }
         
         .table-dark-custom { --bs-table-bg: transparent; --bs-table-border-color: rgba(255, 255, 255, 0.05); color: #e2e8f0; }
-        .table-dark-custom th { background: rgba(0, 0, 0, 0.2); color: #94a3b8; font-weight: 600; padding: 1rem; }
+        .table-dark-custom th { background: rgba(0, 0, 0, 0.2); color: var(--text-secondary); font-weight: 600; padding: 1rem; }
         .table-dark-custom td { padding: 0.75rem 1rem; }
 
-        .btn-icon-glass { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; background: rgba(255,255,255,0.05); color: #cbd5e1; transition: 0.2s; }
-        .btn-icon-glass:hover { background: rgba(255,255,255,0.1); color: white; }
+        .btn-icon-glass { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; background: var(--btn-glass-bg); color: #cbd5e1; transition: 0.2s; }
+        .btn-icon-glass:hover { background: rgba(255,255,255,0.1); color: var(--text-primary); }
         .hover-danger:hover { background: rgba(239, 68, 68, 0.2) !important; color: #ef4444 !important; }
     </style>
 @endsection

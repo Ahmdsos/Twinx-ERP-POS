@@ -6,7 +6,7 @@
     <div class="container-fluid py-4" id="mission-app">
         <!-- Header Section with Glassmorphism -->
         <div
-            class="mission-header p-4 rounded-4 shadow-lg mb-4 text-white d-flex justify-content-between align-items-center">
+            class="mission-header p-4 rounded-4 shadow-lg mb-4 text-body d-flex justify-content-between align-items-center">
             <div>
                 <h2 class="fw-bold mb-1"><i class="bi bi-broadcast me-2 text-warning animate-pulse"></i> مركز إدارة العمليات
                     اللوجستية</h2>
@@ -32,12 +32,12 @@
         <div class="row mb-4">
             <div class="col-md-12">
                 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-                    <div class="card-body bg-white p-3">
-                        <form action="{{ route('reports.mission-control') }}" method="GET" class="row g-3">
+                    <div class="card-body bg-surface p-3">
+                        <form action="{{ route('mission.control') }}" method="GET" class="row g-3">
                             <div class="col-md-4">
                                 <div class="input-group">
-                                    <span class="input-group-text bg-light border-0"><i class="bi bi-search"></i></span>
-                                    <input type="text" name="driver_name" class="form-control border-0 bg-light"
+                                    <span class="input-group-text bg-surface-secondary border-0"><i class="bi bi-search"></i></span>
+                                    <input type="text" name="driver_name" class="form-control border-0 bg-surface-secondary"
                                         placeholder="ابحث باسم المندوب..." value="{{ request('driver_name') }}">
                                 </div>
                             </div>
@@ -57,7 +57,7 @@
                 <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
-                            <thead class="bg-light text-secondary small text-uppercase fw-bold">
+                            <thead class="bg-surface-secondary text-secondary small text-uppercase fw-bold">
                                 <tr>
                                     <th class="ps-4 py-3">تفاصيل المهمة</th>
                                     <th>المسؤول (المندوب)</th>
@@ -80,7 +80,7 @@
                                                         class="bi @if($mission->status->value == 'delivered') bi-check-lg @elseif($mission->status->value == 'returned') bi-arrow-counterclockwise @else bi-truck @endif"></i>
                                                 </div>
                                                 <div>
-                                                    <div class="fw-bold text-dark">{{ $mission->do_number }}</div>
+                                                    <div class="fw-bold text-body">{{ $mission->do_number }}</div>
                                                     <div class="x-small text-muted">INV:
                                                         {{ $mission->salesOrder->reference ?? $mission->salesInvoice->invoice_number ?? 'N/A' }}
                                                     </div>
@@ -102,17 +102,21 @@
                                                 @if($mission->salesOrder)
                                                     {{ number_format($mission->salesOrder->total, 2) }}
                                                 @elseif($mission->salesInvoice)
-                                                    {{ number_format($mission->salesInvoice->total_amount, 2) }}
+                                                    {{ number_format($mission->salesInvoice->total, 2) }}
                                                 @else
                                                     0.00
                                                 @endif
-                                                <small class="x-small">ج.م</small>
+                                                <small class="x-small">{{ __('EGP') }}</small>
                                             </div>
                                         </td>
                                         <td>
-                                            <span class="mission-badge {{ $mission->status->value }}">
-                                                {{ $mission->status->label() }}
-                                            </span>
+                                            @if($mission->status)
+                                                <span class="mission-badge {{ $mission->status->value }}">
+                                                    {{ $mission->status->label() }}
+                                                </span>
+                                            @else
+                                                <span class="badge bg-secondary">N/A</span>
+                                            @endif
                                         </td>
                                         <td class="text-center pe-4">
                                             @if(!$isSettled)
@@ -148,7 +152,7 @@
                         </table>
                     </div>
                     @if($missions->hasPages())
-                        <div class="card-footer bg-white border-0 py-3">
+                        <div class="card-footer bg-surface border-0 py-3">
                             {{ $missions->links() }}
                         </div>
                     @endif
@@ -165,7 +169,7 @@
                         <h5 class="modal-title fw-bold">
                             <i class="bi me-2"
                                 :class="settleType === 'delivered' ? 'bi-check2-all' : 'bi-arrow-counterclockwise'"></i>
-                            تأكيد تسوية المهمة رقم <span class="bg-white text-dark px-2 rounded small">@{{ currentMissionId
+                            تأكيد تسوية المهمة رقم <span class="bg-surface text-body px-2 rounded small">@{{ currentMissionId
                                 }}</span>
                         </h5>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -183,7 +187,7 @@
                         <div class="mb-3">
                             <label class="form-label fw-bold">ملاحظات العملية <span
                                     class="text-muted font-normal">(اختياري)</span></label>
-                            <textarea v-model="settleNotes" class="form-control rounded-3 bg-light border-0" rows="3"
+                            <textarea v-model="settleNotes" class="form-control rounded-3 bg-surface-secondary border-0" rows="3"
                                 placeholder="أدخل تفاصيل إضافية للمرجعية..."></textarea>
                         </div>
 
@@ -220,12 +224,12 @@
         }
 
         .stat-glass-card {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--btn-glass-bg);
             backdrop-filter: blur(8px);
             padding: 10px 20px;
             border-radius: 15px;
             min-width: 120px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--btn-glass-border);
         }
 
         .stat-glass-card.success {
@@ -237,7 +241,7 @@
         }
 
         .card {
-            background-color: #1e293b !important;
+            background-color: var(--input-bg); !important;
             border: 1px solid rgba(255, 255, 255, 0.05) !important;
         }
 
@@ -247,7 +251,7 @@
 
         .table thead th {
             background-color: #334155 !important;
-            color: #94a3b8 !important;
+            color: var(--table-head-color) !important;
             border-bottom: 0;
         }
 
@@ -328,19 +332,19 @@
             color: #f87171;
         }
 
-        .text-dark {
+        .text-body {
             color: #f1f5f9 !important;
         }
 
         .text-secondary {
-            color: #94a3b8 !important;
+            color: var(--text-secondary); !important;
         }
 
-        .bg-white {
-            background-color: #1e293b !important;
+        .bg-surface {
+            background-color: var(--input-bg); !important;
         }
 
-        .bg-light {
+        .bg-surface-secondary {
             background-color: #334155 !important;
         }
 
@@ -376,15 +380,15 @@
 
         /* Fix Pagination for Dark Mode */
         .pagination .page-link {
-            background-color: #1e293b;
+            background-color: var(--input-bg);
             border-color: #334155;
-            color: #94a3b8;
+            color: var(--text-secondary);
         }
 
         .pagination .page-item.active .page-link {
             background-color: #3b82f6;
             border-color: #3b82f6;
-            color: white;
+            color: var(--text-primary);
         }
     </style>
 @endsection
@@ -398,7 +402,7 @@
         createApp({
             data() {
                 return {
-                    stats: @json($stats),
+                    stats: @json($stats ?? ['active' => 0, 'delivered' => 0, 'returned' => 0]),
                     settleType: '',
                     currentMissionId: null,
                     settleNotes: '',
@@ -414,7 +418,7 @@
                 },
                 processSettlement() {
                     this.isProcessing = true;
-                    const url = '{{ route("reports.mission.settle", ":id") }}'.replace(':id', this.currentMissionId);
+                    const url = '{{ route("mission.settle", ":id") }}'.replace(':id', this.currentMissionId);
 
                     axios.post(url, {
                         status: this.settleType,

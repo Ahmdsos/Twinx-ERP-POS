@@ -12,13 +12,13 @@
                     {{ strtoupper(substr($supplier->name, 0, 1)) }}
                 </div>
                 <div>
-                    <h2 class="fw-bold text-white mb-0">{{ $supplier->name }}</h2>
+                    <h2 class="fw-bold text-heading mb-0">{{ $supplier->name }}</h2>
                     <div class="d-flex align-items-center gap-2 text-gray-400 x-small font-monospace">
                         <span>{{ $supplier->code }}</span>
                         @if($supplier->is_active)
-                            <span class="badge bg-green-500 bg-opacity-10 text-green-400 border border-green-500 border-opacity-20">نشط</span>
+                            <span class="badge bg-green-500 bg-opacity-10 text-green-400 border border-green-500 border-opacity-20">{{ __('Active') }}</span>
                         @else
-                            <span class="badge bg-red-500 bg-opacity-10 text-red-400 border border-red-500 border-opacity-20">غير نشط</span>
+                            <span class="badge bg-red-500 bg-opacity-10 text-red-400 border border-red-500 border-opacity-20">{{ __('Inactive') }}</span>
                         @endif
                     </div>
                 </div>
@@ -26,11 +26,9 @@
             
             <div class="d-flex gap-2">
                 <a href="{{ route('suppliers.statement', $supplier->id) }}" class="btn btn-glass-cyan">
-                    <i class="bi bi-file-text me-2"></i>كشف حساب
-                </a>
+                    <i class="bi bi-file-text me-2"></i>{{ __('Account Statement') }}</a>
                 <a href="{{ route('suppliers.edit', $supplier->id) }}" class="btn btn-outline-light">
-                    <i class="bi bi-pencil me-2"></i>تعديل
-                </a>
+                    <i class="bi bi-pencil me-2"></i>{{ __('Edit') }}</a>
                 <form action="{{ route('suppliers.destroy', $supplier->id) }}" method="POST" data-confirm="هل أنت متأكد من حذف هذا المورد؟">
                     @csrf @method('DELETE')
                     <button type="submit" class="btn btn-outline-danger border-0">
@@ -48,7 +46,7 @@
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
                             <span class="text-cyan-400 x-small fw-bold text-uppercase tracking-wide">الرصيد المستحق</span>
-                            <h2 class="text-white fw-bold mb-0 mt-1">{{ number_format($balance ?? 0, 2) }} <span class="fs-6 fw-normal text-gray-500">EGP</span></h2>
+                            <h2 class="text-heading fw-bold mb-0 mt-1">{{ number_format($balance ?? 0, 2) }} <span class="fs-6 fw-normal text-gray-500">EGP</span></h2>
                         </div>
                         <div class="icon-circle bg-cyan-500 bg-opacity-10 text-cyan-400">
                             <i class="bi bi-wallet2"></i>
@@ -74,13 +72,13 @@
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
                             <span class="text-gray-400 x-small fw-bold text-uppercase tracking-wide">إجمالي المشتريات</span>
-                            <h3 class="text-white fw-bold mb-0 mt-1">{{ number_format($totalPurchases ?? 0, 2) }}</h3>
+                            <h3 class="text-heading fw-bold mb-0 mt-1">{{ number_format($totalPurchases ?? 0, 2) }}</h3>
                         </div>
-                        <div class="icon-circle bg-white-5 text-gray-300">
+                        <div class="icon-circle bg-surface-5 text-gray-300">
                             <i class="bi bi-bag-check"></i>
                         </div>
                     </div>
-                    <div class="progress bg-white-5" style="height: 4px;">
+                    <div class="progress bg-surface-5" style="height: 4px;">
                         <div class="progress-bar bg-cyan-500" role="progressbar" style="width: 70%"></div>
                     </div>
                 </div>
@@ -92,13 +90,13 @@
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
                             <span class="text-gray-400 x-small fw-bold text-uppercase tracking-wide">إجمالي المدفوعات</span>
-                            <h3 class="text-white fw-bold mb-0 mt-1">{{ number_format($totalPaid ?? 0, 2) }}</h3>
+                            <h3 class="text-heading fw-bold mb-0 mt-1">{{ number_format($totalPaid ?? 0, 2) }}</h3>
                         </div>
-                        <div class="icon-circle bg-white-5 text-gray-300">
+                        <div class="icon-circle bg-surface-5 text-gray-300">
                             <i class="bi bi-cash-stack"></i>
                         </div>
                     </div>
-                    <div class="progress bg-white-5" style="height: 4px;">
+                    <div class="progress bg-surface-5" style="height: 4px;">
                         <div class="progress-bar bg-green-500" role="progressbar" style="width: 60%"></div>
                     </div>
                 </div>
@@ -109,43 +107,43 @@
         <div class="row g-4 mb-4">
             <div class="col-md-4">
                 <a href="{{ route('purchase-invoices.create', ['supplier_id' => $supplier->id]) }}" class="text-decoration-none group">
-                    <div class="glass-panel p-3 d-flex align-items-center gap-3 hover-scale transition-all border border-white-5 hover-border-cyan">
-                        <div class="icon-box bg-cyan-500 bg-opacity-20 text-cyan-400 group-hover-bg-cyan group-hover-text-white transition-all">
+                    <div class="glass-panel p-3 d-flex align-items-center gap-3 hover-scale transition-all border border-secondary border-opacity-10-5 hover-border-cyan">
+                        <div class="icon-box bg-cyan-500 bg-opacity-20 text-cyan-400 group-hover-bg-cyan group-hover-text-body transition-all">
                             <i class="bi bi-receipt fs-4"></i>
                         </div>
                         <div>
-                            <h6 class="text-white fw-bold mb-1">تسجيل فاتورة شراء</h6>
+                            <h6 class="text-heading fw-bold mb-1">تسجيل فاتورة شراء</h6>
                             <p class="text-gray-500 x-small mb-0">إدخال فاتورة مستحقة جديدة</p>
                         </div>
-                        <i class="bi bi-arrow-left ms-auto text-gray-600 group-hover-text-white"></i>
+                        <i class="bi bi-arrow-left ms-auto text-gray-600 group-hover-text-body"></i>
                     </div>
                 </a>
             </div>
             <div class="col-md-4">
                 <a href="{{ route('supplier-payments.create', ['supplier_id' => $supplier->id]) }}" class="text-decoration-none group">
-                    <div class="glass-panel p-3 d-flex align-items-center gap-3 hover-scale transition-all border border-white-5 hover-border-purple">
-                        <div class="icon-box bg-purple-500 bg-opacity-20 text-purple-400 group-hover-bg-purple group-hover-text-white transition-all">
+                    <div class="glass-panel p-3 d-flex align-items-center gap-3 hover-scale transition-all border border-secondary border-opacity-10-5 hover-border-purple">
+                        <div class="icon-box bg-purple-500 bg-opacity-20 text-purple-400 group-hover-bg-purple group-hover-text-body transition-all">
                             <i class="bi bi-cash-stack fs-4"></i>
                         </div>
                         <div>
-                            <h6 class="text-white fw-bold mb-1">سداد دفعة</h6>
+                            <h6 class="text-heading fw-bold mb-1">{{ __('Pay Installment') }}</h6>
                             <p class="text-gray-500 x-small mb-0">تسجيل مبلغ مدفوع للمورد</p>
                         </div>
-                        <i class="bi bi-arrow-left ms-auto text-gray-600 group-hover-text-white"></i>
+                        <i class="bi bi-arrow-left ms-auto text-gray-600 group-hover-text-body"></i>
                     </div>
                 </a>
             </div>
             <div class="col-md-4">
                 <a href="{{ route('purchase-orders.create', ['supplier_id' => $supplier->id]) }}" class="text-decoration-none group">
-                    <div class="glass-panel p-3 d-flex align-items-center gap-3 hover-scale transition-all border border-white-5 hover-border-yellow">
-                        <div class="icon-box bg-yellow-500 bg-opacity-20 text-yellow-400 group-hover-bg-yellow group-hover-text-white transition-all">
+                    <div class="glass-panel p-3 d-flex align-items-center gap-3 hover-scale transition-all border border-secondary border-opacity-10-5 hover-border-yellow">
+                        <div class="icon-box bg-yellow-500 bg-opacity-20 text-yellow-400 group-hover-bg-yellow group-hover-text-body transition-all">
                             <i class="bi bi-cart-plus fs-4"></i>
                         </div>
                         <div>
-                            <h6 class="text-white fw-bold mb-1">أمر شراء جديد</h6>
+                            <h6 class="text-heading fw-bold mb-1">أمر شراء جديد</h6>
                             <p class="text-gray-500 x-small mb-0">إرسال طلبية بضاعة جديدة</p>
                         </div>
-                        <i class="bi bi-arrow-left ms-auto text-gray-600 group-hover-text-white"></i>
+                        <i class="bi bi-arrow-left ms-auto text-gray-600 group-hover-text-body"></i>
                     </div>
                 </a>
             </div>
@@ -158,46 +156,46 @@
                     <h5 class="text-cyan-400 fw-bold mb-4"><i class="bi bi-info-circle me-2"></i>معلومات الاتصال</h5>
                     
                     <ul class="list-unstyled d-flex flex-column gap-3 mb-0">
-                        <li class="d-flex align-items-center gap-3 text-white">
-                            <div class="icon-sm bg-white-5 text-gray-400"><i class="bi bi-person"></i></div>
+                        <li class="d-flex align-items-center gap-3 text-body">
+                            <div class="icon-sm bg-surface-5 text-gray-400"><i class="bi bi-person"></i></div>
                             <div>
                                 <span class="d-block x-small text-gray-500">الشخص المسؤول</span>
                                 <span class="fw-bold">{{ $supplier->contact_person ?? '-' }}</span>
                             </div>
                         </li>
-                        <li class="d-flex align-items-center gap-3 text-white">
-                            <div class="icon-sm bg-white-5 text-gray-400"><i class="bi bi-telephone"></i></div>
+                        <li class="d-flex align-items-center gap-3 text-body">
+                            <div class="icon-sm bg-surface-5 text-gray-400"><i class="bi bi-telephone"></i></div>
                             <div>
                                 <span class="d-block x-small text-gray-500">الهاتف</span>
                                 <span class="fw-bold font-monospace">{{ $supplier->phone ?? '-' }}</span>
                             </div>
                         </li>
-                        <li class="d-flex align-items-center gap-3 text-white">
-                            <div class="icon-sm bg-white-5 text-gray-400"><i class="bi bi-envelope"></i></div>
+                        <li class="d-flex align-items-center gap-3 text-body">
+                            <div class="icon-sm bg-surface-5 text-gray-400"><i class="bi bi-envelope"></i></div>
                             <div>
-                                <span class="d-block x-small text-gray-500">البريد الإلكتروني</span>
+                                <span class="d-block x-small text-gray-500">{{ __('Email') }}</span>
                                 <span class="fw-bold">{{ $supplier->email ?? '-' }}</span>
                             </div>
                         </li>
-                        <li class="d-flex align-items-center gap-3 text-white">
-                            <div class="icon-sm bg-white-5 text-gray-400"><i class="bi bi-geo-alt"></i></div>
+                        <li class="d-flex align-items-center gap-3 text-body">
+                            <div class="icon-sm bg-surface-5 text-gray-400"><i class="bi bi-geo-alt"></i></div>
                             <div>
-                                <span class="d-block x-small text-gray-500">العنوان</span>
+                                <span class="d-block x-small text-gray-500">{{ __('Address') }}</span>
                                 <span>{{ $supplier->address ?? '-' }}</span>
                             </div>
                         </li>
-                        <li class="d-flex align-items-center gap-3 text-white">
-                            <div class="icon-sm bg-white-5 text-gray-400"><i class="bi bi-receipt"></i></div>
+                        <li class="d-flex align-items-center gap-3 text-body">
+                            <div class="icon-sm bg-surface-5 text-gray-400"><i class="bi bi-receipt"></i></div>
                             <div>
-                                <span class="d-block x-small text-gray-500">الرقم الضريبي</span>
+                                <span class="d-block x-small text-gray-500">{{ __('Tax Number') }}</span>
                                 <span class="font-monospace">{{ $supplier->tax_number ?? '-' }}</span>
                             </div>
                         </li>
                     </ul>
 
                     @if($supplier->notes)
-                    <div class="mt-4 pt-3 border-top border-white-5">
-                        <h6 class="text-gray-400 x-small fw-bold mb-2">ملاحظات</h6>
+                    <div class="mt-4 pt-3 border-top border-secondary border-opacity-10-5">
+                        <h6 class="text-gray-400 x-small fw-bold mb-2">{{ __('Notes') }}</h6>
                         <p class="text-gray-300 small mb-0">{{ $supplier->notes }}</p>
                     </div>
                     @endif
@@ -216,11 +214,11 @@
                         <table class="table table-dark-custom align-middle">
                             <thead>
                                 <tr>
-                                    <th>التاريخ</th>
-                                    <th>رقم الفاتورة</th>
-                                    <th>الإجمالي</th>
+                                    <th>{{ __('Date') }}</th>
+                                    <th>{{ __('Invoice Number') }}</th>
+                                    <th>{{ __('Total') }}</th>
                                     <th>الرصيد المتبقي</th>
-                                    <th>الحالة</th>
+                                    <th>{{ __('Status') }}</th>
                                     <th></th>
                                 </tr>
                             </thead>
@@ -228,13 +226,13 @@
                                 @forelse($recentInvoices as $invoice)
                                     <tr>
                                         <td class="text-gray-400 x-small">{{ $invoice->invoice_date->format('Y-m-d') }}</td>
-                                        <td class="font-monospace text-white">{{ $invoice->invoice_number }}</td>
+                                        <td class="font-monospace text-body">{{ $invoice->invoice_number }}</td>
                                         <td class="fw-bold">{{ number_format($invoice->total, 2) }}</td>
                                         <td class="text-red-400">{{ number_format($invoice->balance_due, 2) }}</td>
                                         <td>
                                             @if($invoice->status == 'paid') <span class="badge bg-green-500 bg-opacity-10 text-green-400">خالص</span>
-                                            @elseif($invoice->status == 'partial') <span class="badge bg-yellow-500 bg-opacity-10 text-yellow-400">جزئي</span>
-                                            @else <span class="badge bg-red-500 bg-opacity-10 text-red-400">غير مدفوع</span>
+                                            @elseif($invoice->status == 'partial') <span class="badge bg-yellow-500 bg-opacity-10 text-yellow-400">{{ __('Partial') }}</span>
+                                            @else <span class="badge bg-red-500 bg-opacity-10 text-red-400">{{ __('Unpaid') }}</span>
                                             @endif
                                         </td>
                                         <td class="text-end">
@@ -267,7 +265,7 @@
             font-size: 1.2rem;
         }
         .group:hover .group-hover-bg-cyan { background: #06b6d4 !important; }
-        .group:hover .group-hover-text-white { color: white !important; }
+        .group:hover .group-hover-text-white { color: var(--text-primary); !important; }
         .hover-border-cyan:hover { border-color: #06b6d4 !important; }
 
         .group:hover .group-hover-bg-purple { background: #a855f7 !important; }
@@ -295,7 +293,7 @@
         }
         .btn-glass-cyan:hover {
             background: rgba(6, 182, 212, 0.2);
-            color: white; border-color: #22d3ee;
+            color: var(--text-primary); border-color: #22d3ee;
         }
         
         .border-top-gradient-cyan {

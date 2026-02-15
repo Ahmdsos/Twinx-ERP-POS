@@ -8,13 +8,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Oswald:wght@500;700&display=swap');
         
-        :root {
-            --glass-bg: rgba(15, 23, 42, 0.75);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --neon-purple: #c084fc;
-            --neon-glow: 0 0 10px rgba(192, 132, 252, 0.3);
-            --text-primary: #fff;
-        }
+        /* :root override removed for theme compatibility */
 
         body {
             font-family: 'Cairo', sans-serif;

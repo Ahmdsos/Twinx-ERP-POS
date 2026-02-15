@@ -10,15 +10,15 @@
             <div class="col-md-6 text-start">
                 <div class="d-flex align-items-center gap-3">
                     <a href="{{ route('hr.payroll.index') }}"
-                        class="btn btn-icon-box bg-white bg-opacity-10 text-white rounded-3">
+                        class="btn btn-icon-box bg-white bg-opacity-10 text-body rounded-3">
                         <i class="bi bi-arrow-right"></i>
                     </a>
                     <div>
-                        <h2 class="text-white fw-black mb-0">مسيرة رواتب شهر {{ $payroll->month }} / {{ $payroll->year }}
+                        <h2 class="text-heading fw-black mb-0">مسيرة رواتب شهر {{ $payroll->month }} / {{ $payroll->year }}
                         </h2>
                         <p class="text-secondary small mt-1 opacity-75">كود المرجع: #{{ $payroll->id }} | الحالة:
                             <span
-                                class="badge bg-{{ $payroll->status == 'processed' ? 'success' : ($payroll->status == 'posted' ? 'info' : 'warning') }} bg-opacity-10 text-{{ $payroll->status == 'processed' ? 'success' : ($payroll->status == 'posted' ? 'info' : 'warning') }} border border-white border-opacity-10 rounded-pill px-3">
+                                class="badge bg-{{ $payroll->status == 'processed' ? 'success' : ($payroll->status == 'posted' ? 'info' : 'warning') }} bg-opacity-10 text-{{ $payroll->status == 'processed' ? 'success' : ($payroll->status == 'posted' ? 'info' : 'warning') }} border border-secondary border-opacity-10 border-opacity-10 rounded-pill px-3">
                                 {{ Modules\HR\Models\Payroll::getStatusLabels()[$payroll->status] ?? $payroll->status }}
                             </span>
                         </p>
@@ -55,43 +55,43 @@
         <!-- Financial Summary Cards -->
         <div class="row g-4 mb-4">
             <div class="col-md-3">
-                <div class="glass-card p-4 rounded-4 border-white border-opacity-10 text-center bg-dark bg-opacity-25">
+                <div class="glass-card p-4 rounded-4 border-secondary border-opacity-10 border-opacity-10 text-center bg-surface-secondary bg-opacity-25">
                     <div class="text-secondary x-small fw-bold mb-1 opacity-75">إجمالي الرواتب الأساسية</div>
-                    <div class="text-white h3 fw-black mb-0">{{ number_format($payroll->items->sum('basic_salary'), 2) }}
+                    <div class="text-heading h3 fw-black mb-0">{{ number_format($payroll->items->sum('basic_salary'), 2) }}
                         <span class="fs-6">ج.م</span>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="glass-card p-4 rounded-4 border-white border-opacity-10 text-center bg-dark bg-opacity-25">
+                <div class="glass-card p-4 rounded-4 border-secondary border-opacity-10 border-opacity-10 text-center bg-surface-secondary bg-opacity-25">
                     <div class="text-secondary x-small fw-bold mb-1 opacity-75 text-success">إجمالي البدلات والإضافات</div>
                     <div class="text-success h3 fw-black mb-0">+ {{ number_format($payroll->total_allowances, 2) }} <span
-                            class="fs-6 text-white text-opacity-50">ج.م</span></div>
+                            class="fs-6 text-heading text-opacity-50">ج.م</span></div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="glass-card p-4 rounded-4 border-white border-opacity-10 text-center bg-dark bg-opacity-25">
+                <div class="glass-card p-4 rounded-4 border-secondary border-opacity-10 border-opacity-10 text-center bg-surface-secondary bg-opacity-25">
                     <div class="text-secondary x-small fw-bold mb-1 opacity-75 text-danger">إجمالي الاستقطاعات</div>
                     <div class="text-danger h3 fw-black mb-0">- {{ number_format($payroll->total_deductions, 2) }} <span
-                            class="fs-6 text-white text-opacity-50">ج.م</span></div>
+                            class="fs-6 text-heading text-opacity-50">ج.م</span></div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="glass-card p-4 rounded-4 border-white border-opacity-10 text-center bg-primary bg-opacity-10"
+                <div class="glass-card p-4 rounded-4 border-secondary border-opacity-10 border-opacity-10 text-center bg-primary bg-opacity-10"
                     style="border-left: 4px solid #0d6efd !important;">
                     <div class="text-primary x-small fw-bold mb-1">صافي المسيرة (للدفع)</div>
-                    <div class="text-white h2 fw-black mb-0">{{ number_format($payroll->net_salary, 2) }} <span
+                    <div class="text-heading h2 fw-black mb-0">{{ number_format($payroll->net_salary, 2) }} <span
                             class="fs-6 opacity-50">ج.م</span></div>
                 </div>
             </div>
         </div>
 
         <!-- Details Table -->
-        <div class="glass-card rounded-4 border-white border-opacity-10 overflow-hidden shadow-lg bg-dark bg-opacity-25">
+        <div class="glass-card rounded-4 border-secondary border-opacity-10 border-opacity-10 overflow-hidden shadow-lg bg-surface-secondary bg-opacity-25">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0 text-white text-start">
+                <table class="table table-hover align-middle mb-0 text-heading text-start">
                     <thead>
-                        <tr class="bg-white bg-opacity-5 border-bottom border-white border-opacity-10">
+                        <tr class="bg-white bg-opacity-5 border-bottom border-secondary border-opacity-10 border-opacity-10">
                             <th class="ps-4 py-3 border-0 text-secondary x-small fw-black text-uppercase">الموظف</th>
                             <th class="py-3 border-0 text-secondary x-small fw-black text-uppercase text-center">الراتب
                                 الأساسي</th>
@@ -110,7 +110,7 @@
                     </thead>
                     <tbody>
                         @foreach($payroll->items as $item)
-                            <tr class="border-bottom border-white border-opacity-5">
+                            <tr class="border-bottom border-secondary border-opacity-10 border-opacity-5">
                                 <td class="ps-4 py-3">
                                     <div class="d-flex align-items-center gap-3">
                                         <div class="avatar-sm rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold"
@@ -131,7 +131,7 @@
                                 @if($payroll->status == 'draft')
                                     <td class="pe-4 py-3 text-end">
                                         <button type="button"
-                                            class="btn btn-icon-box bg-white bg-opacity-10 text-white rounded-3 btn-edit-item"
+                                            class="btn btn-icon-box bg-white bg-opacity-10 text-body rounded-3 btn-edit-item"
                                             data-bs-toggle="modal" data-bs-target="#editItemModal" data-id="{{ $item->id }}"
                                             data-name="{{ $item->employee->full_name }}" data-allowances="{{ $item->allowances }}"
                                             data-deductions="{{ $item->deductions }}" data-notes="{{ $item->notes }}">
@@ -150,9 +150,9 @@
     <!-- Edit Item Modal -->
     <div class="modal fade" id="editItemModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content glass-card border-white border-opacity-10 rounded-4 shadow-lg bg-dark">
-                <div class="modal-header border-bottom border-white border-opacity-5 p-4">
-                    <h5 class="modal-title text-white fw-bold">تعديل رواتب الموظف: <span id="modalEmployeeName"
+            <div class="modal-content glass-card border-secondary border-opacity-10 border-opacity-10 rounded-4 shadow-lg bg-surface-secondary">
+                <div class="modal-header border-bottom border-secondary border-opacity-10 border-opacity-5 p-4">
+                    <h5 class="modal-title text-heading fw-bold">تعديل رواتب الموظف: <span id="modalEmployeeName"
                             class="text-primary"></span></h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
@@ -164,24 +164,24 @@
                             <div class="col-md-6">
                                 <label class="form-label text-secondary small fw-bold">إجمالي البدلات</label>
                                 <input type="number" step="0.01" name="allowances" id="modalAllowances"
-                                    class="form-control bg-white bg-opacity-5 border-white border-opacity-10 text-white shadow-none"
+                                    class="form-control bg-white bg-opacity-5 border-secondary border-opacity-10 border-opacity-10 text-body shadow-none"
                                     required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label text-secondary small fw-bold">إجمالي الخصومات</label>
                                 <input type="number" step="0.01" name="deductions" id="modalDeductions"
-                                    class="form-control bg-white bg-opacity-5 border-white border-opacity-10 text-white shadow-none"
+                                    class="form-control bg-white bg-opacity-5 border-secondary border-opacity-10 border-opacity-10 text-body shadow-none"
                                     required>
                             </div>
                             <div class="col-12">
                                 <label class="form-label text-secondary small fw-bold">ملاحظات التعديل</label>
                                 <textarea name="notes" id="modalNotes"
-                                    class="form-control bg-white bg-opacity-5 border-white border-opacity-10 text-white shadow-none"
+                                    class="form-control bg-white bg-opacity-5 border-secondary border-opacity-10 border-opacity-10 text-body shadow-none"
                                     rows="3"></textarea>
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer border-top border-white border-opacity-5 p-4">
+                    <div class="modal-footer border-top border-secondary border-opacity-10 border-opacity-5 p-4">
                         <button type="button" class="btn btn-link text-secondary text-decoration-none fw-bold"
                             data-bs-dismiss="modal">إلغاء</button>
                         <button type="submit" class="btn btn-primary px-5 rounded-pill fw-black shadow-lg border-0">حفظ

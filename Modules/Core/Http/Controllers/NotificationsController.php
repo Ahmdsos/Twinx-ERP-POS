@@ -5,6 +5,7 @@ namespace Modules\Core\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Auth;
 use App\Mail\InvoiceEmail;
 use App\Mail\LowStockAlert;
 use App\Mail\DailyReport;
@@ -14,10 +15,38 @@ use Modules\Sales\Models\Customer;
 
 /**
  * NotificationsController
- * Handles email notifications and alerts at the Core module level
+ * Handles both user-facing notification management and system-wide email alerts
  */
 class NotificationsController extends Controller
 {
+    /**
+     * Display all notifications for current user
+     */
+    public function index()
+    {
+        $notifications = Auth::user()->notifications()->paginate(15);
+        return view('notifications.index', compact('notifications'));
+    }
+
+    /**
+     * Mark notification as read
+     */
+    public function markAsRead($id)
+    {
+        $notification = Auth::user()->notifications()->findOrFail($id);
+        $notification->markAsRead();
+        return back()->with('success', 'تم تحديد الإشعار كمقروء');
+    }
+
+    /**
+     * Mark all notifications as read
+     */
+    public function markAllAsRead()
+    {
+        Auth::user()->unreadNotifications->markAsRead();
+        return back()->with('success', 'تم تحديد جميع الإشعارات كمقروءة');
+    }
+
     /**
      * Send invoice to customer via email
      */

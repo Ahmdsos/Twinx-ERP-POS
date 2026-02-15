@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\ActivityLog;
+use Modules\Core\Models\ActivityLog;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Request;

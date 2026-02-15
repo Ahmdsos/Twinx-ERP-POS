@@ -17,7 +17,7 @@
                     <div class="col-lg-8">
                         <div class="d-flex align-items-center gap-4 mb-3">
                             <a href="{{ route('warehouses.index') }}"
-                                class="btn btn-icon-only btn-glass-back text-gray-400 hover-text-white">
+                                class="btn btn-icon-only btn-glass-back text-secondary hover-text-white">
                                 <i class="bi bi-arrow-right"></i>
                             </a>
                             <nav aria-label="breadcrumb">
@@ -25,7 +25,7 @@
                                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}"
                                             class="text-gray-500 text-decoration-none">الرئيسية</a></li>
                                     <li class="breadcrumb-item"><a href="{{ route('warehouses.index') }}"
-                                            class="text-gray-500 text-decoration-none">المخازن</a></li>
+                                            class="text-gray-500 text-decoration-none">{{ __('Warehouses') }}</a></li>
                                     <li class="breadcrumb-item active text-purple-400 fw-bold" aria-current="page">
                                         {{ $warehouse->name }}</li>
                                 </ol>
@@ -34,17 +34,17 @@
 
                         <div class="d-flex align-items-center gap-4">
                             <div class="hero-icon-box bg-gradient-to-br from-purple-500 to-indigo-600 shadow-neon-lg">
-                                <i class="bi bi-building-fill text-white display-4"></i>
+                                <i class="bi bi-building-fill text-body display-4"></i>
                             </div>
                             <div>
                                 <div class="d-flex align-items-center gap-3">
-                                    <h1 class="display-5 fw-bold text-white mb-2 tracking-wide">{{ $warehouse->name }}</h1>
+                                    <h1 class="display-5 fw-bold text-heading mb-2 tracking-wide">{{ $warehouse->name }}</h1>
                                     @if($warehouse->is_default)
                                         <span
                                             class="badge bg-purple-500 bg-opacity-20 text-purple-400 border border-purple-500 border-opacity-30 rounded-pill px-3 py-1">رئيسي</span>
                                     @endif
                                 </div>
-                                <div class="d-flex gap-4 text-gray-400 mt-2">
+                                <div class="d-flex gap-4 text-secondary mt-2">
                                     <span><i class="bi bi-qr-code me-2"></i>{{ $warehouse->code }}</span>
                                     <span><i
                                             class="bi bi-geo-alt me-2"></i>{{ $warehouse->address ?? 'لا يوجد عنوان' }}</span>
@@ -58,7 +58,7 @@
                             <a href="{{ route('warehouses.edit', $warehouse) }}"
                                 class="btn btn-glass-warning d-flex align-items-center gap-2 px-4 py-3">
                                 <i class="bi bi-pencil-square"></i>
-                                <span>تعديل</span>
+                                <span>{{ __('Edit') }}</span>
                             </a>
                             <!-- Delete button (only if no stock) -->
                             @if($warehouse->stocks_count == 0 && !$warehouse->is_default)
@@ -68,7 +68,7 @@
                                     @method('DELETE')
                                     <button class="btn btn-glass-danger d-flex align-items-center gap-2 px-4 py-3">
                                         <i class="bi bi-trash"></i>
-                                        <span>حذف</span>
+                                        <span>{{ __('Delete') }}</span>
                                     </button>
                                 </form>
                             @endif
@@ -85,9 +85,9 @@
                     <div class="glass-stat-card p-4 h-100 d-flex flex-column justify-content-between">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div>
-                                <p class="text-gray-400 small text-uppercase fw-bold mb-1">إجمالي قيمة المخزون</p>
-                                <h2 class="text-white fw-bold mb-0">{{ number_format($totalValue, 2) }} <span
-                                        class="fs-6 text-gray-500">ج.م</span></h2>
+                                <p class="text-secondary small text-uppercase fw-bold mb-1">إجمالي قيمة المخزون</p>
+                                <h2 class="text-heading fw-bold mb-0">{{ number_format($totalValue, 2) }} <span
+                                        class="fs-6 text-gray-500">{{ __('EGP') }}</span></h2>
                             </div>
                             <div class="icon-circle bg-emerald-500 bg-opacity-10 text-emerald-400">
                                 <i class="bi bi-cash-stack"></i>
@@ -100,8 +100,8 @@
                     <div class="glass-stat-card p-4 h-100 d-flex flex-column justify-content-between">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div>
-                                <p class="text-gray-400 small text-uppercase fw-bold mb-1">عدد الأصناف</p>
-                                <h2 class="text-white fw-bold mb-0">{{ $warehouse->stocks_count }}</h2>
+                                <p class="text-secondary small text-uppercase fw-bold mb-1">عدد الأصناف</p>
+                                <h2 class="text-heading fw-bold mb-0">{{ $warehouse->stocks_count }}</h2>
                             </div>
                             <div class="icon-circle bg-amber-500 bg-opacity-10 text-amber-400">
                                 <i class="bi bi-box-seam-fill"></i>
@@ -114,7 +114,7 @@
                     <div class="glass-stat-card p-4 h-100 d-flex flex-column justify-content-between">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div>
-                                <p class="text-gray-400 small text-uppercase fw-bold mb-1">حالة المستودع</p>
+                                <p class="text-secondary small text-uppercase fw-bold mb-1">حالة المستودع</p>
                                 <h2 class="{{ $warehouse->is_active ? 'text-success' : 'text-danger' }} fw-bold mb-0">
                                     {{ $warehouse->is_active ? 'نشط' : 'معطل' }}</h2>
                             </div>
@@ -131,18 +131,18 @@
                 <!-- Stock Table -->
                 <div class="col-12">
                     <div class="glass-panel overflow-hidden border-top-gradient-purple">
-                        <div class="p-4 border-bottom border-white-10 d-flex justify-content-between align-items-center">
-                            <h5 class="fw-bold text-white mb-0">محتويات المستودع</h5>
+                        <div class="p-4 border-bottom border-secondary border-opacity-10-10 d-flex justify-content-between align-items-center">
+                            <h5 class="fw-bold text-heading mb-0">محتويات المستودع</h5>
                         </div>
 
                         <div class="table-responsive">
                             <table class="table table-dark-custom align-middle mb-0">
                                 <thead>
                                     <tr>
-                                        <th class="ps-4">المنتج</th>
+                                        <th class="ps-4">{{ __('Product') }}</th>
                                         <th>التصنيف</th>
-                                        <th>سعر البيع</th>
-                                        <th>الكمية</th>
+                                        <th>{{ __('Selling Price') }}</th>
+                                        <th>{{ __('Quantity') }}</th>
                                         <th>متوسط التكلفة</th>
                                         <th>القيمة الإجمالية</th>
                                         <th class="pe-4">آخر حركة</th>
@@ -161,7 +161,7 @@
                                                             <i class="bi bi-box text-gray-500"></i>
                                                         @endif
                                                     </div>
-                                                    <div class="fw-bold text-white">{{ $stock->product->name ?? 'منتج محذوف' }}
+                                                    <div class="fw-bold text-body">{{ $stock->product->name ?? 'منتج محذوف' }}
                                                     </div>
                                                     <div class="small text-gray-500 font-monospace">
                                                         {{ $stock->product->sku ?? '-' }}</div>
@@ -173,7 +173,7 @@
                                             </span>
                                         </td>
                                             <td>
-                                                <div class="text-white">
+                                                <div class="text-body">
                                                     {{ number_format($stock->product->selling_price, 2) }}
                                                 </div>
                                             </td>
@@ -185,7 +185,7 @@
                                                 </div>
                                             </td>
                                             <td>
-                                                <span class="text-gray-400">{{ number_format($stock->average_cost, 2) }}</span>
+                                                <span class="text-secondary">{{ number_format($stock->average_cost, 2) }}</span>
                                             </td>
                                             <td>
                                                 <div class="fw-bold text-emerald-400">
@@ -195,7 +195,7 @@
                                                 </div>
                                             </td>
                                             <td class="pe-4">
-                                                <div class="small text-gray-400">
+                                                <div class="small text-secondary">
                                                     {{ $stock->last_movement_at ? $stock->last_movement_at->diffForHumans() : '-' }}
                                                 </div>
                                             </td>
@@ -205,7 +205,7 @@
                                             <td colspan="5" class="text-center py-5">
                                                 <div class="empty-state opacity-50">
                                                     <i class="bi bi-box-seam display-4 text-gray-600 mb-3"></i>
-                                                    <p class="text-gray-400">المستودع فارغ حالياً</p>
+                                                    <p class="text-secondary">المستودع فارغ حالياً</p>
                                                 </div>
                                             </td>
                                         </tr>
@@ -226,11 +226,7 @@
 
     <style>
         /* Styling Reuse + Purple Specifics */
-        :root {
-            --bg-dark: #0f172a;
-            --glass-bg: rgba(30, 41, 59, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.08);
-        }
+        /* :root override removed for theme compatibility */
 
         .hero-icon-box {
             width: 80px;
@@ -239,14 +235,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--btn-glass-border);
         }
 
         .btn-glass-back {
             width: 50px;
             height: 50px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--btn-glass-bg);
             border: 1px solid var(--glass-border);
             display: flex;
             align-items: center;
@@ -257,7 +253,7 @@
         .btn-glass-back:hover {
             background: rgba(255, 255, 255, 0.1);
             transform: translateX(5px);
-            color: white !important;
+            color: var(--text-primary); !important;
         }
 
         .btn-glass-warning {
@@ -324,7 +320,7 @@
         .table-dark-custom {
             --bs-table-bg: transparent;
             --bs-table-border-color: var(--glass-border);
-            color: #e2e8f0;
+            color: var(--text-body);
         }
 
         .table-dark-custom th {

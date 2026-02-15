@@ -36,7 +36,7 @@ enum JournalStatus: string
      */
     public function affectsLedger(): bool
     {
-        return $this === self::POSTED;
+        return in_array($this, [self::POSTED, self::REVERSED]);
     }
 
     /**

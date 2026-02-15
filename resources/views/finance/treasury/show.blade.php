@@ -7,15 +7,14 @@
         <div class="col-md-8">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h4 class="fw-bold text-white mb-1">تفاصيل السند <span
+                    <h4 class="fw-bold text-heading mb-1">تفاصيل السند <span
                             class="text-info font-monospace">#{{ $transaction->id }}</span></h4>
-                    <div class="text-white-50 small">{{ $transaction->transaction_date->format('Y-m-d') }}</div>
+                    <div class="text-muted small">{{ $transaction->transaction_date->format('Y-m-d') }}</div>
                 </div>
                 <div class="d-flex gap-2">
                     <a href="{{ route('treasury.index') }}" class="btn btn-glass-outline">عودة</a>
                     <button onclick="window.print()" class="btn btn-glass-outline">
-                        <i class="bi bi-printer me-2"></i> طباعة الإيصال
-                    </button>
+                        <i class="bi bi-printer me-2"></i>{{ __('Print Receipt') }}</button>
                 </div>
             </div>
 
@@ -23,15 +22,15 @@
                 <!-- Watermark -->
                 <div class="position-absolute top-50 start-50 translate-middle opacity-10">
                     <i class="bi {{ $transaction->type == 'receipt' ? 'bi-arrow-down-circle' : 'bi-arrow-up-circle' }}"
-                        style="font-size: 15rem; color: white;"></i>
+                        style="font-size: 15rem; color: var(--text-primary);"></i>
                 </div>
 
                 <!-- Header -->
                 <div
-                    class="border-bottom border-white border-opacity-10 p-4 d-flex justify-content-between align-items-center position-relative z-1">
+                    class="border-bottom border-secondary border-opacity-10 border-opacity-10 p-4 d-flex justify-content-between align-items-center position-relative z-1">
                     <div>
-                        <h5 class="text-white mb-1 font-monospace fw-bold">TWINX ERP</h5>
-                        <div class="text-white-50 small">سند
+                        <h5 class="text-heading mb-1 font-monospace fw-bold">TWINX ERP</h5>
+                        <div class="text-muted small">سند
                             {{ $transaction->type == 'receipt' ? 'قبض نقدية' : 'صرف نقدية' }}</div>
                     </div>
                     <div>
@@ -50,38 +49,38 @@
                 <div class="p-5 position-relative z-1">
                     <div class="row g-4 mb-5">
                         <div class="col-6">
-                            <div class="text-white-50 small mb-1">المبلغ</div>
-                            <div class="fs-2 fw-bold text-white font-monospace">{{ number_format($transaction->amount, 2) }}
+                            <div class="text-muted small mb-1">{{ __('Amount') }}</div>
+                            <div class="fs-2 fw-bold text-body font-monospace">{{ number_format($transaction->amount, 2) }}
                                 ج.م</div>
                         </div>
                         <div class="col-6 text-end">
-                            <div class="text-white-50 small mb-1">تاريخ المعاملة</div>
-                            <div class="fs-5 text-white">{{ $transaction->transaction_date->format('Y-m-d') }}</div>
+                            <div class="text-muted small mb-1">تاريخ المعاملة</div>
+                            <div class="fs-5 text-body">{{ $transaction->transaction_date->format('Y-m-d') }}</div>
                         </div>
                     </div>
 
                     <div class="row g-4">
                         <div class="col-md-6">
-                            <label class="text-white-50 small mb-1 d-block">
+                            <label class="text-muted small mb-1 d-block">
                                 {{ $transaction->type == 'receipt' ? 'استلمنا في (الخزينة):' : 'صرفنا من (الخزينة):' }}
                             </label>
-                            <div class="p-3 bg-white bg-opacity-5 rounded-3 border border-white border-opacity-10">
-                                <span class="fw-bold text-white">{{ $transaction->treasuryAccount->name }}</span>
+                            <div class="p-3 bg-surface bg-opacity-5 rounded-3 border border-secondary border-opacity-10 border-opacity-10">
+                                <span class="fw-bold text-body">{{ $transaction->treasuryAccount->name }}</span>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <label class="text-white-50 small mb-1 d-block">
+                            <label class="text-muted small mb-1 d-block">
                                 {{ $transaction->type == 'receipt' ? 'من السيد / الحساب:' : 'إلى السيد / الحساب:' }}
                             </label>
-                            <div class="p-3 bg-white bg-opacity-5 rounded-3 border border-white border-opacity-10">
-                                <span class="fw-bold text-white">{{ $transaction->counterAccount->name }}</span>
+                            <div class="p-3 bg-surface bg-opacity-5 rounded-3 border border-secondary border-opacity-10 border-opacity-10">
+                                <span class="fw-bold text-body">{{ $transaction->counterAccount->name }}</span>
                             </div>
                         </div>
 
                         <div class="col-12">
-                            <label class="text-white-50 small mb-1">وذلك عن:</label>
+                            <label class="text-muted small mb-1">وذلك عن:</label>
                             <div
-                                class="p-3 bg-white bg-opacity-5 rounded-3 border border-white border-opacity-10 text-white fst-italic">
+                                class="p-3 bg-surface bg-opacity-5 rounded-3 border border-secondary border-opacity-10 border-opacity-10 text-body fst-italic">
                                 {{ $transaction->description ?? '-' }}
                             </div>
                         </div>
@@ -90,11 +89,11 @@
 
                 <!-- Footer -->
                 <div
-                    class="bg-white bg-opacity-5 p-4 d-flex justify-content-between align-items-center position-relative z-1">
-                    <div class="text-white-50 small">
+                    class="bg-surface bg-opacity-5 p-4 d-flex justify-content-between align-items-center position-relative z-1">
+                    <div class="text-muted small">
                         <i class="bi bi-person-circle me-1"></i> المسؤول: {{ $transaction->creator->name ?? 'System' }}
                     </div>
-                    <div class="text-white-50 small font-monospace">
+                    <div class="text-muted small font-monospace">
                         Ref: {{ $transaction->reference ?? $transaction->id }}
                     </div>
                 </div>
@@ -104,7 +103,7 @@
             @if($transaction->journalEntry)
                 <div class="text-center">
                     <a href="{{ route('journal-entries.show', $transaction->journalEntry) }}"
-                        class="text-white-50 text-decoration-none small hover-link">
+                        class="text-muted text-decoration-none small hover-link">
                         <i class="bi bi-link-45deg"></i> عرض القيد المحاسبي المرتبط #{{ $transaction->journalEntry->id }}
                     </a>
                 </div>
@@ -113,23 +112,17 @@
     </div>
 
     <style>
-        .glass-card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 4px;
-            /* More formal for print */
-        }
+        
 
         .btn-glass-outline {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--btn-glass-bg);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
+            color: var(--text-primary);
         }
 
         .hover-link:hover {
             text-decoration: underline !important;
-            color: white !important;
+            color: var(--text-primary); !important;
         }
 
         @media print {
@@ -153,11 +146,11 @@
             }
 
             .text-white,
-            .text-white-50 {
+            .text-muted {
                 color: black !important;
             }
 
-            .bg-white {
+            .bg-surface {
                 background-color: #eee !important;
             }
         }

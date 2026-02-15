@@ -180,6 +180,22 @@ class JournalService
     }
 
     /**
+     * Delete a Posted journal entry (Unpost & Delete)
+     * CRITICAL: Updates account balances before deleting.
+     */
+    public function deletePosted(JournalEntry $entry): bool
+    {
+        return DB::transaction(function () use ($entry) {
+            // 1. Reverse balance impact
+            $this->updateAccountBalances($entry, -1);
+
+            // 2. Delete lines and entry
+            $entry->lines()->delete();
+            return $entry->delete();
+        });
+    }
+
+    /**
      * Validate that lines balance
      */
     protected function validateBalance(array $lines): void

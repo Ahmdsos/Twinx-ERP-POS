@@ -17,7 +17,7 @@
                     <div class="col-lg-8">
                         <div class="d-flex align-items-center gap-4 mb-3">
                             <a href="{{ route('categories.index') }}"
-                                class="btn btn-icon-only btn-glass-back text-gray-400 hover-text-white">
+                                class="btn btn-icon-only btn-glass-back text-secondary hover-text-white">
                                 <i class="bi bi-arrow-right"></i>
                             </a>
                             <nav aria-label="breadcrumb">
@@ -25,7 +25,7 @@
                                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}"
                                             class="text-gray-500 text-decoration-none">الرئيسية</a></li>
                                     <li class="breadcrumb-item"><a href="{{ route('categories.index') }}"
-                                            class="text-gray-500 text-decoration-none">التصنيفات</a></li>
+                                            class="text-gray-500 text-decoration-none">{{ __('Categories') }}</a></li>
                                     @if($category->parent)
                                         <li class="breadcrumb-item"><a href="{{ route('categories.show', $category->parent) }}"
                                                 class="text-gray-500 text-decoration-none">{{ $category->parent->name }}</a>
@@ -40,11 +40,11 @@
                         <div class="d-flex align-items-center gap-4">
                             <div class="hero-icon-box bg-gradient-to-br from-cyan-500 to-blue-600 shadow-neon-lg">
                                 <i
-                                    class="bi {{ $category->parent_id ? 'bi-diagram-2' : 'bi-diagram-3-fill' }} text-white display-4"></i>
+                                    class="bi {{ $category->parent_id ? 'bi-diagram-2' : 'bi-diagram-3-fill' }} text-body display-4"></i>
                             </div>
                             <div>
-                                <h1 class="display-5 fw-bold text-white mb-2 tracking-wide">{{ $category->name }}</h1>
-                                <p class="text-gray-400 mb-0 fs-5 max-w-2xl">
+                                <h1 class="display-5 fw-bold text-heading mb-2 tracking-wide">{{ $category->name }}</h1>
+                                <p class="text-secondary mb-0 fs-5 max-w-2xl">
                                     {{ $category->description ?? 'لا يوجد وصف متاح لهذا التصنيف.' }}</p>
                             </div>
                         </div>
@@ -55,7 +55,7 @@
                             <a href="{{ route('categories.edit', $category) }}"
                                 class="btn btn-glass-warning d-flex align-items-center gap-2 px-4 py-3">
                                 <i class="bi bi-pencil-square"></i>
-                                <span>تعديل</span>
+                                <span>{{ __('Edit') }}</span>
                             </a>
                             <form action="{{ route('categories.destroy', $category) }}" method="POST"
                                 data-confirm="هل أنت متأكد من حذف هذا التصنيف؟">
@@ -63,7 +63,7 @@
                                 @method('DELETE')
                                 <button class="btn btn-glass-danger d-flex align-items-center gap-2 px-4 py-3">
                                     <i class="bi bi-trash"></i>
-                                    <span>حذف</span>
+                                    <span>{{ __('Delete') }}</span>
                                 </button>
                             </form>
                         </div>
@@ -79,8 +79,8 @@
                     <div class="glass-stat-card p-4 h-100 d-flex flex-column justify-content-between">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div>
-                                <p class="text-gray-400 small text-uppercase fw-bold mb-1">المنتجات</p>
-                                <h2 class="text-white fw-bold mb-0">{{ $category->products->count() }}</h2>
+                                <p class="text-secondary small text-uppercase fw-bold mb-1">{{ __('Products') }}</p>
+                                <h2 class="text-heading fw-bold mb-0">{{ $category->products->count() }}</h2>
                             </div>
                             <div class="icon-circle bg-cyan-500 bg-opacity-10 text-cyan-400">
                                 <i class="bi bi-box-seam"></i>
@@ -96,8 +96,8 @@
                     <div class="glass-stat-card p-4 h-100 d-flex flex-column justify-content-between">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div>
-                                <p class="text-gray-400 small text-uppercase fw-bold mb-1">إجمالي المخزون</p>
-                                <h2 class="text-white fw-bold mb-0">
+                                <p class="text-secondary small text-uppercase fw-bold mb-1">إجمالي المخزون</p>
+                                <h2 class="text-heading fw-bold mb-0">
                                     {{ $category->products->sum(fn($p) => $p->total_stock) }}</h2>
                             </div>
                             <div class="icon-circle bg-purple-500 bg-opacity-10 text-purple-400">
@@ -114,10 +114,10 @@
                     <div class="glass-stat-card p-4 h-100 d-flex flex-column justify-content-between">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div>
-                                <p class="text-gray-400 small text-uppercase fw-bold mb-1">قيمة المخزون</p>
-                                <h2 class="text-white fw-bold mb-0">
+                                <p class="text-secondary small text-uppercase fw-bold mb-1">قيمة المخزون</p>
+                                <h2 class="text-heading fw-bold mb-0">
                                     {{ number_format($category->products->sum(fn($p) => $p->total_stock * $p->cost_price), 0) }}
-                                    <span class="fs-6 text-gray-500">ج.م</span></h2>
+                                    <span class="fs-6 text-gray-500">{{ __('EGP') }}</span></h2>
                             </div>
                             <div class="icon-circle bg-emerald-500 bg-opacity-10 text-emerald-400">
                                 <i class="bi bi-cash-stack"></i>
@@ -133,7 +133,7 @@
                     <div class="glass-stat-card p-4 h-100 d-flex flex-column justify-content-between">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div>
-                                <p class="text-gray-400 small text-uppercase fw-bold mb-1">الحالة</p>
+                                <p class="text-secondary small text-uppercase fw-bold mb-1">{{ __('Status') }}</p>
                                 <h2 class="{{ $category->is_active ? 'text-success' : 'text-danger' }} fw-bold mb-0">
                                     {{ $category->is_active ? 'نشط' : 'معطل' }}</h2>
                             </div>
@@ -142,7 +142,7 @@
                                 <i class="bi bi-activity"></i>
                             </div>
                         </div>
-                        <div class="d-flex align-items-center gap-2 small text-gray-400">
+                        <div class="d-flex align-items-center gap-2 small text-secondary">
                             <span
                                 class="d-inline-block rounded-circle {{ $category->is_active ? 'bg-success' : 'bg-danger' }}"
                                 style="width: 6px; height: 6px;"></span>
@@ -157,7 +157,7 @@
                 @if($category->children->count() > 0)
                     <div class="col-12 mb-4">
                         <div class="d-flex align-items-center justify-content-between mb-3">
-                            <h5 class="text-white fw-bold"><i class="bi bi-diagram-2 me-2 text-cyan-400"></i>التصنيفات الفرعية
+                            <h5 class="text-heading fw-bold"><i class="bi bi-diagram-2 me-2 text-cyan-400"></i>التصنيفات الفرعية
                             </h5>
                         </div>
                         <div class="row g-3">
@@ -165,11 +165,11 @@
                                 <div class="col-md-3">
                                     <a href="{{ route('categories.show', $child) }}"
                                         class="glass-panel p-3 d-flex align-items-center gap-3 text-decoration-none hover-scale transition-all">
-                                        <div class="icon-square bg-white bg-opacity-5 text-gray-300">
+                                        <div class="icon-square bg-surface bg-opacity-5 text-secondary">
                                             <i class="bi bi-folder"></i>
                                         </div>
                                         <div>
-                                            <h6 class="text-white mb-1 fw-bold">{{ $child->name }}</h6>
+                                            <h6 class="text-heading mb-1 fw-bold">{{ $child->name }}</h6>
                                             <span class="text-gray-500 small">{{ $child->products->count() }} منتج</span>
                                         </div>
                                         <i class="bi bi-chevron-left ms-auto text-gray-600"></i>
@@ -183,8 +183,8 @@
                 <!-- Products Table -->
                 <div class="col-12">
                     <div class="glass-panel overflow-hidden border-top-gradient">
-                        <div class="p-4 border-bottom border-white-10 d-flex justify-content-between align-items-center">
-                            <h5 class="fw-bold text-white mb-0">قائمة المنتجات المرتبطة</h5>
+                        <div class="p-4 border-bottom border-secondary border-opacity-10-10 d-flex justify-content-between align-items-center">
+                            <h5 class="fw-bold text-heading mb-0">قائمة المنتجات المرتبطة</h5>
                         </div>
 
                         <div class="table-responsive">
@@ -194,7 +194,7 @@
                                         <th class="ps-4">اسم المنتج / SKU</th>
                                         <th>السعر (بيع)</th>
                                         <th>السعر (تكلفة)</th>
-                                        <th>المخزون الحالي</th>
+                                        <th>{{ __('Current Stock') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -212,7 +212,7 @@
                                                     </div>
                                                     <div>
                                                         <a href="#"
-                                                            class="fw-bold text-white text-decoration-none hover-glow">{{ $product->name }}</a>
+                                                            class="fw-bold text-body text-decoration-none hover-glow">{{ $product->name }}</a>
                                                         <div class="small text-gray-500 font-monospace">
                                                             {{ $product->sku ?? 'NO-SKU' }}</div>
                                                     </div>
@@ -226,14 +226,14 @@
                                                 </div>
                                             </td>
                                             <td>
-                                                <div class="fw-bold text-gray-400">
+                                                <div class="fw-bold text-secondary">
                                                     {{ number_format($product->cost_price, 2) }}
                                                 </div>
                                             </td>
                                             <td>
                                                 <div class="d-flex flex-column" style="width: 120px;">
                                                     <div class="d-flex justify-content-between small mb-1">
-                                                        <span class="text-white fw-bold">{{ $product->total_stock }}</span>
+                                                        <span class="text-body fw-bold">{{ $product->total_stock }}</span>
                                                         <span class="text-gray-500">{{ $product->unit->name ?? 'قطعة' }}</span>
                                                     </div>
                                                     <div class="progress bg-gray-700" style="height: 4px;">
@@ -254,7 +254,7 @@
                                             <td colspan="4" class="text-center py-5">
                                                 <div class="empty-state opacity-50">
                                                     <i class="bi bi-box-seam display-4 text-gray-600 mb-3"></i>
-                                                    <p class="text-gray-400">لا توجد منتجات في هذا التصنيف حالياً</p>
+                                                    <p class="text-secondary">لا توجد منتجات في هذا التصنيف حالياً</p>
                                                 </div>
                                             </td>
                                         </tr>
@@ -270,11 +270,7 @@
 
     <style>
         /* Styling Reuse from Index + Specifics */
-        :root {
-            --bg-dark: #0f172a;
-            --glass-bg: rgba(30, 41, 59, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.08);
-        }
+        /* :root override removed for theme compatibility */
 
         .hero-icon-box {
             width: 80px;
@@ -283,14 +279,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--btn-glass-border);
         }
 
         .btn-glass-back {
             width: 50px;
             height: 50px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--btn-glass-bg);
             border: 1px solid var(--glass-border);
             display: flex;
             align-items: center;
@@ -301,7 +297,7 @@
         .btn-glass-back:hover {
             background: rgba(255, 255, 255, 0.1);
             transform: translateX(5px);
-            color: white !important;
+            color: var(--text-primary); !important;
         }
 
         .btn-glass-warning {
@@ -393,7 +389,7 @@
         .table-dark-custom {
             --bs-table-bg: transparent;
             --bs-table-border-color: var(--glass-border);
-            color: #e2e8f0;
+            color: var(--text-body);
         }
 
         .table-dark-custom th {

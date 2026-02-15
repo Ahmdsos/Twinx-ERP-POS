@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'مرتجع المشتريات')
+@section('title', __('Purchase Returns'))
 
 @section('content')
     <div class="container-fluid p-0">
@@ -8,10 +8,10 @@
         <div class="d-flex justify-content-between align-items-center mb-5">
             <div class="d-flex align-items-center gap-4">
                 <div class="icon-box bg-gradient-orange shadow-neon-orange">
-                    <i class="bi bi-arrow-return-left fs-3 text-white"></i>
+                    <i class="bi bi-arrow-return-left fs-3 text-body"></i>
                 </div>
                 <div>
-                    <h2 class="fw-bold text-white mb-1 tracking-wide">مرتجع المشتريات</h2>
+                    <h2 class="fw-bold text-heading mb-1 tracking-wide">{{ __('Purchase Returns') }}</h2>
                     <p class="mb-0 text-gray-400 small">إدارة المرتجعات للموردين</p>
                 </div>
             </div>
@@ -30,7 +30,7 @@
                         <div>
                             <span class="text-orange-400 x-small fw-bold text-uppercase tracking-wide">إجمالي
                                 المرتجعات</span>
-                            <h2 class="text-white fw-bold mb-0 mt-1">{{ number_format($stats['total_returns'], 2) }} <small
+                            <h2 class="text-heading fw-bold mb-0 mt-1">{{ number_format($stats['total_returns'], 2) }} <small
                                     class="fs-6 text-gray-400">EGP</small></h2>
                         </div>
                         <div class="icon-circle bg-orange-500 bg-opacity-10 text-orange-400">
@@ -44,7 +44,7 @@
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
                             <span class="text-yellow-400 x-small fw-bold text-uppercase tracking-wide">مرتجعات الشهر</span>
-                            <h2 class="text-white fw-bold mb-0 mt-1">{{ number_format($stats['this_month'], 2) }} <small
+                            <h2 class="text-heading fw-bold mb-0 mt-1">{{ number_format($stats['this_month'], 2) }} <small
                                     class="fs-6 text-gray-400">EGP</small></h2>
                         </div>
                         <div class="icon-circle bg-yellow-500 bg-opacity-10 text-yellow-400">
@@ -64,10 +64,10 @@
                             <th class="ps-4">رقم الإشعار</th>
                             <th>المورد</th>
                             <th>رقم الفاتورة الأصلية</th>
-                            <th>تاريخ المرتجع</th>
-                            <th>القيمة</th>
-                            <th>الحالة</th>
-                            <th class="pe-4 text-end">إجراءات</th>
+                            <th>{{ __('Return Date') }}</th>
+                            <th>{{ __('Value') }}</th>
+                            <th>{{ __('Status') }}</th>
+                            <th class="pe-4 text-end">{{ __('Actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -75,23 +75,21 @@
                             <tr class="table-row-hover position-relative group-hover-actions">
                                 <td class="ps-4 font-monospace text-orange-300">
                                     <a href="{{ route('purchase-returns.show', $return->id) }}"
-                                        class="text-decoration-none text-orange-300 hover-text-white">
+                                        class="text-decoration-none text-orange-300 hover-text-body">
                                         {{ $return->return_number }}
                                     </a>
                                 </td>
-                                <td class="fw-bold text-white">{{ $return->supplier->name }}</td>
+                                <td class="fw-bold text-body">{{ $return->supplier->name }}</td>
                                 <td class="font-monospace text-gray-400">{{ $return->invoice->invoice_number ?? '-' }}</td>
                                 <td class="text-gray-400 x-small">{{ $return->return_date->format('Y-m-d') }}</td>
-                                <td class="fw-bold text-white">{{ number_format($return->total_amount, 2) }}</td>
+                                <td class="fw-bold text-body">{{ number_format($return->total_amount, 2) }}</td>
                                 <td>
-                                    <span class="badge bg-green-500 bg-opacity-10 text-green-400">
-                                        مكتمل
-                                    </span>
+                                    <span class="badge bg-green-500 bg-opacity-10 text-green-400">{{ __('Completed') }}</span>
                                 </td>
                                 <td class="pe-4 text-end">
                                     <div class="d-flex justify-content-end gap-2 opacity-0 group-hover-visible transition-all">
                                         <a href="{{ route('purchase-returns.show', $return->id) }}" class="btn-icon-glass"
-                                            title="عرض">
+                                            title="{{ __('View') }}">
                                             <i class="bi bi-eye"></i>
                                         </a>
                                     </div>
@@ -112,7 +110,7 @@
             </div>
 
             @if($returns->hasPages())
-                <div class="p-4 border-top border-white-5">
+                <div class="p-4 border-top border-secondary border-opacity-10-5">
                     {{ $returns->links() }}
                 </div>
             @endif
@@ -157,7 +155,7 @@
         .btn-action-orange {
             background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
             border: none;
-            color: white;
+            color: var(--text-primary);
             padding: 10px 24px;
             border-radius: 10px;
             transition: all 0.3s;
@@ -176,7 +174,7 @@
 
         .table-dark-custom th {
             background: rgba(0, 0, 0, 0.2);
-            color: #94a3b8;
+            color: var(--text-secondary);
             font-weight: 600;
             padding: 1rem;
         }
@@ -196,14 +194,14 @@
             align-items: center;
             justify-content: center;
             border-radius: 6px;
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--btn-glass-bg);
             color: #cbd5e1;
             transition: 0.2s;
         }
 
         .btn-icon-glass:hover {
             background: rgba(255, 255, 255, 0.1);
-            color: white;
+            color: var(--text-primary);
         }
     </style>
 @endsection

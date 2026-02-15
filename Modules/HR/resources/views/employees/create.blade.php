@@ -9,10 +9,10 @@
         <div class="row align-items-center mb-4">
             <div class="col-md-12 text-start">
                 <a href="{{ route('hr.employees.index') }}"
-                    class="btn btn-icon-box bg-white bg-opacity-10 text-white rounded-3 mb-2 d-inline-flex align-items-center justify-content-center border border-white border-opacity-10">
+                    class="btn btn-icon-box bg-white bg-opacity-10 text-body rounded-3 mb-2 d-inline-flex align-items-center justify-content-center border border-secondary border-opacity-10 border-opacity-10">
                     <i class="bi bi-arrow-right"></i>
                 </a>
-                <h2 class="fw-black text-white mb-0 mt-2">إضافة موظف جديد</h2>
+                <h2 class="fw-black text-heading mb-0 mt-2">إضافة موظف جديد</h2>
                 <p class="text-secondary small opacity-75">إنشاء سجل وظيفي جديد وإدخال البيانات الأساسية والمالية.</p>
             </div>
         </div>
@@ -33,7 +33,7 @@
                                 <label class="form-label text-secondary small fw-bold">الاسم الأول <span
                                         class="text-danger">*</span></label>
                                 <input type="text" name="first_name"
-                                    class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none @error('first_name') is-invalid @enderror"
+                                    class="form-control bg-surface-secondary bg-opacity-25 text-body border-secondary border-opacity-10 border-opacity-10 shadow-none @error('first_name') is-invalid @enderror"
                                     value="{{ old('first_name') }}" required>
                                 @error('first_name') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
@@ -41,7 +41,7 @@
                                 <label class="form-label text-secondary small fw-bold">الاسم الأخير <span
                                         class="text-danger">*</span></label>
                                 <input type="text" name="last_name"
-                                    class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none @error('last_name') is-invalid @enderror"
+                                    class="form-control bg-surface-secondary bg-opacity-25 text-body border-secondary border-opacity-10 border-opacity-10 shadow-none @error('last_name') is-invalid @enderror"
                                     value="{{ old('last_name') }}" required>
                                 @error('last_name') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
@@ -49,7 +49,7 @@
                                 <label class="form-label text-secondary small fw-bold">البريد الإلكتروني <span
                                         class="text-danger">*</span></label>
                                 <input type="email" name="email"
-                                    class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none @error('email') is-invalid @enderror"
+                                    class="form-control bg-surface-secondary bg-opacity-25 text-body border-secondary border-opacity-10 border-opacity-10 shadow-none @error('email') is-invalid @enderror"
                                     value="{{ old('email') }}" required>
                                 @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
@@ -57,7 +57,7 @@
                                 <label class="form-label text-secondary small fw-bold">رقم الهاتف <span
                                         class="text-danger">*</span></label>
                                 <input type="text" name="phone"
-                                    class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none @error('phone') is-invalid @enderror"
+                                    class="form-control bg-surface-secondary bg-opacity-25 text-body border-secondary border-opacity-10 border-opacity-10 shadow-none @error('phone') is-invalid @enderror"
                                     value="{{ old('phone') }}" required>
                                 @error('phone') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
@@ -67,21 +67,21 @@
                                 <label class="form-label text-secondary small fw-bold">رقم الهوية الوطنية / جواز
                                     السفر</label>
                                 <input type="text" name="id_number"
-                                    class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none @error('id_number') is-invalid @enderror"
+                                    class="form-control bg-surface-secondary bg-opacity-25 text-body border-secondary border-opacity-10 border-opacity-10 shadow-none @error('id_number') is-invalid @enderror"
                                     value="{{ old('id_number') }}">
                                 @error('id_number') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label text-secondary small fw-bold">تاريخ الميلاد</label>
                                 <input type="date" name="birth_date"
-                                    class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none @error('birth_date') is-invalid @enderror"
+                                    class="form-control bg-surface-secondary bg-opacity-25 text-body border-secondary border-opacity-10 border-opacity-10 shadow-none @error('birth_date') is-invalid @enderror"
                                     value="{{ old('birth_date') }}">
                                 @error('birth_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                             <div class="col-md-12">
                                 <label class="form-label text-secondary small fw-bold">العنوان الحالي</label>
                                 <input type="text" name="address"
-                                    class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none @error('address') is-invalid @enderror"
+                                    class="form-control bg-surface-secondary bg-opacity-25 text-body border-secondary border-opacity-10 border-opacity-10 shadow-none @error('address') is-invalid @enderror"
                                     value="{{ old('address') }}" placeholder="المدينة، الحي، الشارع...">
                                 @error('address') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
@@ -98,14 +98,14 @@
                                 <label class="form-label text-secondary small fw-bold">المسمى الوظيفي <span
                                         class="text-danger">*</span></label>
                                 <input type="text" name="position"
-                                    class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none @error('position') is-invalid @enderror"
+                                    class="form-control bg-surface-secondary bg-opacity-25 text-body border-secondary border-opacity-10 border-opacity-10 shadow-none @error('position') is-invalid @enderror"
                                     value="{{ old('position') }}" required>
                                 @error('position') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label text-secondary small fw-bold">القسم</label>
                                 <input type="text" name="department"
-                                    class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none"
+                                    class="form-control bg-surface-secondary bg-opacity-25 text-body border-secondary border-opacity-10 border-opacity-10 shadow-none"
                                     value="{{ old('department') }}">
                             </div>
                             <div class="col-md-6">
@@ -113,10 +113,10 @@
                                         class="text-danger">*</span></label>
                                 <div class="input-group">
                                     <input type="number" step="0.01" name="basic_salary"
-                                        class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none @error('basic_salary') is-invalid @enderror"
+                                        class="form-control bg-surface-secondary bg-opacity-25 text-body border-secondary border-opacity-10 border-opacity-10 shadow-none @error('basic_salary') is-invalid @enderror"
                                         value="{{ old('basic_salary') }}" required>
                                     <span
-                                        class="input-group-text bg-dark border-white border-opacity-10 text-secondary">ج.م</span>
+                                        class="input-group-text bg-surface-secondary border-secondary border-opacity-10 border-opacity-10 text-secondary">ج.م</span>
                                 </div>
                                 @error('basic_salary') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                             </div>
@@ -124,14 +124,14 @@
                                 <label class="form-label text-secondary small fw-bold">تاريخ التعيين <span
                                         class="text-danger">*</span></label>
                                 <input type="date" name="date_of_joining"
-                                    class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none @error('date_of_joining') is-invalid @enderror"
+                                    class="form-control bg-surface-secondary bg-opacity-25 text-body border-secondary border-opacity-10 border-opacity-10 shadow-none @error('date_of_joining') is-invalid @enderror"
                                     value="{{ old('date_of_joining', date('Y-m-d')) }}" required>
                                 @error('date_of_joining') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label text-secondary small fw-bold">نوع العقد</label>
                                 <select name="contract_type"
-                                    class="form-select bg-dark border-white border-opacity-10 text-white shadow-none">
+                                    class="form-select bg-surface-secondary border-secondary border-opacity-10 border-opacity-10 text-body shadow-none">
                                     <option value="Full Time" {{ old('contract_type') == 'Full Time' ? 'selected' : '' }}>دوام
                                         كامل</option>
                                     <option value="Part Time" {{ old('contract_type') == 'Part Time' ? 'selected' : '' }}>دوام
@@ -152,19 +152,19 @@
                             <div class="col-md-6">
                                 <label class="form-label text-secondary small fw-bold">اسم البنك</label>
                                 <input type="text" name="bank_name"
-                                    class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none"
+                                    class="form-control bg-surface-secondary bg-opacity-25 text-body border-secondary border-opacity-10 border-opacity-10 shadow-none"
                                     value="{{ old('bank_name') }}">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label text-secondary small fw-bold">رقم الحساب</label>
                                 <input type="text" name="bank_account_number"
-                                    class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none"
+                                    class="form-control bg-surface-secondary bg-opacity-25 text-body border-secondary border-opacity-10 border-opacity-10 shadow-none"
                                     value="{{ old('bank_account_number') }}">
                             </div>
                             <div class="col-md-12">
                                 <label class="form-label text-secondary small fw-bold">IBAN</label>
                                 <input type="text" name="iban"
-                                    class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none"
+                                    class="form-control bg-surface-secondary bg-opacity-25 text-body border-secondary border-opacity-10 border-opacity-10 shadow-none"
                                     value="{{ old('iban') }}">
                             </div>
                         </div>
@@ -179,13 +179,13 @@
                             <div class="col-md-6">
                                 <label class="form-label text-secondary small fw-bold">اسم جهة الاتصال</label>
                                 <input type="text" name="emergency_contact_name"
-                                    class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none"
+                                    class="form-control bg-surface-secondary bg-opacity-25 text-body border-secondary border-opacity-10 border-opacity-10 shadow-none"
                                     value="{{ old('emergency_contact_name') }}">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label text-secondary small fw-bold">رقم هاتف الطوارئ</label>
                                 <input type="text" name="emergency_contact_phone"
-                                    class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none"
+                                    class="form-control bg-surface-secondary bg-opacity-25 text-body border-secondary border-opacity-10 border-opacity-10 shadow-none"
                                     value="{{ old('emergency_contact_phone') }}">
                             </div>
                         </div>
@@ -206,7 +206,7 @@
                                     <label class="form-label text-secondary small fw-bold">رقم الرخصة <span
                                             class="text-danger">*</span></label>
                                     <input type="text" name="license_number"
-                                        class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none"
+                                        class="form-control bg-surface-secondary bg-opacity-25 text-body border-secondary border-opacity-10 border-opacity-10 shadow-none"
                                         value="{{ old('license_number') }}">
                                     @error('license_number') <div class="invalid-feedback d-block">{{ $message }}</div>
                                     @enderror
@@ -214,20 +214,20 @@
                                 <div class="col-md-6">
                                     <label class="form-label text-secondary small fw-bold">تاريخ انتهاء الرخصة</label>
                                     <input type="date" name="license_expiry"
-                                        class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none"
+                                        class="form-control bg-surface-secondary bg-opacity-25 text-body border-secondary border-opacity-10 border-opacity-10 shadow-none"
                                         value="{{ old('license_expiry') }}">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label text-secondary small fw-bold">نوع المركبة</label>
                                     <input type="text" name="vehicle_type"
-                                        class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none"
+                                        class="form-control bg-surface-secondary bg-opacity-25 text-body border-secondary border-opacity-10 border-opacity-10 shadow-none"
                                         value="{{ old('vehicle_type') }}" placeholder="مثال: موتوسيكل، سيارة فان...">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label text-secondary small fw-bold">رقم اللوحة / معلومات
                                         المركبة</label>
                                     <input type="text" name="vehicle_plate"
-                                        class="form-control bg-dark bg-opacity-25 text-white border-white border-opacity-10 shadow-none"
+                                        class="form-control bg-surface-secondary bg-opacity-25 text-body border-secondary border-opacity-10 border-opacity-10 shadow-none"
                                         value="{{ old('vehicle_plate') }}">
                                 </div>
                             </div>
@@ -238,13 +238,13 @@
                 <!-- Right Column -->
                 <div class="col-lg-4 text-start">
                     <div class="glass-card-deep rounded-4 p-4 mb-4">
-                        <h6 class="text-white fw-bold mb-3">الحالة والوصول</h6>
+                        <h6 class="text-heading fw-bold mb-3">الحالة والوصول</h6>
                         <div class="mb-4">
                             <label class="form-label text-secondary small fw-bold">الحالة</label>
                             <select name="status"
-                                class="form-select bg-dark border-white border-opacity-10 text-white shadow-none" required>
+                                class="form-select bg-surface-secondary border-secondary border-opacity-10 border-opacity-10 text-body shadow-none" required>
                                 @foreach(Modules\HR\Models\Employee::getStatusLabels() as $val => $label)
-                                    <option value="{{ $val }}" class="bg-dark text-white" {{ old('status', 'active') == $val ? 'selected' : '' }}>{{ $label }}</option>
+                                    <option value="{{ $val }}" class="bg-surface-secondary text-body" {{ old('status', 'active') == $val ? 'selected' : '' }}>{{ $label }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -252,10 +252,10 @@
                         <div class="mb-4">
                             <label class="form-label text-secondary small fw-bold">حساب النظام المرتبط (User)</label>
                             <select name="user_id"
-                                class="form-select bg-dark border-white border-opacity-10 text-white shadow-none">
-                                <option value="" class="bg-dark text-secondary">-- اختر مستخدم --</option>
+                                class="form-select bg-surface-secondary border-secondary border-opacity-10 border-opacity-10 text-body shadow-none">
+                                <option value="" class="bg-surface-secondary text-secondary">-- اختر مستخدم --</option>
                                 @foreach($users as $user)
-                                    <option value="{{ $user->id }}" class="bg-dark text-white" {{ old('user_id') == $user->id ? 'selected' : '' }}>
+                                    <option value="{{ $user->id }}" class="bg-surface-secondary text-body" {{ old('user_id') == $user->id ? 'selected' : '' }}>
                                         {{ $user->name }} ({{ $user->email }})
                                     </option>
                                 @endforeach

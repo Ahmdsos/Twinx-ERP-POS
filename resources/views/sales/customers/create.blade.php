@@ -10,14 +10,13 @@
                 <a href="{{ route('customers.index') }}" class="btn btn-outline-light btn-sm rounded-circle shadow-sm"
                     style="width: 32px; height: 32px;"><i class="bi bi-arrow-right"></i></a>
                 <div>
-                    <h2 class="fw-bold text-white mb-0">إضافة عميل جديد</h2>
+                    <h2 class="fw-bold text-heading mb-0">إضافة عميل جديد</h2>
                     <p class="text-gray-400 mb-0 x-small">تسجيل بيانات عميل جديد في النظام</p>
                 </div>
             </div>
             <button type="submit" form="customerForm"
                 class="btn btn-action-indigo fw-bold shadow-lg d-flex align-items-center gap-2">
-                <i class="bi bi-save"></i> حفظ العميل
-            </button>
+                <i class="bi bi-save"></i>{{ __('Save Customer') }}</button>
         </div>
 
         <form action="{{ route('customers.store') }}" method="POST" id="customerForm">
@@ -27,19 +26,19 @@
                 <!-- Main Info -->
                 <div class="col-md-8">
                     <div class="glass-panel p-4 mb-4">
-                        <h5 class="text-indigo-400 fw-bold mb-4 border-bottom border-white-5 pb-2"><i
-                                class="bi bi-info-circle me-2"></i>البيانات الأساسية</h5>
+                        <h5 class="text-indigo-400 fw-bold mb-4 border-bottom border-secondary border-opacity-10-5 pb-2"><i
+                                class="bi bi-info-circle me-2"></i>{{ __('Basic Information') }}</h5>
 
                         <div class="row g-3">
                             <div class="col-md-8">
-                                <label class="form-label text-gray-400 x-small fw-bold">اسم العميل <span
+                                <label class="form-label text-gray-400 x-small fw-bold">{{ __('Customer Name') }}<span
                                         class="text-danger">*</span></label>
                                 <input type="text" name="name" class="form-control form-control-dark focus-ring-indigo"
                                     value="{{ old('name') }}" required placeholder="اسم الشركة أو الفرد">
                                 @error('name') <div class="text-danger x-small mt-1">{{ $message }}</div> @enderror
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label text-gray-400 x-small fw-bold">نوع العميل</label>
+                                <label class="form-label text-gray-400 x-small fw-bold">{{ __('Customer Type') }}</label>
                                 <select name="type" class="form-select form-select-dark focus-ring-indigo">
                                     <option value="consumer" {{ old('type') == 'consumer' ? 'selected' : '' }}>فرد (Consumer)
                                     </option>
@@ -67,7 +66,7 @@
                                     value="{{ old('contact_person') }}">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label text-gray-400 x-small fw-bold">الرقم الضريبي</label>
+                                <label class="form-label text-gray-400 x-small fw-bold">{{ __('Tax Number') }}</label>
                                 <input type="text" name="tax_number"
                                     class="form-control form-control-dark focus-ring-indigo"
                                     value="{{ old('tax_number') }}">
@@ -84,7 +83,7 @@
                                     value="{{ old('mobile') }}">
                             </div>
                             <div class="col-md-12">
-                                <label class="form-label text-gray-400 x-small fw-bold">البريد الإلكتروني</label>
+                                <label class="form-label text-gray-400 x-small fw-bold">{{ __('Email') }}</label>
                                 <input type="email" name="email" class="form-control form-control-dark focus-ring-indigo"
                                     value="{{ old('email') }}">
                             </div>
@@ -92,35 +91,35 @@
                     </div>
 
                     <div class="glass-panel p-4">
-                        <h5 class="text-indigo-400 fw-bold mb-4 border-bottom border-white-5 pb-2"><i
+                        <h5 class="text-indigo-400 fw-bold mb-4 border-bottom border-secondary border-opacity-10-5 pb-2"><i
                                 class="bi bi-geo-alt me-2"></i>العناوين</h5>
 
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <h6 class="text-white small fw-bold mb-3">عنوان الفوترة (Billing)</h6>
+                                <h6 class="text-heading small fw-bold mb-3">عنوان الفوترة (Billing)</h6>
                                 <div class="mb-2">
-                                    <label class="form-label text-gray-400 x-small">العنوان</label>
+                                    <label class="form-label text-gray-400 x-small">{{ __('Address') }}</label>
                                     <input type="text" name="billing_address"
                                         class="form-control form-control-dark focus-ring-indigo"
                                         value="{{ old('billing_address') }}">
                                 </div>
                                 <div class="mb-2">
-                                    <label class="form-label text-gray-400 x-small">المدينة</label>
+                                    <label class="form-label text-gray-400 x-small">{{ __('City') }}</label>
                                     <input type="text" name="billing_city"
                                         class="form-control form-control-dark focus-ring-indigo"
                                         value="{{ old('billing_city') }}">
                                 </div>
                             </div>
-                            <div class="col-md-6 border-start border-white-5 ps-md-4">
-                                <h6 class="text-white small fw-bold mb-3">عنوان الشحن (Shipping)</h6>
+                            <div class="col-md-6 border-start border-secondary border-opacity-10-5 ps-md-4">
+                                <h6 class="text-heading small fw-bold mb-3">عنوان الشحن (Shipping)</h6>
                                 <div class="mb-2">
-                                    <label class="form-label text-gray-400 x-small">العنوان</label>
+                                    <label class="form-label text-gray-400 x-small">{{ __('Address') }}</label>
                                     <input type="text" name="shipping_address"
                                         class="form-control form-control-dark focus-ring-indigo"
                                         value="{{ old('shipping_address') }}">
                                 </div>
                                 <div class="mb-2">
-                                    <label class="form-label text-gray-400 x-small">المدينة</label>
+                                    <label class="form-label text-gray-400 x-small">{{ __('City') }}</label>
                                     <input type="text" name="shipping_city"
                                         class="form-control form-control-dark focus-ring-indigo"
                                         value="{{ old('shipping_city') }}">
@@ -133,8 +132,8 @@
                 <!-- Financial Info (Sidebar) -->
                 <div class="col-md-4">
                     <div class="glass-panel p-4 mb-4">
-                        <h5 class="text-indigo-400 fw-bold mb-4 border-bottom border-white-5 pb-2"><i
-                                class="bi bi-cash-stack me-2"></i>البيانات المالية</h5>
+                        <h5 class="text-indigo-400 fw-bold mb-4 border-bottom border-secondary border-opacity-10-5 pb-2"><i
+                                class="bi bi-cash-stack me-2"></i>{{ __('Financial Information') }}</h5>
 
                         <div class="mb-3">
                             <label class="form-label text-gray-400 x-small fw-bold">حد الائتمان (Credit Limit)</label>
@@ -160,7 +159,7 @@
                     </div>
 
                     <div class="glass-panel p-4">
-                        <h5 class="text-gray-400 fw-bold mb-3 border-bottom border-white-5 pb-2">ملاحظات</h5>
+                        <h5 class="text-gray-400 fw-bold mb-3 border-bottom border-secondary border-opacity-10-5 pb-2">{{ __('Notes') }}</h5>
                         <textarea name="notes" class="form-control form-control-dark focus-ring-indigo"
                             rows="4">{{ old('notes') }}</textarea>
                     </div>
@@ -180,14 +179,14 @@
         .form-control-dark,
         .form-select-dark {
             background: rgba(15, 23, 42, 0.6) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            color: white !important;
+            border: 1px solid var(--btn-glass-border); !important;
+            color: var(--text-primary); !important;
         }
 
         .btn-action-indigo {
             background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
             border: none;
-            color: white;
+            color: var(--text-primary);
             padding: 10px 24px;
             border-radius: 10px;
             transition: 0.3s;
@@ -205,7 +204,7 @@
 
         .bg-dark-input {
             background: rgba(0, 0, 0, 0.3) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid var(--btn-glass-border); !important;
         }
     </style>
 @endsection

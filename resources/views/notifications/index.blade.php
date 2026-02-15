@@ -1,23 +1,23 @@
 @extends('layouts.app')
 
-@section('title', 'الإشعارات')
+@section('title', __('Notifications'))
 
-@section('header', 'مركز الإشعارات')
+@section('header', __('Notification Center'))
 
 @section('content')
     <div class="row justify-content-center">
         <div class="col-md-10">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h4 class="fw-bold text-white mb-1">الإشعارات والتنبيهات</h4>
-                    <p class="text-white-50 mb-0">سجل كامل بجميع أحداث النظام والتنبيهات</p>
+                    <h4 class="fw-bold text-heading mb-1">{{ __('Notifications & Alerts') }}</h4>
+                    <p class="text-body-50 mb-0">{{ __('Full log of all system events and alerts') }}</p>
                 </div>
 
                 @if($notifications->count() > 0 && auth()->user()->unreadNotifications->count() > 0)
                     <form action="{{ route('notifications.read-all') }}" method="POST">
                         @csrf
                         <button type="submit" class="btn btn-outline-primary btn-sm">
-                            <i class="bi bi-check-all me-1"></i> تحديد الكل كمقروء
+                            <i class="bi bi-check-all me-1"></i> {{ __('Mark all as read') }}
                         </button>
                     </form>
                 @endif
@@ -26,7 +26,7 @@
             <div class="glass-card p-0 overflow-hidden">
                 @forelse($notifications as $notification)
                     <div
-                        class="p-4 border-bottom border-secondary border-opacity-10 {{ $notification->read_at ? 'bg-transparent' : 'bg-primary bg-opacity-05' }}">
+                        class="p-4 border-bottom border-secondary border-opacity-10 {{ $notification->read_at ? 'bg-transparent' : 'bg-primary bg-opacity-10' }}">
                         <div class="d-flex gap-3">
                             <div class="flex-shrink-0 mt-1">
                                 <div class="rounded-circle d-flex align-items-center justify-content-center"
@@ -38,21 +38,21 @@
                             <div class="flex-grow-1">
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div>
-                                        <h6 class="mb-1 text-white fw-bold">
-                                            {{ $notification->data['title'] ?? 'إشعار جديد' }}
+                                        <h6 class="mb-1 text-heading fw-bold">
+                                            {{ $notification->data['title'] ?? __('New Notification') }}
                                             @if(!$notification->read_at)
-                                                <span class="badge bg-primary ms-1 small">جديد</span>
+                                                <span class="badge bg-primary ms-1 small">{{ __('New') }}</span>
                                             @endif
                                         </h6>
                                         <p class="mb-2 text-secondary">{{ $notification->data['description'] ?? '' }}</p>
                                     </div>
-                                    <small class="text-white-50">{{ $notification->created_at->diffForHumans() }}</small>
+                                    <small class="text-muted">{{ $notification->created_at->diffForHumans() }}</small>
                                 </div>
 
                                 <div class="d-flex gap-2">
                                     @if(isset($notification->data['url']))
                                         <a href="{{ $notification->data['url'] }}" class="btn btn-sm btn-outline-light">
-                                            <i class="bi bi-box-arrow-up-right me-1"></i> عرض التفاصيل
+                                            <i class="bi bi-box-arrow-up-right me-1"></i> {{ __('View Details') }}
                                         </a>
                                     @endif
 
@@ -60,8 +60,8 @@
                                         <form action="{{ route('notifications.read', $notification->id) }}" method="POST">
                                             @csrf
                                             <button type="submit"
-                                                class="btn btn-sm btn-link text-white-50 text-decoration-none p-0 ms-2">
-                                                تحديد كمقروء
+                                                class="btn btn-sm btn-link text-muted text-decoration-none p-0 ms-2">
+                                                {{ __('Mark as read') }}
                                             </button>
                                         </form>
                                     @endif
@@ -72,8 +72,8 @@
                 @empty
                     <div class="p-5 text-center">
                         <i class="bi bi-bell-slash fs-1 text-secondary opacity-50 mb-3 d-block"></i>
-                        <h5 class="text-white">لا توجد إشعارات</h5>
-                        <p class="text-white-50">جميع إشعاراتك ستظهر هنا</p>
+                        <h5 class="text-heading">{{ __('No notifications') }}</h5>
+                        <p class="text-body-50">{{ __('All your notifications will appear here') }}</p>
                     </div>
                 @endforelse
 

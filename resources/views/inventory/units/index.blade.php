@@ -7,8 +7,8 @@
         <!-- Header -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h3 class="fw-bold text-white mb-2 tracking-wide">وحدات القياس</h3>
-                <p class="text-gray-400 mb-0 small">إدارة وحدات القياس الأساسية والفرعية للمنتجات</p>
+                <h3 class="fw-bold text-heading mb-2 tracking-wide">وحدات القياس</h3>
+                <p class="text-secondary mb-0 small">إدارة وحدات القياس الأساسية والفرعية للمنتجات</p>
             </div>
             <div class="d-flex gap-2">
                 <div class="dropdown">
@@ -17,9 +17,9 @@
                         type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false"
                         style="width: auto; height: 42px; background: rgba(30, 41, 59, 0.5); color: #cbd5e1;">
                         <i class="bi bi-cloud-download"></i>
-                        <span class="d-none d-md-block small">تصدير</span>
+                        <span class="d-none d-md-block small">{{ __('Export') }}</span>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-dark bg-slate-900 border-white-10 shadow-neon"
+                    <ul class="dropdown-menu dropdown-menu-dark bg-surface border-secondary border-opacity-10-10 shadow-neon"
                         aria-labelledby="exportDropdown">
                         <li>
                             <a class="dropdown-item d-flex align-items-center gap-2"
@@ -67,12 +67,12 @@
                     <thead>
                         <tr>
                             <th class="ps-4" style="width: 50px;">#</th>
-                            <th>اسم الوحدة</th>
+                            <th>{{ __('Unit Name') }}</th>
                             <th>الاختصار</th>
-                            <th>النوع</th>
+                            <th>{{ __('Type') }}</th>
                             <th>معامل التحويل</th>
                             <th>المنتجات المرتبطة</th>
-                            <th class="pe-4 text-end">إجراءات</th>
+                            <th class="pe-4 text-end">{{ __('Actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -80,11 +80,11 @@
                             <tr class="table-row-hover group-hover-actions">
                                 <td class="ps-4 text-gray-500 font-monospace">{{ $loop->iteration }}</td>
                                 <td>
-                                    <span class="text-white fw-bold">{{ $unit->name }}</span>
+                                    <span class="text-body fw-bold">{{ $unit->name }}</span>
                                 </td>
                                 <td>
                                     <span
-                                        class="badge bg-slate-800 text-gray-400 border border-white-5 fw-normal font-monospace">
+                                        class="badge bg-slate-800 text-secondary border border-secondary border-opacity-10-5 fw-normal font-monospace">
                                         {{ $unit->abbreviation }}
                                     </span>
                                 </td>
@@ -97,10 +97,10 @@
                                             class="badge bg-purple-500 bg-opacity-10 text-purple-400 border border-purple-500 border-opacity-20">أساسية</span>
                                     @endif
                                 </td>
-                                <td class="text-gray-300">
+                                <td class="text-secondary">
                                     @if($unit->base_unit_id)
                                         <div class="d-flex align-items-center gap-2">
-                                            <span class="fw-bold text-white font-monospace">1 {{ $unit->name }}</span>
+                                            <span class="fw-bold text-body font-monospace">1 {{ $unit->name }}</span>
                                             <i class="bi bi-arrow-right text-gray-600 x-small"></i>
                                             <span class="fw-bold text-info font-monospace">{{ $unit->conversion_factor + 0 }}
                                                 {{ $unit->baseUnit->name }}</span>
@@ -110,7 +110,7 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <span class="text-gray-400 font-monospace small">
+                                    <span class="text-secondary font-monospace small">
                                         {{ $unit->products_count }} منتج
                                     </span>
                                 </td>
@@ -154,8 +154,8 @@
     <div class="modal fade" id="createUnitModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content glass-panel border-0">
-                <div class="modal-header border-bottom border-white-10">
-                    <h5 class="modal-title text-white fw-bold">إضافة وحدة قياس جديدة</h5>
+                <div class="modal-header border-bottom border-secondary border-opacity-10-10">
+                    <h5 class="modal-title text-heading fw-bold">إضافة وحدة قياس جديدة</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>
                 </div>
@@ -163,24 +163,24 @@
                     @csrf
                     <div class="modal-body p-4">
                         <div class="mb-3">
-                            <label class="form-label text-purple-400 small fw-bold text-uppercase ps-1">اسم الوحدة <span
+                            <label class="form-label text-purple-400 small fw-bold text-uppercase ps-1">{{ __('Unit Name') }}<span
                                     class="text-danger">*</span></label>
                             <input type="text" name="name"
-                                class="form-control form-control-dark text-white placeholder-gray-600 focus-ring-purple"
+                                class="form-control form-control text-body placeholder-gray-600 focus-ring-purple"
                                 required placeholder="مثال: كرتونة">
                         </div>
                         <div class="mb-3">
                             <label class="form-label text-purple-400 small fw-bold text-uppercase ps-1">الاختصار <span
                                     class="text-danger">*</span></label>
                             <input type="text" name="abbreviation"
-                                class="form-control form-control-dark text-white placeholder-gray-600 focus-ring-purple"
+                                class="form-control form-control text-body placeholder-gray-600 focus-ring-purple"
                                 required placeholder="مثال: Box">
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label text-purple-400 small fw-bold text-uppercase ps-1">نوع الوحدة</label>
                             <select name="base_unit_id" id="createBaseUnitId"
-                                class="form-select form-select-dark text-white cursor-pointer"
+                                class="form-select form-select text-body cursor-pointer"
                                 onchange="toggleConversion('create')">
                                 <option value="">أساسية (Base Unit)</option>
                                 @foreach($units->where('base_unit_id', null) as $baseUnit)
@@ -193,20 +193,20 @@
                             <label class="form-label text-purple-400 small fw-bold text-uppercase ps-1">معامل
                                 التحويل</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-dark-input border-end-0 text-gray-500">1 وحدة جديدة
+                                <span class="input-group-text bg-surface-secondary-input border-end-0 text-gray-500">1 وحدة جديدة
                                     =</span>
                                 <input type="number" step="0.0001" name="conversion_factor"
-                                    class="form-control form-control-dark border-start-0 border-end-0 text-white fw-bold text-center"
+                                    class="form-control form-control border-start-0 border-end-0 text-body fw-bold text-center"
                                     placeholder="12">
-                                <span class="input-group-text bg-dark-input border-start-0 text-gray-500">من الوحدة
+                                <span class="input-group-text bg-surface-secondary-input border-start-0 text-gray-500">من الوحدة
                                     الأساسية</span>
                             </div>
                             <div class="form-text text-gray-500 x-small mt-2">مثال: لو الكرتونة فيها 12 قطعة، اكتب 12.</div>
                         </div>
                     </div>
-                    <div class="modal-footer border-top border-white-10">
-                        <button type="button" class="btn btn-link text-gray-400 text-decoration-none"
-                            data-bs-dismiss="modal">إلغاء</button>
+                    <div class="modal-footer border-top border-secondary border-opacity-10-10">
+                        <button type="button" class="btn btn-link text-secondary text-decoration-none"
+                            data-bs-dismiss="modal">{{ __('Cancel') }}</button>
                         <button type="submit" class="btn btn-action-purple px-4 rounded-pill fw-bold">حفظ الوحدة</button>
                     </div>
                 </form>
@@ -218,8 +218,8 @@
     <div class="modal fade" id="editUnitModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content glass-panel border-0">
-                <div class="modal-header border-bottom border-white-10">
-                    <h5 class="modal-title text-white fw-bold">تعديل وحدة القياس</h5>
+                <div class="modal-header border-bottom border-secondary border-opacity-10-10">
+                    <h5 class="modal-title text-heading fw-bold">تعديل وحدة القياس</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>
                 </div>
@@ -228,24 +228,24 @@
                     @method('PUT')
                     <div class="modal-body p-4">
                         <div class="mb-3">
-                            <label class="form-label text-purple-400 small fw-bold text-uppercase ps-1">اسم الوحدة <span
+                            <label class="form-label text-purple-400 small fw-bold text-uppercase ps-1">{{ __('Unit Name') }}<span
                                     class="text-danger">*</span></label>
                             <input type="text" name="name" id="editName"
-                                class="form-control form-control-dark text-white placeholder-gray-600 focus-ring-purple"
+                                class="form-control form-control text-body placeholder-gray-600 focus-ring-purple"
                                 required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label text-purple-400 small fw-bold text-uppercase ps-1">الاختصار <span
                                     class="text-danger">*</span></label>
                             <input type="text" name="abbreviation" id="editAbbreviation"
-                                class="form-control form-control-dark text-white placeholder-gray-600 focus-ring-purple"
+                                class="form-control form-control text-body placeholder-gray-600 focus-ring-purple"
                                 required>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label text-purple-400 small fw-bold text-uppercase ps-1">نوع الوحدة</label>
                             <select name="base_unit_id" id="editBaseUnitId"
-                                class="form-select form-select-dark text-white cursor-pointer"
+                                class="form-select form-select text-body cursor-pointer"
                                 onchange="toggleConversion('edit')">
                                 <option value="">أساسية (Base Unit)</option>
                                 @foreach($units->where('base_unit_id', null) as $baseUnit)
@@ -258,16 +258,16 @@
                             <label class="form-label text-purple-400 small fw-bold text-uppercase ps-1">معامل
                                 التحويل</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-dark-input border-end-0 text-gray-500">1 وحدة =</span>
+                                <span class="input-group-text bg-surface-secondary-input border-end-0 text-gray-500">1 وحدة =</span>
                                 <input type="number" step="0.0001" name="conversion_factor" id="editConversionFactor"
-                                    class="form-control form-control-dark border-start-0 border-end-0 text-white fw-bold text-center">
-                                <span class="input-group-text bg-dark-input border-start-0 text-gray-500">من الأساسية</span>
+                                    class="form-control form-control border-start-0 border-end-0 text-body fw-bold text-center">
+                                <span class="input-group-text bg-surface-secondary-input border-start-0 text-gray-500">من الأساسية</span>
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer border-top border-white-10">
-                        <button type="button" class="btn btn-link text-gray-400 text-decoration-none"
-                            data-bs-dismiss="modal">إلغاء</button>
+                    <div class="modal-footer border-top border-secondary border-opacity-10-10">
+                        <button type="button" class="btn btn-link text-secondary text-decoration-none"
+                            data-bs-dismiss="modal">{{ __('Cancel') }}</button>
                         <button type="submit" class="btn btn-action-purple px-4 rounded-pill fw-bold">تحديث
                             البيانات</button>
                     </div>
@@ -303,8 +303,8 @@
 
     <style>
         .glass-panel {
-            background: rgba(30, 41, 59, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: var(--glass-bg);
+            border-bottom: 1px solid var(--border-color);
             backdrop-filter: blur(12px);
             border-radius: 16px;
         }
@@ -312,8 +312,8 @@
         .form-control-dark,
         .form-select-dark {
             background: rgba(15, 23, 42, 0.6) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            color: white !important;
+            border: 1px solid var(--btn-glass-border); !important;
+            color: var(--text-primary); !important;
             padding: 0.8rem 1rem;
             border-radius: 12px;
         }
@@ -331,13 +331,13 @@
         .bg-dark-input {
             background: rgba(15, 23, 42, 0.8) !important;
             border-color: rgba(255, 255, 255, 0.1) !important;
-            color: #94a3b8;
+            color: var(--text-secondary);
         }
 
         .btn-action-purple {
             background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%);
             border: none;
-            color: white;
+            color: var(--text-primary);
             transition: all 0.3s;
         }
 
@@ -349,7 +349,7 @@
         .table-dark-custom {
             --bs-table-bg: transparent;
             --bs-table-border-color: rgba(255, 255, 255, 0.05);
-            color: #e2e8f0;
+            color: var(--text-body);
         }
 
         .table-dark-custom th {
@@ -358,7 +358,7 @@
             text-transform: uppercase;
             font-size: 0.75rem;
             letter-spacing: 0.05em;
-            color: #94a3b8;
+            color: var(--text-secondary);
         }
 
         .btn-icon-glass {
@@ -367,15 +367,15 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(255, 255, 255, 0.05);
-            color: #94a3b8;
+            background: var(--btn-glass-bg);
+            color: var(--text-secondary);
             border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--btn-glass-border);
         }
 
         .btn-icon-glass:hover {
             background: rgba(255, 255, 255, 0.1);
-            color: white;
+            color: var(--text-primary);
         }
 
         .hover-bg-danger:hover {

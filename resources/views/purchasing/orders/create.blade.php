@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'إنشاء أمر شراء')
+@section('title', __('Create Purchase Order'))
 
 @section('content')
     <div class="container-fluid p-0">
@@ -10,7 +10,7 @@
                 <a href="{{ route('purchase-orders.index') }}" class="btn btn-outline-light btn-sm rounded-circle shadow-sm"
                     style="width: 32px; height: 32px;"><i class="bi bi-arrow-right"></i></a>
                 <div>
-                    <h2 class="fw-bold text-white mb-0">أمر شراء جديد</h2>
+                    <h2 class="fw-bold text-heading mb-0">أمر شراء جديد</h2>
                     <p class="text-gray-400 mb-0 x-small">إصدار طلب شراء رسمي لمورد</p>
                 </div>
             </div>
@@ -31,18 +31,17 @@
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h5 class="text-blue-400 fw-bold mb-0"><i class="bi bi-basket me-2"></i>الأصناف المطلوبة</h5>
                             <button type="button" class="btn btn-sm btn-outline-blue" onclick="addNewRow()">
-                                <i class="bi bi-plus-lg me-1"></i> إضافة صنف
-                            </button>
+                                <i class="bi bi-plus-lg me-1"></i>{{ __('Add Item') }}</button>
                         </div>
 
                         <div class="table-responsive">
                             <table class="table table-dark-custom align-middle" id="itemsTable">
                                 <thead>
                                     <tr>
-                                        <th style="width: 40%">المنتج</th>
-                                        <th style="width: 15%">الكمية</th>
-                                        <th style="width: 20%">سعر الوحدة</th>
-                                        <th style="width: 20%">الإجمالي</th>
+                                        <th style="width: 40%">{{ __('Product') }}</th>
+                                        <th style="width: 15%">{{ __('Quantity') }}</th>
+                                        <th style="width: 20%">{{ __('Unit Price') }}</th>
+                                        <th style="width: 20%">{{ __('Total') }}</th>
                                         <th style="width: 5%"></th>
                                     </tr>
                                 </thead>
@@ -61,7 +60,7 @@
                 <!-- Sidebar (Right) -->
                 <div class="col-md-3">
                     <div class="glass-panel p-4 mb-4">
-                        <h5 class="text-white fw-bold mb-4 border-bottom border-white-5 pb-2">بيانات الطلب</h5>
+                        <h5 class="text-heading fw-bold mb-4 border-bottom border-secondary border-opacity-10-5 pb-2">بيانات الطلب</h5>
 
                         <div class="mb-3">
                             <label class="form-label text-gray-400 x-small fw-bold">المورد <span
@@ -104,7 +103,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label text-gray-400 x-small fw-bold">ملاحظات</label>
+                            <label class="form-label text-gray-400 x-small fw-bold">{{ __('Notes') }}</label>
                             <textarea name="notes" class="form-control form-control-dark focus-ring-blue"
                                 rows="2"></textarea>
                         </div>
@@ -113,8 +112,8 @@
                     <!-- Totals Panel -->
                     <div class="glass-panel p-4 bg-gradient-to-br from-slate-900 to-slate-800">
                         <div class="d-flex justify-content-between mb-2">
-                            <span class="text-gray-400 small">الإجمالي</span>
-                            <span class="text-white fw-bold" id="totalDisplay">0.00</span>
+                            <span class="text-gray-400 small">{{ __('Total') }}</span>
+                            <span class="text-body fw-bold" id="totalDisplay">0.00</span>
                         </div>
                     </div>
                 </div>
@@ -197,7 +196,7 @@
         .btn-action-blue {
             background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
             border: none;
-            color: white;
+            color: var(--text-primary);
             padding: 10px 24px;
             border-radius: 10px;
         }
@@ -213,14 +212,14 @@
         .btn-dashed-blue:hover {
             background: rgba(59, 130, 246, 0.1);
             border-color: #3b82f6;
-            color: white;
+            color: var(--text-primary);
         }
 
         .form-control-dark,
         .form-select-dark {
             background: rgba(15, 23, 42, 0.6) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            color: white !important;
+            border: 1px solid var(--btn-glass-border); !important;
+            color: var(--text-primary); !important;
         }
 
         .focus-ring-blue:focus {
@@ -241,7 +240,7 @@
             align-items: center;
             justify-content: center;
             border-radius: 6px;
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--btn-glass-bg);
             color: #cbd5e1;
             transition: 0.2s;
         }

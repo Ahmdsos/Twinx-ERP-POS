@@ -6,10 +6,9 @@
     <div class="row justify-content-center">
         <div class="col-lg-10">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="text-white fw-bold"><i class="bi bi-pencil-square me-2"></i> تعديل الدور: {{ $role->name }}</h2>
+                <h2 class="text-heading fw-bold"><i class="bi bi-pencil-square me-2"></i> تعديل الدور: {{ $role->name }}</h2>
                 <a href="{{ route('roles.index') }}" class="btn btn-outline-light">
-                    <i class="bi bi-arrow-right me-2"></i> رجوع
-                </a>
+                    <i class="bi bi-arrow-right me-2"></i>{{ __('Back') }}</a>
             </div>
 
             <div class="glass-card p-4">
@@ -18,12 +17,12 @@
                     @method('PUT')
                     
                     <div class="mb-5">
-                        <label class="form-label text-white-50 fs-5">اسم الدور الوظيفي <span class="text-danger">*</span></label>
-                        <input type="text" name="name" class="form-control form-control-lg bg-transparent text-white" 
+                        <label class="form-label text-muted fs-5">اسم الدور الوظيفي <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control form-control-lg bg-transparent text-body" 
                                required value="{{ old('name', $role->name) }}">
                     </div>
 
-                    <h5 class="text-white fw-bold mb-4 border-bottom border-secondary pb-2">
+                    <h5 class="text-heading fw-bold mb-4 border-bottom border-secondary pb-2">
                         <i class="bi bi-grid-3x3-gap me-2"></i> تعديل الصلاحيات
                     </h5>
 
@@ -44,7 +43,7 @@
                                                 <input class="form-check-input permission-checkbox" type="checkbox" 
                                                        name="permissions[]" value="{{ $perm->name }}" id="perm_{{ $perm->id }}"
                                                        {{ $role->hasPermissionTo($perm->name) ? 'checked' : '' }}>
-                                                <label class="form-check-label text-white-50" for="perm_{{ $perm->id }}">
+                                                <label class="form-check-label text-muted" for="perm_{{ $perm->id }}">
                                                     {{ str_replace($category . '.', '', $perm->name) }}
                                                 </label>
                                             </div>
@@ -57,8 +56,7 @@
 
                     <div class="text-end mt-5">
                         <button type="submit" class="btn btn-primary btn-lg px-5">
-                            <i class="bi bi-save me-2"></i> حفظ التغييرات
-                        </button>
+                            <i class="bi bi-save me-2"></i>{{ __('Save Changes') }}</button>
                     </div>
                 </form>
             </div>
@@ -66,12 +64,7 @@
     </div>
 
     <style>
-        .glass-card {
-            background: rgba(17, 24, 39, 0.7);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-        }
+        
     </style>
 
     <script>

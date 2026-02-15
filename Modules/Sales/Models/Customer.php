@@ -91,6 +91,11 @@ class Customer extends Model
         return $this->hasMany(CustomerPayment::class);
     }
 
+    public function salesReturns(): HasMany
+    {
+        return $this->hasMany(SalesReturn::class);
+    }
+
     // ========================================
     // Scopes
     // ========================================

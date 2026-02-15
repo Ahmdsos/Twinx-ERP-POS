@@ -9,10 +9,10 @@
                 <!-- Header -->
                 <div class="text-center mb-5">
                     <div class="d-inline-flex align-items-center justify-content-center icon-box-lg mb-3 shadow-neon">
-                        <i class="bi bi-diagram-2-fill fs-2 text-white"></i>
+                        <i class="bi bi-diagram-2-fill fs-2 text-body"></i>
                     </div>
-                    <h3 class="fw-bold text-white tracking-wide">إضافة تصنيف جديد</h3>
-                    <p class="text-gray-400">تنظيم هيكلي دقيق لمنتجات المخزون</p>
+                    <h3 class="fw-bold text-heading tracking-wide">إضافة تصنيف جديد</h3>
+                    <p class="text-secondary">تنظيم هيكلي دقيق لمنتجات المخزون</p>
                 </div>
 
                 <!-- Glass Card Content -->
@@ -27,10 +27,10 @@
                                 <label class="form-label text-cyan-400 small fw-bold text-uppercase tracking-wider ps-1">اسم
                                     التصنيف <span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-dark-input border-end-0 text-gray-500"><i
+                                    <span class="input-group-text bg-surface-secondary-input border-end-0 text-gray-500"><i
                                             class="bi bi-tag-fill"></i></span>
                                     <input type="text" name="name"
-                                        class="form-control form-control-dark border-start-0 ps-0 text-white placeholder-gray-600 focus-ring"
+                                        class="form-control form-control border-start-0 ps-0 text-body placeholder-gray-600 focus-ring"
                                         placeholder="مثال: إلكترونيات، هواتف ذكية..." required>
                                 </div>
                             </div>
@@ -40,10 +40,10 @@
                                     class="form-label text-cyan-400 small fw-bold text-uppercase tracking-wider ps-1">التصنيف
                                     الأب (اختياري)</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-dark-input border-end-0 text-gray-500"><i
+                                    <span class="input-group-text bg-surface-secondary-input border-end-0 text-gray-500"><i
                                             class="bi bi-diagram-3"></i></span>
                                     <select name="parent_id"
-                                        class="form-select form-select-dark border-start-0 ps-0 text-white cursor-pointer hover:bg-white-5">
+                                        class="form-select form-select border-start-0 ps-0 text-body cursor-pointer hover:bg-surface-5">
                                         <option value="">-- تصنيف رئيسي (Root) --</option>
                                         @foreach($categories as $parent)
                                             <option value="{{ $parent->id }}">{{ $parent->name }}</option>
@@ -57,21 +57,21 @@
 
                         <div class="mb-5">
                             <label
-                                class="form-label text-cyan-400 small fw-bold text-uppercase tracking-wider ps-1">الوصف</label>
+                                class="form-label text-cyan-400 small fw-bold text-uppercase tracking-wider ps-1">{{ __('Description') }}</label>
                             <textarea name="description"
-                                class="form-control form-control-dark text-white placeholder-gray-600" rows="4"
+                                class="form-control form-control text-body placeholder-gray-600" rows="4"
                                 placeholder="أضف وصفاً تقنياً أو ملاحظات إدارية..."></textarea>
                         </div>
 
                         <div class="mb-5">
-                            <div class="d-flex align-items-center justify-content-between p-4 rounded-3 border border-white-10 bg-white-5 transition-all hover:bg-white-10 cursor-pointer"
+                            <div class="d-flex align-items-center justify-content-between p-4 rounded-3 border border-secondary border-opacity-10-10 bg-surface-5 transition-all hover:bg-surface-10 cursor-pointer"
                                 onclick="document.getElementById('isActiveCheck').click()">
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="icon-box-sm bg-success bg-opacity-10 text-success">
                                         <i class="bi bi-power"></i>
                                     </div>
                                     <div>
-                                        <h6 class="fw-bold text-white mb-1">تفعيل التصنيف</h6>
+                                        <h6 class="fw-bold text-heading mb-1">تفعيل التصنيف</h6>
                                         <p class="mb-0 text-gray-500 small">السماح بتداول المنتجات المندرجة تحته</p>
                                     </div>
                                 </div>
@@ -83,11 +83,10 @@
                         </div>
 
                         <!-- Actions -->
-                        <div class="d-flex justify-content-between align-items-center pt-4 border-top border-white-10">
+                        <div class="d-flex justify-content-between align-items-center pt-4 border-top border-secondary border-opacity-10-10">
                             <a href="{{ route('categories.index') }}"
-                                class="btn btn-link text-gray-400 text-decoration-none hover-text-white d-flex align-items-center gap-2">
-                                <i class="bi bi-arrow-right"></i> إلغاء
-                            </a>
+                                class="btn btn-link text-secondary text-decoration-none hover-text-white d-flex align-items-center gap-2">
+                                <i class="bi bi-arrow-right"></i>{{ __('Cancel') }}</a>
                             <button type="submit"
                                 class="btn btn-action-primary px-5 py-2 rounded-pill fw-bold shadow-neon d-flex align-items-center gap-2">
                                 <i class="bi bi-check-lg"></i> إنشاء التصنيف
@@ -122,14 +121,14 @@
         .bg-dark-input {
             background: rgba(15, 23, 42, 0.6) !important;
             border-color: rgba(255, 255, 255, 0.1) !important;
-            color: #94a3b8;
+            color: var(--text-secondary);
         }
 
         .form-control-dark,
         .form-select-dark {
             background: rgba(15, 23, 42, 0.6) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            color: white !important;
+            border: 1px solid var(--btn-glass-border); !important;
+            color: var(--text-primary); !important;
             padding: 0.8rem 1rem;
         }
 
@@ -156,23 +155,23 @@
             color: #475569;
         }
 
-        .bg-white-5 {
+        .bg-surface-5 {
             background: rgba(255, 255, 255, 0.02);
         }
 
-        .bg-white-10 {
-            background: rgba(255, 255, 255, 0.05);
+        .bg-surface-10 {
+            background: var(--btn-glass-bg);
         }
 
-        .border-white-10 {
+        .border-secondary border-opacity-10-10 {
             border-color: rgba(255, 255, 255, 0.05) !important;
         }
 
-        .hover-bg-white-5:hover {
+        .hover-bg-surface-5:hover {
             background-color: rgba(255, 255, 255, 0.05);
         }
 
-        .hover-bg-white-10:hover {
+        .hover-bg-surface-10:hover {
             background-color: rgba(255, 255, 255, 0.1);
         }
     </style>

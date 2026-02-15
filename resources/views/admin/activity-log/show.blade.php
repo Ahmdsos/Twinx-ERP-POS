@@ -4,10 +4,10 @@
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h4 class="mb-1 fw-bold text-white">تفاصيل الحركة #{{ $activityLog->id }}</h4>
-                <div class="text-white-50">
+                <h4 class="mb-1 fw-bold text-heading">تفاصيل الحركة #{{ $activityLog->id }}</h4>
+                <div class="text-muted">
                     قام
-                    <span class="text-white fw-bold">{{ $activityLog->user ? $activityLog->user->name : 'النظام' }}</span>
+                    <span class="text-body fw-bold">{{ $activityLog->user ? $activityLog->user->name : 'النظام' }}</span>
                     بـ
                     <span
                         class="badge bg-{{ $activityLog->action_color }} bg-opacity-10 text-{{ $activityLog->action_color }}">{{ $activityLog->action_label }}</span>
@@ -28,19 +28,19 @@
                     <h6 class="text-secondary text-uppercase small ls-1 mb-3">بيانات أساسية</h6>
 
                     <div class="mb-3">
-                        <label class="text-white-50 d-block small mb-1">الموضوع (Subject)</label>
-                        <div class="text-white font-monospace">{{ $activityLog->subject_type }}</div>
+                        <label class="text-muted d-block small mb-1">الموضوع (Subject)</label>
+                        <div class="text-body font-monospace">{{ $activityLog->subject_type }}</div>
                         <div class="text-info font-monospace small">ID: {{ $activityLog->subject_id }}</div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="text-white-50 d-block small mb-1">الوصف</label>
-                        <div class="text-white">{{ $activityLog->description }}</div>
+                        <label class="text-muted d-block small mb-1">{{ __('Description') }}</label>
+                        <div class="text-body">{{ $activityLog->description }}</div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="text-white-50 d-block small mb-1">IP Address</label>
-                        <div class="text-white font-monospace">{{ $activityLog->ip_address ?? 'N/A' }}</div>
+                        <label class="text-muted d-block small mb-1">IP Address</label>
+                        <div class="text-body font-monospace">{{ $activityLog->ip_address ?? 'N/A' }}</div>
                     </div>
                 </div>
             </div>
@@ -55,7 +55,7 @@
                             <table class="table table-dark table-bordered align-middle">
                                 <thead>
                                     <tr>
-                                        <th class="text-white-50 w-25">الحقل</th>
+                                        <th class="text-secondary-50 w-25">الحقل</th>
                                         <th class="text-danger bg-danger bg-opacity-10 w-37">القيمة القديمة</th>
                                         <th class="text-success bg-success bg-opacity-10 w-37">القيمة الجديدة</th>
                                     </tr>
@@ -75,7 +75,7 @@
                                             $isDifferent = $old !== $new;
                                         @endphp
                                         <tr class="{{ $isDifferent ? '' : 'opacity-50' }}">
-                                            <td class="font-monospace text-white-50">{{ $key }}</td>
+                                            <td class="font-monospace text-muted">{{ $key }}</td>
                                             <td class="font-monospace text-danger small">
                                                 @if(is_array($old))
                                                     <pre
@@ -98,7 +98,7 @@
                             </table>
                         </div>
                     @else
-                        <div class="alert alert-secondary bg-transparent border-secondary border-opacity-25 text-white-50">
+                        <div class="alert alert-secondary bg-transparent border-secondary border-opacity-25 text-muted">
                             <i class="bi bi-info-circle me-2"></i> لا توجد تغييرات مسجلة (قد يكون إجراء عرض أو حذف بدون تتبع)
                         </div>
                     @endif

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'دفعات الموردين')
+@section('title', __('Supplier Payments'))
 
 @section('content')
     <div class="container-fluid p-0">
@@ -8,10 +8,10 @@
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-5 gap-4">
             <div class="d-flex align-items-center gap-4">
                 <div class="icon-box bg-gradient-purple shadow-neon-purple">
-                    <i class="bi bi-cash-stack fs-3 text-white"></i>
+                    <i class="bi bi-cash-stack fs-3 text-body"></i>
                 </div>
                 <div>
-                    <h2 class="fw-bold text-white mb-1 tracking-wide">دفعات الموردين</h2>
+                    <h2 class="fw-bold text-heading mb-1 tracking-wide">{{ __('Supplier Payments') }}</h2>
                     <p class="mb-0 text-gray-400 small">سجل المدفوعات الصادرة</p>
                 </div>
             </div>
@@ -29,7 +29,7 @@
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
                             <span class="text-purple-400 x-small fw-bold text-uppercase tracking-wide">مدفوعات اليوم</span>
-                            <h2 class="text-white fw-bold mb-0 mt-1">{{ number_format($stats['today'], 2) }} <small
+                            <h2 class="text-heading fw-bold mb-0 mt-1">{{ number_format($stats['today'], 2) }} <small
                                     class="fs-6 text-gray-400">EGP</small></h2>
                         </div>
                         <div class="icon-circle bg-purple-500 bg-opacity-10 text-purple-400">
@@ -44,7 +44,7 @@
                         <div>
                             <span class="text-cyan-400 x-small fw-bold text-uppercase tracking-wide">مدفوعات الشهر
                                 الحالي</span>
-                            <h2 class="text-white fw-bold mb-0 mt-1">{{ number_format($stats['this_month'], 2) }} <small
+                            <h2 class="text-heading fw-bold mb-0 mt-1">{{ number_format($stats['this_month'], 2) }} <small
                                     class="fs-6 text-gray-400">EGP</small></h2>
                         </div>
                         <div class="icon-circle bg-cyan-500 bg-opacity-10 text-cyan-400">
@@ -56,15 +56,15 @@
         </div>
 
         <!-- Filters (Glass) -->
-        <div class="bg-slate-900 bg-opacity-50 border border-white-5 rounded-4 p-4 mb-5">
+        <div class="bg-slate-900 bg-opacity-50 border border-secondary border-opacity-10-5 rounded-4 p-4 mb-5">
             <form action="{{ route('supplier-payments.index') }}" method="GET" class="row g-3 align-items-end">
                 <div class="col-md-4">
-                    <label class="form-label text-purple-400 x-small fw-bold text-uppercase ps-1">بحث</label>
+                    <label class="form-label text-purple-400 x-small fw-bold text-uppercase ps-1">{{ __('Search') }}</label>
                     <div class="input-group">
                         <span class="input-group-text bg-dark-input border-end-0 text-gray-500"><i
                                 class="bi bi-search"></i></span>
                         <input type="text" name="search"
-                            class="form-control form-control-dark border-start-0 ps-0 text-white placeholder-gray-600 focus-ring-purple"
+                            class="form-control form-control-dark border-start-0 ps-0 text-body placeholder-gray-600 focus-ring-purple"
                             value="{{ request('search') }}" placeholder="رقم السند...">
                     </div>
                 </div>
@@ -72,7 +72,7 @@
                 <div class="col-md-4">
                     <label class="form-label text-purple-400 x-small fw-bold text-uppercase ps-1">المورد</label>
                     <select name="supplier_id"
-                        class="form-select form-select-dark text-white cursor-pointer hover:bg-white-5">
+                        class="form-select form-select-dark text-body cursor-pointer hover:bg-surface-5">
                         <option value="">-- الكل --</option>
                         @foreach($suppliers as $supplier)
                             <option value="{{ $supplier->id }}" {{ request('supplier_id') == $supplier->id ? 'selected' : '' }}>
@@ -84,8 +84,7 @@
 
                 <div class="col-md-4">
                     <button type="submit" class="btn btn-purple-glass w-100 fw-bold">
-                        <i class="bi bi-funnel"></i> تصفية
-                    </button>
+                        <i class="bi bi-funnel"></i>{{ __('Filter') }}</button>
                 </div>
             </form>
         </div>
@@ -97,12 +96,12 @@
                     <thead>
                         <tr>
                             <th class="ps-4">رقم السند</th>
-                            <th>التاريخ</th>
+                            <th>{{ __('Date') }}</th>
                             <th>المورد</th>
                             <th>الحساب المخصوم منه</th>
-                            <th>المبلغ</th>
-                            <th>طريقة الدفع</th>
-                            <th class="pe-4 text-end">إجراءات</th>
+                            <th>{{ __('Amount') }}</th>
+                            <th>{{ __('Payment Method') }}</th>
+                            <th class="pe-4 text-end">{{ __('Actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -110,31 +109,31 @@
                             <tr class="table-row-hover position-relative group-hover-actions">
                                 <td class="ps-4 font-monospace text-purple-300">
                                     <a href="{{ route('supplier-payments.show', $payment->id) }}"
-                                        class="text-decoration-none text-purple-300 hover-text-white">
+                                        class="text-decoration-none text-purple-300 hover-text-body">
                                         {{ $payment->payment_number }}
                                     </a>
                                 </td>
                                 <td class="text-gray-400 x-small">{{ $payment->payment_date->format('Y-m-d') }}</td>
-                                <td class="fw-bold text-white">{{ $payment->supplier->name }}</td>
+                                <td class="fw-bold text-body">{{ $payment->supplier->name }}</td>
                                 <td class="text-gray-400 x-small">{{ $payment->paymentAccount->name ?? '-' }}</td>
-                                <td class="fw-bold text-white fs-6">{{ number_format($payment->amount, 2) }}</td>
+                                <td class="fw-bold text-body fs-6">{{ number_format($payment->amount, 2) }}</td>
                                 <td>
                                     @if($payment->payment_method == 'cash')
-                                        <span class="badge bg-green-500 bg-opacity-10 text-green-400">نقدي</span>
+                                        <span class="badge bg-green-500 bg-opacity-10 text-green-400">{{ __('Cash') }}</span>
                                     @elseif($payment->payment_method == 'bank_transfer')
-                                        <span class="badge bg-blue-500 bg-opacity-10 text-blue-400">تحويل بنكي</span>
+                                        <span class="badge bg-blue-500 bg-opacity-10 text-blue-400">{{ __('Bank Transfer') }}</span>
                                     @else
-                                        <span class="badge bg-orange-500 bg-opacity-10 text-orange-400">شيك</span>
+                                        <span class="badge bg-orange-500 bg-opacity-10 text-orange-400">{{ __('Check') }}</span>
                                     @endif
                                 </td>
                                 <td class="pe-4 text-end">
                                     <div class="d-flex justify-content-end gap-2 opacity-0 group-hover-visible transition-all">
                                         <a href="{{ route('supplier-payments.show', $payment->id) }}" class="btn-icon-glass"
-                                            title="عرض">
+                                            title="{{ __('View') }}">
                                             <i class="bi bi-eye"></i>
                                         </a>
                                         <a href="{{ route('supplier-payments.print', $payment->id) }}" class="btn-icon-glass"
-                                            title="طباعة" target="_blank">
+                                            title="{{ __('Print') }}" target="_blank">
                                             <i class="bi bi-printer"></i>
                                         </a>
                                     </div>
@@ -155,7 +154,7 @@
             </div>
 
             @if($payments->hasPages())
-                <div class="p-4 border-top border-white-5">
+                <div class="p-4 border-top border-secondary border-opacity-10-5">
                     {{ $payments->links() }}
                 </div>
             @endif
@@ -201,7 +200,7 @@
         .btn-action-purple {
             background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
             border: none;
-            color: white;
+            color: var(--text-primary);
             padding: 10px 24px;
             border-radius: 10px;
             transition: all 0.3s;
@@ -223,15 +222,15 @@
 
         .btn-purple-glass:hover {
             background: rgba(139, 92, 246, 0.25);
-            color: white;
+            color: var(--text-primary);
             border-color: #c084fc;
         }
 
         .form-control-dark,
         .form-select-dark {
             background: rgba(15, 23, 42, 0.6) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            color: white !important;
+            border: 1px solid var(--btn-glass-border); !important;
+            color: var(--text-primary); !important;
         }
 
         .focus-ring-purple:focus {
@@ -247,7 +246,7 @@
 
         .table-dark-custom th {
             background: rgba(0, 0, 0, 0.2);
-            color: #94a3b8;
+            color: var(--text-secondary);
             font-weight: 600;
             padding: 1rem;
         }
@@ -267,14 +266,14 @@
             align-items: center;
             justify-content: center;
             border-radius: 6px;
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--btn-glass-bg);
             color: #cbd5e1;
             transition: 0.2s;
         }
 
         .btn-icon-glass:hover {
             background: rgba(255, 255, 255, 0.1);
-            color: white;
+            color: var(--text-primary);
         }
     </style>
 @endsection

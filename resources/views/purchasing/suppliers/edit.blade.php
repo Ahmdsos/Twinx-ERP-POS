@@ -10,9 +10,9 @@
                 <a href="{{ route('suppliers.index') }}" class="btn btn-outline-light btn-sm rounded-circle shadow-sm"
                     style="width: 32px; height: 32px;"><i class="bi bi-arrow-right"></i></a>
                 <div>
-                    <h2 class="fw-bold text-white mb-0">تعديل: {{ $supplier->name }}</h2>
+                    <h2 class="fw-bold text-heading mb-0">تعديل: {{ $supplier->name }}</h2>
                     <span
-                        class="badge bg-slate-800 text-cyan-400 border border-white-10 font-monospace">{{ $supplier->code }}</span>
+                        class="badge bg-slate-800 text-cyan-400 border border-secondary border-opacity-10-10 font-monospace">{{ $supplier->code }}</span>
                 </div>
             </div>
             <button type="submit" form="editForm"
@@ -32,7 +32,7 @@
         .btn-action-cyan {
             background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
             border: none;
-            color: white;
+            color: var(--text-primary);
             padding: 10px 24px;
             border-radius: 10px;
             transition: all 0.3s;

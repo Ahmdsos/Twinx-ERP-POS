@@ -139,7 +139,7 @@ class AccountController extends Controller
         $query = $account->journalLines()
             ->with(['journalEntry'])
             ->whereHas('journalEntry', function ($q) use ($startDate, $queryEndDate) {
-                $q->where('status', 'posted')
+                $q->whereIn('status', [\Modules\Accounting\Enums\JournalStatus::POSTED, \Modules\Accounting\Enums\JournalStatus::REVERSED])
                     ->whereBetween('entry_date', [$startDate, $queryEndDate]);
             })
             ->orderBy('created_at');
@@ -190,7 +190,7 @@ class AccountController extends Controller
     {
         $lines = $account->journalLines()
             ->whereHas('journalEntry', function ($q) use ($startDate) {
-                $q->where('status', 'posted')
+                $q->whereIn('status', [\Modules\Accounting\Enums\JournalStatus::POSTED, \Modules\Accounting\Enums\JournalStatus::REVERSED])
                     ->where('entry_date', '<', $startDate);
             })
             ->get();

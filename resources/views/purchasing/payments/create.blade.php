@@ -9,7 +9,7 @@
             <div class="d-flex align-items-center gap-3">
                 <a href="{{ route('supplier-payments.index') }}" class="btn btn-outline-light btn-sm rounded-circle shadow-sm" style="width: 32px; height: 32px;"><i class="bi bi-arrow-right"></i></a>
                 <div>
-                    <h2 class="fw-bold text-white mb-0">سداد ذكي لمورد</h2>
+                    <h2 class="fw-bold text-heading mb-0">سداد ذكي لمورد</h2>
                     <p class="text-gray-400 mb-0 x-small">نظام التوزيع التلقائي الذكي على الفواتير</p>
                 </div>
             </div>
@@ -38,11 +38,11 @@
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label text-gray-400 small fw-bold">طريقة الدفع <span class="text-danger">*</span></label>
+                                <label class="form-label text-gray-400 small fw-bold">{{ __('Payment Method') }}<span class="text-danger">*</span></label>
                                 <select name="payment_method" class="form-select form-select-dark focus-ring-purple" required>
                                     <option value="cash">نقدي (خزينة)</option>
-                                    <option value="bank_transfer">تحويل بنكي</option>
-                                    <option value="cheque">شيك</option>
+                                    <option value="bank_transfer">{{ __('Bank Transfer') }}</option>
+                                    <option value="cheque">{{ __('Check') }}</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
@@ -67,17 +67,17 @@
 
                         <div class="d-inline-block position-relative mb-2">
                             <input type="number" step="0.01" name="amount" x-model.number="amount" @input="recalculateAllocations()"
-                                class="smart-amount-input text-center fw-black display-3 text-white bg-transparent border-0 focus-ring-none"
+                                class="smart-amount-input text-center fw-black display-3 text-body bg-transparent border-0 focus-ring-none"
                                 placeholder="0.00" autocomplete="off" required>
                             <span class="fs-4 text-purple-400 fw-bold ms-2">EGP</span>
                         </div>
 
-                        <div class="d-flex justify-content-center gap-4 mt-3 pt-3 border-top border-white border-opacity-5">
+                        <div class="d-flex justify-content-center gap-4 mt-3 pt-3 border-top border-secondary border-opacity-10 border-opacity-5">
                             <div class="text-center">
                                 <p class="text-gray-500 x-small mb-1">المديونية الحالية</p>
-                                <h5 class="text-white fw-black mb-0" x-text="formatCurrency(supplierBalance)">0.00</h5>
+                                <h5 class="text-heading fw-black mb-0" x-text="formatCurrency(supplierBalance)">0.00</h5>
                             </div>
-                            <div class="vr bg-white opacity-10"></div>
+                            <div class="vr bg-surface opacity-10"></div>
                             <div class="text-center">
                                 <p class="text-gray-500 x-small mb-1">الرصيد بعد السداد</p>
                                 <h5 class="fw-black mb-0" :class="remainingBalance > 0 ? 'text-red-400' : 'text-green-400'" 
@@ -106,12 +106,12 @@
                             </template>
 
                             <!-- Allocation List -->
-                            <div class="table-responsive rounded-4 overflow-hidden border border-white border-opacity-5 shadow-inner">
+                            <div class="table-responsive rounded-4 overflow-hidden border border-secondary border-opacity-10 border-opacity-5 shadow-inner">
                                 <table class="table table-dark-custom align-middle mb-0">
                                     <thead class="bg-black bg-opacity-25">
                                         <tr>
                                             <th class="ps-4">الفاتورة المستهدفة</th>
-                                            <th class="text-center">الحالة</th>
+                                            <th class="text-center">{{ __('Status') }}</th>
                                             <th class="text-end">المبلغ المخصص</th>
                                             <th class="text-end pe-4">المتبقي بالفاتورة</th>
                                         </tr>
@@ -121,7 +121,7 @@
                                             <tr :class="inv.allocated > 0 ? 'bg-purple-500 bg-opacity-5' : 'opacity-40'">
                                                 <td class="ps-4">
                                                     <div class="d-flex flex-column">
-                                                        <span class="fw-bold text-white" x-text="inv.invoice_number"></span>
+                                                        <span class="fw-bold text-body" x-text="inv.invoice_number"></span>
                                                         <span class="x-small text-gray-500" x-text="inv.due_date"></span>
                                                     </div>
                                                 </td>
@@ -133,10 +133,10 @@
                                                         <span class="badge bg-yellow-500 bg-opacity-10 text-yellow-400 border border-yellow-500 border-opacity-20 px-3">سداد جزئي</span>
                                                     </template>
                                                     <template x-if="inv.allocated == 0">
-                                                        <span class="badge bg-gray-500 bg-opacity-10 text-gray-400 border border-white border-opacity-10 px-3">غير مشمول</span>
+                                                        <span class="badge bg-gray-500 bg-opacity-10 text-gray-400 border border-secondary border-opacity-10 border-opacity-10 px-3">غير مشمول</span>
                                                     </template>
                                                 </td>
-                                                <td class="text-end fw-black text-white" x-text="formatCurrency(inv.allocated)"></td>
+                                                <td class="text-end fw-black text-body" x-text="formatCurrency(inv.allocated)"></td>
                                                 <td class="text-end pe-4">
                                                     <span :class="inv.new_balance <= 0 ? 'text-gray-500' : 'text-red-400 fw-bold'" 
                                                         x-text="formatCurrency(inv.new_balance)"></span>
@@ -181,7 +181,7 @@
 
                     <!-- Help Card -->
                     <div class="glass-panel p-4 bg-gradient-to-br from-purple-900/20 to-transparent border-purple-500/10">
-                        <h6 class="text-white fw-bold mb-3"><i class="bi bi-lightning-charge me-2 text-yellow-400"></i>نصيحة ذكية</h6>
+                        <h6 class="text-heading fw-bold mb-3"><i class="bi bi-lightning-charge me-2 text-yellow-400"></i>نصيحة ذكية</h6>
                         <p class="text-gray-400 x-small lh-lg mb-0">
                             السيستم بيقوم بتوزيع المبلغ اللي بتدخله تلقائياً على أقدم الفواتير المستحقة (FIFO). 
                             لو المبلغ أكبر من قيمة كل الفواتير، الزيادة هتتحسب كـ "دفعة مقدمة" في رصيد المورد وتقدر تخصمها من أي فواتير مستقبلية.
@@ -204,14 +204,14 @@
 
         .btn-action-purple {
             background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
-            border: none; color: white; border-radius: 12px; transition: all 0.3s;
+            border: none; color: var(--text-primary); border-radius: 12px; transition: all 0.3s;
         }
         .btn-action-purple:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(139, 92, 246, 0.4); }
 
         .form-control-dark, .form-select-dark {
             background: rgba(15, 23, 42, 0.6) !important;
-            border: 1px solid rgba(255, 255, 255, 0.08) !important;
-            border-radius: 10px; color: white !important;
+            border-bottom: 1px solid var(--border-color); !important;
+            border-radius: 10px; color: var(--text-primary); !important;
         }
         .focus-ring-purple:focus { border-color: #c084fc !important; box-shadow: 0 0 0 4px rgba(192, 132, 252, 0.08) !important; }
 

@@ -43,7 +43,13 @@ enum SalesOrderStatus: string
 
     public function badgeClass(): string
     {
-        return 'bg-' . $this->color() . ' text-white';
+        $color = $this->color();
+        // Warning and Info usually need dark text for better contrast
+        if (in_array($color, ['warning', 'info', 'secondary'])) {
+            return 'bg-' . $color . ' bg-opacity-10 text-' . $color;
+        }
+
+        return 'bg-' . $color . ' text-white';
     }
 
     public function canEdit(): bool

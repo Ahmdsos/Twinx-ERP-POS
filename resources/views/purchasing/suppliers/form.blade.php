@@ -2,7 +2,7 @@
     <!-- Basic Info -->
     <div class="col-md-8">
         <div class="glass-panel p-4 mb-4">
-            <h5 class="text-cyan-400 mb-4 fw-bold"><i class="bi bi-info-circle me-2"></i>البيانات الأساسية</h5>
+            <h5 class="text-cyan-400 mb-4 fw-bold"><i class="bi bi-info-circle me-2"></i>{{ __('Basic Information') }}</h5>
             
             <div class="row g-3">
                 <div class="col-md-4">
@@ -21,7 +21,7 @@
                 </div>
 
                 <div class="col-md-8">
-                    <label class="form-label text-gray-400 small fw-bold">اسم المورد <span class="text-danger">*</span></label>
+                    <label class="form-label text-gray-400 small fw-bold">{{ __('Supplier Name') }}<span class="text-danger">*</span></label>
                     <input type="text" name="name" class="form-control form-control-dark focus-ring-cyan" 
                         value="{{ old('name', $supplier->name ?? '') }}" required placeholder="اسم الشركة أو المورد">
                     @error('name') <div class="text-danger x-small mt-1">{{ $message }}</div> @enderror
@@ -37,7 +37,7 @@
                 </div>
 
                 <div class="col-md-6">
-                    <label class="form-label text-gray-400 small fw-bold">الرقم الضريبي</label>
+                    <label class="form-label text-gray-400 small fw-bold">{{ __('Tax Number') }}</label>
                     <div class="input-group">
                         <span class="input-group-text bg-dark-input border-end-0 text-gray-500"><i class="bi bi-receipt"></i></span>
                         <input type="text" name="tax_number" class="form-control form-control-dark border-start-0 font-monospace focus-ring-cyan" 
@@ -69,7 +69,7 @@
             
             <div class="row g-3">
                 <div class="col-12">
-                    <label class="form-label text-gray-400 small fw-bold">رقم الهاتف</label>
+                    <label class="form-label text-gray-400 small fw-bold">{{ __('Phone') }}</label>
                     <div class="input-group">
                         <span class="input-group-text bg-dark-input border-end-0 text-gray-500"><i class="bi bi-telephone"></i></span>
                         <input type="text" name="phone" class="form-control form-control-dark border-start-0 font-monospace focus-ring-cyan" 
@@ -78,7 +78,7 @@
                 </div>
 
                 <div class="col-12">
-                    <label class="form-label text-gray-400 small fw-bold">البريد الإلكتروني</label>
+                    <label class="form-label text-gray-400 small fw-bold">{{ __('Email') }}</label>
                     <div class="input-group">
                         <span class="input-group-text bg-dark-input border-end-0 text-gray-500"><i class="bi bi-envelope"></i></span>
                         <input type="email" name="email" class="form-control form-control-dark border-start-0 focus-ring-cyan" 
@@ -89,7 +89,7 @@
         </div>
 
         <div class="glass-panel p-4 mb-4">
-            <h5 class="text-cyan-400 mb-4 fw-bold"><i class="bi bi-gear me-2"></i>الإعدادات</h5>
+            <h5 class="text-cyan-400 mb-4 fw-bold"><i class="bi bi-gear me-2"></i>{{ __('Settings') }}</h5>
             
             <div class="mb-3">
                 <label class="form-label text-gray-400 small fw-bold">شروط الدفع (أيام)</label>
@@ -104,7 +104,7 @@
             <div class="form-check form-switch custom-toggle">
                 <input class="form-check-input" type="checkbox" name="is_active" value="1" id="isActive" 
                     {{ old('is_active', $supplier->is_active ?? true) ? 'checked' : '' }}>
-                <label class="form-check-label text-white ms-2" for="isActive">مورد نشط</label>
+                <label class="form-check-label text-body ms-2" for="isActive">مورد نشط</label>
             </div>
         </div>
         
@@ -119,8 +119,8 @@
     /* Reuse consistent styles */
     .form-control-dark {
         background: rgba(15, 23, 42, 0.6) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        color: white !important;
+        border: 1px solid var(--btn-glass-border); !important;
+        color: var(--text-primary); !important;
     }
     .form-control-dark:focus {
         border-color: #22d3ee !important;
@@ -132,7 +132,7 @@
     }
     .bg-dark-input {
         background: rgba(15, 23, 42, 0.8) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid var(--btn-glass-border); !important;
     }
     .btn-outline-cyan {
         color: #22d3ee;
@@ -141,7 +141,7 @@
     }
     .btn-outline-cyan:hover {
         background: rgba(6, 182, 212, 0.2);
-        color: white;
+        color: var(--text-primary);
         border-color: #22d3ee;
     }
 </style>

@@ -13,11 +13,11 @@ class BarcodeService
     /**
      * Generate barcode as SVG
      */
-    public function generateBarcodeSvg(string $code, string $type = 'C128'): string
+    public function generateBarcodeSvg(string $code, string $type = 'C128', int $width = 2, int $height = 60): string
     {
         // Using DNS1D compatible format
         $generator = new \App\Helpers\BarcodeGenerator();
-        return $generator->getBarcodeSVG($code, $type, 2, 60);
+        return $generator->getBarcodeSVG($code, $type, $width, $height);
     }
 
     /**
@@ -58,7 +58,7 @@ class BarcodeService
             'product_name' => $product->name,
             'sku' => $product->sku,
             'barcode' => $barcodeData,
-            'barcode_svg' => $this->generateBarcodeSvg($barcodeData),
+            'barcode_svg' => $this->generateBarcodeSvg($barcodeData, 'C128', 2, 60),
             'price' => number_format($product->selling_price, 2),
             'label_size' => $labelSize,
         ];

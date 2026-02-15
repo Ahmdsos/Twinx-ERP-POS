@@ -10,14 +10,13 @@
 
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
-                        <h4 class="fw-bold text-white mb-1">قيد يومية جديد (Manual Journal)</h4>
-                        <div class="text-white-50 small">تسجيل القيود اليدوية والتسويات</div>
+                        <h4 class="fw-bold text-heading mb-1">قيد يومية جديد (Manual Journal)</h4>
+                        <div class="text-muted small">تسجيل القيود اليدوية والتسويات</div>
                     </div>
                     <div class="d-flex gap-2">
-                        <a href="{{ route('journal-entries.index') }}" class="btn btn-glass-outline">إلغاء</a>
+                        <a href="{{ route('journal-entries.index') }}" class="btn btn-glass-outline">{{ __('Cancel') }}</a>
                         <button type="submit" class="btn btn-primary px-4 fw-bold shadow-lg">
-                            <i class="bi bi-save me-2"></i> حفظ القيد
-                        </button>
+                            <i class="bi bi-save me-2"></i>{{ __('Save Entry') }}</button>
                     </div>
                 </div>
 
@@ -25,20 +24,20 @@
                     <!-- Header Info -->
                     <div class="row g-4 mb-4">
                         <div class="col-md-3">
-                            <label class="form-label text-gray-300">تاريخ القيد <span class="text-danger">*</span></label>
+                            <label class="form-label text-gray-300">{{ __('Entry Date') }}<span class="text-danger">*</span></label>
                             <input type="date" name="entry_date" value="{{ date('Y-m-d') }}"
-                                class="form-control bg-transparent text-white border-secondary" required>
+                                class="form-control bg-transparent text-body border-secondary" required>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label text-gray-300">رقم مرجعي</label>
                             <input type="text" name="reference"
-                                class="form-control bg-transparent text-white border-secondary" placeholder="Manual Ref">
+                                class="form-control bg-transparent text-body border-secondary" placeholder="Manual Ref">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label text-gray-300">الوصف / البيان <span
                                     class="text-danger">*</span></label>
                             <input type="text" name="description"
-                                class="form-control bg-transparent text-white border-secondary" required>
+                                class="form-control bg-transparent text-body border-secondary" required>
                         </div>
                     </div>
 
@@ -46,10 +45,10 @@
 
                     <!-- Journal Lines -->
                     <div class="table-responsive">
-                        <table class="table align-middle text-white mb-0 custom-table" id="linesTable">
+                        <table class="table align-middle text-body mb-0 custom-table" id="linesTable">
                             <thead>
                                 <tr>
-                                    <th class="ps-3" style="width: 40%">الحساب</th>
+                                    <th class="ps-3" style="width: 40%">{{ __('Account') }}</th>
                                     <th style="width: 25%">الوصف (اختياري)</th>
                                     <th class="text-end" style="width: 15%">مدين (Debit)</th>
                                     <th class="text-end" style="width: 15%">دائن (Credit)</th>
@@ -60,8 +59,8 @@
                                 <!-- Rows will be added here by JS -->
                             </tbody>
                             <tfoot>
-                                <tr class="bg-white bg-opacity-5 font-monospace fw-bold">
-                                    <td colspan="2" class="ps-3 text-end py-3">الإجمالي</td>
+                                <tr class="bg-surface bg-opacity-5 font-monospace fw-bold">
+                                    <td colspan="2" class="ps-3 text-end py-3">{{ __('Total') }}</td>
                                     <td class="text-end py-3 text-info" id="totalDebit">0.00</td>
                                     <td class="text-end py-3 text-info" id="totalCredit">0.00</td>
                                     <td></td>
@@ -91,7 +90,7 @@
         <tr class="line-row">
             <td class="ps-3">
                 <select name="lines[INDEX][account_id]"
-                    class="form-select bg-transparent text-white border-secondary form-select-sm" required>
+                    class="form-select bg-transparent text-body border-secondary form-select-sm" required>
                     <option value="">اختر الحساب...</option>
                     @foreach($accounts as $account)
                         <option value="{{ $account->id }}">{{ $account->code }} - {{ $account->name }}</option>
@@ -100,16 +99,16 @@
             </td>
             <td>
                 <input type="text" name="lines[INDEX][description]"
-                    class="form-control bg-transparent text-white border-secondary form-control-sm">
+                    class="form-control bg-transparent text-body border-secondary form-control-sm">
             </td>
             <td>
                 <input type="number" step="0.01" name="lines[INDEX][debit]"
-                    class="form-control bg-transparent text-white border-secondary form-control-sm text-end debit-input"
+                    class="form-control bg-transparent text-body border-secondary form-control-sm text-end debit-input"
                     value="0.00" oninput="calcTotals()">
             </td>
             <td>
                 <input type="number" step="0.01" name="lines[INDEX][credit]"
-                    class="form-control bg-transparent text-white border-secondary form-control-sm text-end credit-input"
+                    class="form-control bg-transparent text-body border-secondary form-control-sm text-end credit-input"
                     value="0.00" oninput="calcTotals()">
             </td>
             <td class="text-center">
@@ -122,22 +121,17 @@
     </template>
 
     <style>
-        .glass-card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
-        }
+        
 
         .btn-glass-outline {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--btn-glass-bg);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
+            color: var(--text-primary);
         }
 
         .custom-table thead th {
             background-color: rgba(255, 255, 255, 0.03);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            border-bottom: 1px solid var(--border-color);
         }
 
         .form-control:focus,
@@ -145,12 +139,12 @@
             background-color: rgba(30, 41, 59, 0.9);
             border-color: #3b82f6;
             box-shadow: none;
-            color: white;
+            color: var(--text-primary);
         }
 
         option {
-            background-color: #1e293b;
-            color: white;
+            background-color: var(--input-bg);
+            color: var(--text-primary);
         }
 
         input[type=number]::-webkit-inner-spin-button,

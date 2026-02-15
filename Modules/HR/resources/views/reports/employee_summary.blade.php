@@ -93,7 +93,7 @@
             <div class="employee-block">
                 <div class="row align-items-center mb-4">
                     <div class="col-md-1">
-                        <div class="bg-primary text-white rounded p-2 text-center">
+                        <div class="bg-primary text-heading rounded p-2 text-center">
                             <i class="bi bi-person fs-1"></i>
                         </div>
                     </div>

@@ -10,7 +10,7 @@
 
             <!-- Code & Name -->
             <span class="font-monospace text-warning small">{{ $account['code'] }}</span>
-            <span class="fw-bold {{ count($account['children']) > 0 ? 'text-white' : 'text-white-50' }}">
+            <span class="fw-bold {{ count($account['children']) > 0 ? 'text-body' : 'text-muted' }}">
                 {{ $account['name'] }} @if(isset($account['name_ar'])) - <span
                 class="text-info">{{ $account['name_ar'] }}</span> @endif
             </span>
@@ -25,18 +25,18 @@
         <!-- Actions (Only visible on hover) -->
         <div class="d-flex gap-1 opacity-50 group-actions">
             <a href="{{ route('accounts.show', $account['id']) }}" class="btn btn-sm btn-icon-glass text-info"
-                title="كشف حساب">
+                title="{{ __('Account Statement') }}">
                 <i class="bi bi-eye"></i>
             </a>
             <a href="{{ route('accounts.edit', $account['id']) }}" class="btn btn-sm btn-icon-glass text-warning"
-                title="تعديل">
+                title="{{ __('Edit') }}">
                 <i class="bi bi-pencil"></i>
             </a>
             @if(count($account['children']) == 0 && $account['balance'] == 0)
                 <form action="{{ route('accounts.destroy', $account['id']) }}" method="POST"
                     data-confirm="هل أنت متأكد من حذف هذا الحساب؟" class="d-inline">
                     @csrf @method('DELETE')
-                    <button type="submit" class="btn btn-sm btn-icon-glass text-danger" title="حذف">
+                    <button type="submit" class="btn btn-sm btn-icon-glass text-danger" title="{{ __('Delete') }}">
                         <i class="bi bi-trash"></i>
                     </button>
                 </form>
@@ -45,7 +45,7 @@
     </div>
 
     @if(count($account['children']) > 0)
-        <ul class="list-unstyled pe-4 mt-1 border-end border-white border-opacity-10 account-tree">
+        <ul class="list-unstyled pe-4 mt-1 border-end border-secondary border-opacity-10 border-opacity-10 account-tree">
             @foreach($account['children'] as $child)
                 @include('accounting.accounts.tree-item', ['account' => $child])
             @endforeach
@@ -55,7 +55,7 @@
 
 <style>
     .hover-bg-glass:hover {
-        background: rgba(255, 255, 255, 0.05);
+        background: var(--btn-glass-bg);
     }
 
     .hover-bg-glass:hover .group-actions {
@@ -65,10 +65,10 @@
     .btn-icon-glass {
         padding: 0.15rem 0.4rem;
         font-size: 0.8rem;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: var(--btn-glass-bg);
+        border: 1px solid var(--btn-glass-border);
         border-radius: 4px;
-        color: white;
+        color: var(--text-primary);
     }
 
     .btn-icon-glass:hover {

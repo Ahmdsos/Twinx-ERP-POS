@@ -7,8 +7,8 @@
         <!-- Header -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h3 class="fw-bold text-white mb-2 tracking-wide">الماركات التجارية</h3>
-                <p class="text-gray-400 mb-0 small">إدارة الشركات والعلامات التجارية</p>
+                <h3 class="fw-bold text-heading mb-2 tracking-wide">الماركات التجارية</h3>
+                <p class="text-secondary mb-0 small">إدارة الشركات والعلامات التجارية</p>
             </div>
             <div class="d-flex gap-2">
                 <div class="dropdown">
@@ -17,9 +17,9 @@
                         type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false"
                         style="width: auto; height: 42px; background: rgba(30, 41, 59, 0.5); color: #cbd5e1;">
                         <i class="bi bi-cloud-download"></i>
-                        <span class="d-none d-md-block small">تصدير</span>
+                        <span class="d-none d-md-block small">{{ __('Export') }}</span>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-dark bg-slate-900 border-white-10 shadow-neon"
+                    <ul class="dropdown-menu dropdown-menu-dark bg-surface border-secondary border-opacity-10-10 shadow-neon"
                         aria-labelledby="exportDropdown">
                         <li>
                             <a class="dropdown-item d-flex align-items-center gap-2"
@@ -39,7 +39,7 @@
                     class="btn btn-icon-glass px-3 d-flex align-items-center gap-2 text-decoration-none"
                     style="width: auto; height: 42px;">
                     <i class="bi bi-cloud-upload"></i>
-                    <span class="d-none d-md-block small">استيراد</span>
+                    <span class="d-none d-md-block small">{{ __('Import') }}</span>
                 </a>
                 <button type="button"
                     class="btn btn-action-purple px-4 py-2 rounded-pill fw-bold shadow-neon-purple d-flex align-items-center gap-2"
@@ -67,9 +67,9 @@
                             <th class="ps-4" style="width: 50px;">#</th>
                             <th>اسم الماركة</th>
                             <th>الموقع الإلكتروني</th>
-                            <th>الحالة</th>
+                            <th>{{ __('Status') }}</th>
                             <th>وقت الإضافة</th>
-                            <th class="pe-4 text-end">إجراءات</th>
+                            <th class="pe-4 text-end">{{ __('Actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -78,14 +78,14 @@
                                 <td class="ps-4 text-gray-500 font-monospace">{{ $loop->iteration }}</td>
                                 <td>
                                     <div>
-                                        <span class="text-white fw-bold d-block mb-1">{{ $brand->name }}</span>
+                                        <span class="text-body fw-bold d-block mb-1">{{ $brand->name }}</span>
                                         <span class="text-gray-500 x-small">{{ Str::limit($brand->description, 50) }}</span>
                                     </div>
                                 </td>
                                 <td>
                                     @if($brand->website)
                                         <a href="{{ $brand->website }}" target="_blank"
-                                            class="text-cyan-400 text-decoration-none small hover-text-white transition-all">
+                                            class="text-cyan-400 text-decoration-none small hover-text-body transition-all">
                                             <i class="bi bi-link-45deg me-1"></i>
                                             {{ parse_url($brand->website, PHP_URL_HOST) ?? 'زيارة الموقع' }}
                                         </a>
@@ -96,15 +96,13 @@
                                 <td>
                                     @if($brand->is_active)
                                         <span class="d-inline-flex align-items-center gap-2 text-success small fw-bold">
-                                            <span class="indicator-dot bg-success shadow-neon-sm"></span> نشط
-                                        </span>
+                                            <span class="indicator-dot bg-success shadow-neon-sm"></span>{{ __('Active') }}</span>
                                     @else
                                         <span class="d-inline-flex align-items-center gap-2 text-gray-500 small">
-                                            <span class="indicator-dot bg-secondary"></span> غير نشط
-                                        </span>
+                                            <span class="indicator-dot bg-secondary"></span>{{ __('Inactive') }}</span>
                                     @endif
                                 </td>
-                                <td class="text-gray-400 small font-monospace">
+                                <td class="text-secondary small font-monospace">
                                     {{ $brand->created_at->format('Y-m-d') }}
                                 </td>
                                 <td class="pe-4 text-end">
@@ -145,8 +143,8 @@
     <div class="modal fade" id="createBrandModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content glass-panel border-0">
-                <div class="modal-header border-bottom border-white-10">
-                    <h5 class="modal-title text-white fw-bold">إضافة ماركة جديدة</h5>
+                <div class="modal-header border-bottom border-secondary border-opacity-10-10">
+                    <h5 class="modal-title text-heading fw-bold">إضافة ماركة جديدة</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>
                 </div>
@@ -157,20 +155,20 @@
                             <label class="form-label text-purple-400 small fw-bold text-uppercase ps-1">اسم الماركة <span
                                     class="text-danger">*</span></label>
                             <input type="text" name="name"
-                                class="form-control form-control-dark text-white placeholder-gray-600 focus-ring-purple"
+                                class="form-control form-control text-body placeholder-gray-600 focus-ring-purple"
                                 required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label text-purple-400 small fw-bold text-uppercase ps-1">الوصف</label>
+                            <label class="form-label text-purple-400 small fw-bold text-uppercase ps-1">{{ __('Description') }}</label>
                             <textarea name="description"
-                                class="form-control form-control-dark text-white placeholder-gray-600 focus-ring-purple"
+                                class="form-control form-control text-body placeholder-gray-600 focus-ring-purple"
                                 rows="3"></textarea>
                         </div>
                         <div class="mb-3">
                             <label class="form-label text-purple-400 small fw-bold text-uppercase ps-1">الموقع
                                 الإلكتروني</label>
                             <input type="url" name="website"
-                                class="form-control form-control-dark text-white placeholder-gray-600 focus-ring-purple"
+                                class="form-control form-control text-body placeholder-gray-600 focus-ring-purple"
                                 placeholder="https://example.com">
                         </div>
                         <div class="mt-4">
@@ -178,16 +176,16 @@
                                 <input type="checkbox" name="is_active" value="1" checked id="createActive">
                                 <span class="toggle-switch"></span>
                                 <div>
-                                    <span class="text-white fw-bold d-block small">ماركة نشطة</span>
+                                    <span class="text-body fw-bold d-block small">ماركة نشطة</span>
                                     <span class="text-gray-500 x-small">تظهر في قوائم المنتجات</span>
                                 </div>
                             </label>
                         </div>
                     </div>
-                    <div class="modal-footer border-top border-white-10">
-                        <button type="button" class="btn btn-link text-gray-400 text-decoration-none"
-                            data-bs-dismiss="modal">إلغاء</button>
-                        <button type="submit" class="btn btn-action-purple px-4 rounded-pill fw-bold">حفظ</button>
+                    <div class="modal-footer border-top border-secondary border-opacity-10-10">
+                        <button type="button" class="btn btn-link text-secondary text-decoration-none"
+                            data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                        <button type="submit" class="btn btn-action-purple px-4 rounded-pill fw-bold">{{ __('Save') }}</button>
                     </div>
                 </form>
             </div>
@@ -198,8 +196,8 @@
     <div class="modal fade" id="editBrandModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content glass-panel border-0">
-                <div class="modal-header border-bottom border-white-10">
-                    <h5 class="modal-title text-white fw-bold">تعديل الماركة</h5>
+                <div class="modal-header border-bottom border-secondary border-opacity-10-10">
+                    <h5 class="modal-title text-heading fw-bold">تعديل الماركة</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>
                 </div>
@@ -211,36 +209,36 @@
                             <label class="form-label text-purple-400 small fw-bold text-uppercase ps-1">اسم الماركة <span
                                     class="text-danger">*</span></label>
                             <input type="text" name="name" id="editName"
-                                class="form-control form-control-dark text-white placeholder-gray-600 focus-ring-purple"
+                                class="form-control form-control text-body placeholder-gray-600 focus-ring-purple"
                                 required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label text-purple-400 small fw-bold text-uppercase ps-1">الوصف</label>
+                            <label class="form-label text-purple-400 small fw-bold text-uppercase ps-1">{{ __('Description') }}</label>
                             <textarea name="description" id="editDescription"
-                                class="form-control form-control-dark text-white placeholder-gray-600 focus-ring-purple"
+                                class="form-control form-control text-body placeholder-gray-600 focus-ring-purple"
                                 rows="3"></textarea>
                         </div>
                         <div class="mb-3">
                             <label class="form-label text-purple-400 small fw-bold text-uppercase ps-1">الموقع
                                 الإلكتروني</label>
                             <input type="url" name="website" id="editWebsite"
-                                class="form-control form-control-dark text-white placeholder-gray-600 focus-ring-purple">
+                                class="form-control form-control text-body placeholder-gray-600 focus-ring-purple">
                         </div>
                         <div class="mt-4">
                             <label class="custom-toggle d-flex align-items-center gap-3 cursor-pointer">
                                 <input type="checkbox" name="is_active" value="1" id="editActive">
                                 <span class="toggle-switch"></span>
                                 <div>
-                                    <span class="text-white fw-bold d-block small">ماركة نشطة</span>
+                                    <span class="text-body fw-bold d-block small">ماركة نشطة</span>
                                     <span class="text-gray-500 x-small">تظهر في قوائم المنتجات</span>
                                 </div>
                             </label>
                         </div>
                     </div>
-                    <div class="modal-footer border-top border-white-10">
-                        <button type="button" class="btn btn-link text-gray-400 text-decoration-none"
-                            data-bs-dismiss="modal">إلغاء</button>
-                        <button type="submit" class="btn btn-action-purple px-4 rounded-pill fw-bold">تحديث</button>
+                    <div class="modal-footer border-top border-secondary border-opacity-10-10">
+                        <button type="button" class="btn btn-link text-secondary text-decoration-none"
+                            data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                        <button type="submit" class="btn btn-action-purple px-4 rounded-pill fw-bold">{{ __('Update') }}</button>
                     </div>
                 </form>
             </div>
@@ -261,8 +259,8 @@
 
     <style>
         .glass-panel {
-            background: rgba(30, 41, 59, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: var(--glass-bg);
+            border-bottom: 1px solid var(--border-color);
             backdrop-filter: blur(12px);
             border-radius: 16px;
         }
@@ -270,8 +268,8 @@
         .form-control-dark,
         .form-select-dark {
             background: rgba(15, 23, 42, 0.6) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            color: white !important;
+            border: 1px solid var(--btn-glass-border); !important;
+            color: var(--text-primary); !important;
             padding: 0.8rem 1rem;
             border-radius: 12px;
         }
@@ -288,13 +286,13 @@
         .bg-dark-input {
             background: rgba(15, 23, 42, 0.8) !important;
             border-color: rgba(255, 255, 255, 0.1) !important;
-            color: #94a3b8;
+            color: var(--text-secondary);
         }
 
         .btn-action-purple {
             background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%);
             border: none;
-            color: white;
+            color: var(--text-primary);
             transition: all 0.3s;
         }
 
@@ -306,7 +304,7 @@
         .table-dark-custom {
             --bs-table-bg: transparent;
             --bs-table-border-color: rgba(255, 255, 255, 0.05);
-            color: #e2e8f0;
+            color: var(--text-body);
         }
 
         .table-dark-custom th {
@@ -315,7 +313,7 @@
             text-transform: uppercase;
             font-size: 0.75rem;
             letter-spacing: 0.05em;
-            color: #94a3b8;
+            color: var(--text-secondary);
         }
 
         .btn-icon-glass {
@@ -324,15 +322,15 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(255, 255, 255, 0.05);
-            color: #94a3b8;
+            background: var(--btn-glass-bg);
+            color: var(--text-secondary);
             border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--btn-glass-border);
         }
 
         .btn-icon-glass:hover {
             background: rgba(255, 255, 255, 0.1);
-            color: white;
+            color: var(--text-primary);
         }
 
         .hover-bg-danger:hover {
@@ -355,7 +353,7 @@
         }
 
         .hover-text-white:hover {
-            color: white !important;
+            color: var(--text-primary); !important;
         }
 
         .indicator-dot {
@@ -399,7 +397,7 @@
             width: 20px;
             left: 3px;
             bottom: 2px;
-            background-color: white;
+            background-color: var(--text-primary);
             border-radius: 50%;
             transition: .3s;
         }

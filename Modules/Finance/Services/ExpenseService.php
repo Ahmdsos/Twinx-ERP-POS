@@ -56,6 +56,15 @@ class ExpenseService
 
         // Journal Lines
         $taxAmount = (float) ($expense->tax_amount ?? 0);
+
+        // SAFETY: Ensure total_amount = amount + tax_amount for balanced journal entry
+        $expectedTotal = (float) $expense->amount + $taxAmount;
+        if (abs((float) $expense->total_amount - $expectedTotal) > 0.01) {
+            throw new \RuntimeException(
+                "Expense amounts inconsistent: amount({$expense->amount}) + tax({$taxAmount}) = {$expectedTotal}, but total_amount = {$expense->total_amount}"
+            );
+        }
+
         $taxCode = \App\Models\Setting::getValue('acc_tax_receivable', \App\Models\Setting::getValue('acc_tax_payable', '2201'));
         $taxAccount = \Modules\Accounting\Models\Account::where('code', $taxCode)->first();
 

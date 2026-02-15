@@ -74,6 +74,6 @@ class User extends Authenticatable
 
     public function shifts()
     {
-        return $this->hasMany(PosShift::class);
+        return $this->hasMany(\Modules\Sales\Models\PosShift::class);
     }
 }

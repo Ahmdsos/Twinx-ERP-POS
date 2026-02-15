@@ -11,7 +11,7 @@
                     class="btn btn-outline-light btn-sm rounded-circle shadow-sm" style="width: 32px; height: 32px;"><i
                         class="bi bi-arrow-right"></i></a>
                 <div>
-                    <h2 class="fw-bold text-white mb-0">تسجيل مرتجع جديد</h2>
+                    <h2 class="fw-bold text-heading mb-0">تسجيل مرتجع جديد</h2>
                     <p class="text-gray-400 mb-0 x-small">إرجاع أصناف لمورد (Debit Note)</p>
                 </div>
             </div>
@@ -43,10 +43,10 @@
 
                     @if($selectedInvoice)
                         <div class="glass-panel p-4">
-                            <h6 class="text-white fw-bold mb-3 border-bottom border-white-5 pb-2">بيانات المرجوع</h6>
+                            <h6 class="text-heading fw-bold mb-3 border-bottom border-secondary border-opacity-10-5 pb-2">بيانات المرجوع</h6>
 
                             <div class="mb-3">
-                                <label class="form-label text-gray-400 x-small fw-bold">تاريخ المرتجع</label>
+                                <label class="form-label text-gray-400 x-small fw-bold">{{ __('Return Date') }}</label>
                                 <input type="date" name="return_date" class="form-control form-control-dark focus-ring-orange"
                                     value="{{ date('Y-m-d') }}" required>
                             </div>
@@ -69,16 +69,16 @@
                 <div class="col-md-8">
                     @if($selectedInvoice)
                         <div class="glass-panel p-4 h-100">
-                            <h5 class="text-white fw-bold mb-4"><i class="bi bi-basket me-2"></i>أصناف الفاتورة (حدد الكمية
+                            <h5 class="text-heading fw-bold mb-4"><i class="bi bi-basket me-2"></i>أصناف الفاتورة (حدد الكمية
                                 المرتجعة)</h5>
 
                             <div class="table-responsive">
                                 <table class="table table-dark-custom align-middle">
                                     <thead>
                                         <tr>
-                                            <th>المنتج</th>
+                                            <th>{{ __('Product') }}</th>
                                             <th class="text-center">الكمية المشراة</th>
-                                            <th class="text-center">سعر الوحدة</th>
+                                            <th class="text-center">{{ __('Unit Price') }}</th>
                                             <th class="text-center" style="width: 150px;">كمية المرتجع</th>
                                             <th class="text-end">قيمة المرتجع</th>
                                         </tr>
@@ -87,7 +87,7 @@
                                         @foreach($selectedInvoice->lines as $index => $line)
                                             <tr>
                                                 <td>
-                                                    <h6 class="text-white mb-0">{{ $line->description }}</h6>
+                                                    <h6 class="text-heading mb-0">{{ $line->description }}</h6>
                                                     <input type="hidden" name="items[{{ $index }}][product_id]"
                                                         value="{{ $line->product_id }}">
                                                     <input type="hidden" name="items[{{ $index }}][price]"
@@ -106,8 +106,8 @@
                                     </tbody>
                                     <tfoot>
                                         <tr>
-                                            <td colspan="4" class="text-end text-gray-400">الإجمالي</td>
-                                            <td class="text-end text-white fw-bold fs-5" id="grandTotal">0.00</td>
+                                            <td colspan="4" class="text-end text-gray-400">{{ __('Total') }}</td>
+                                            <td class="text-end text-body fw-bold fs-5" id="grandTotal">0.00</td>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -144,7 +144,7 @@
         .btn-action-orange {
             background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
             border: none;
-            color: white;
+            color: var(--text-primary);
             padding: 10px 24px;
             border-radius: 10px;
         }
@@ -152,8 +152,8 @@
         .form-control-dark,
         .form-select-dark {
             background: rgba(15, 23, 42, 0.6) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            color: white !important;
+            border: 1px solid var(--btn-glass-border); !important;
+            color: var(--text-primary); !important;
         }
 
         .focus-ring-orange:focus {
@@ -169,7 +169,7 @@
 
         .table-dark-custom th {
             background: rgba(0, 0, 0, 0.2);
-            color: #94a3b8;
+            color: var(--text-secondary);
         }
     </style>
 @endsection

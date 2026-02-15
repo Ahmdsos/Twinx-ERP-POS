@@ -69,12 +69,32 @@ EOT;
                 return false;
             }
 
-            // 2. Check Expiry
+            // 2. Check Expiry in the KEY (Offline Check)
             if (isset($decoded['expires_at']) && strtotime($decoded['expires_at']) < time()) {
                 return false;
             }
 
-            // 3. Signature Verification
+            // 3. Optional: Sync with Database (If available on same machine)
+            // This allows the manager to "remotely" kill the app if they share the DB
+            $dbPath = database_path('database.sqlite');
+            if (file_exists($dbPath)) {
+                try {
+                    $db = new \PDO("sqlite:$dbPath");
+                    $stmt = $db->prepare("SELECT expires_at, status FROM issued_licenses WHERE machine_id = ? ORDER BY created_at DESC LIMIT 1");
+                    $stmt->execute([$this->getMachineId()]);
+                    $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+                    if ($row) {
+                        if ($row['status'] !== 'active' || strtotime($row['expires_at']) < time()) {
+                            return false;
+                        }
+                    }
+                } catch (\Exception $e) {
+                    // Ignore DB errors, fall back to offline key verification
+                }
+            }
+
+            // 4. Signature Verification
             $expectedSignature = 'TWINX-' . hash('sha256', $decoded['machine_id'] . ($decoded['client_name'] ?? '') . ($decoded['expires_at'] ?? ''));
 
             return $decoded['signature'] === $expectedSignature;
@@ -99,5 +119,46 @@ EOT;
     {
         $path = base_path(self::LICENSE_FILE);
         return File::exists($path) ? trim(File::get($path)) : null;
+    }
+
+    /**
+     * Get details of the current license
+     */
+    public function getLicenseDetails(): ?array
+    {
+        $key = $this->getStoredLicense();
+        $decoded = $key ? json_decode(base64_decode($key), true) : null;
+
+        $clientName = $decoded['client_name'] ?? 'غير معروف';
+        $expiresAt = $decoded['expires_at'] ?? null;
+        $status = 'active';
+
+        // Optional: Sync with Database (If available on same machine)
+        $dbPath = database_path('database.sqlite');
+        if (file_exists($dbPath)) {
+            try {
+                $db = new \PDO("sqlite:$dbPath");
+                $stmt = $db->prepare("SELECT client_name, expires_at, status FROM issued_licenses WHERE machine_id = ? ORDER BY created_at DESC LIMIT 1");
+                $stmt->execute([$this->getMachineId()]);
+                $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+                if ($row) {
+                    $clientName = $row['client_name'];
+                    $expiresAt = $row['expires_at'];
+                    $status = $row['status'];
+                }
+            } catch (\Exception $e) {
+            }
+        }
+
+        $expiry = $expiresAt ? strtotime($expiresAt) : null;
+        $daysLeft = $expiry ? ceil(($expiry - time()) / 86400) : null;
+
+        return [
+            'client_name' => $clientName,
+            'expires_at' => $expiresAt,
+            'days_left' => (int) $daysLeft,
+            'is_expired' => ($status !== 'active' || ($daysLeft !== null && $daysLeft <= 0)),
+        ];
     }
 }

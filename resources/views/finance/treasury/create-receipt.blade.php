@@ -10,10 +10,10 @@
 
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
-                        <h4 class="fw-bold text-white mb-1 text-success">
+                        <h4 class="fw-bold text-heading mb-1 text-success">
                             <i class="bi bi-arrow-down-circle me-2"></i> سند قبض نقدية (In)
                         </h4>
-                        <div class="text-white-50 small">تسجيل إيرادات أو تحصيلات</div>
+                        <div class="text-muted small">تسجيل إيرادات أو تحصيلات</div>
                     </div>
                     <div class="d-flex gap-2">
                         <a href="{{ route('treasury.index') }}" class="btn btn-glass-outline">إلغاء</a>
@@ -30,15 +30,15 @@
                             <label class="form-label text-gray-300">تاريخ المعاملة <span
                                     class="text-danger">*</span></label>
                             <input type="date" name="transaction_date" value="{{ date('Y-m-d') }}"
-                                class="form-control bg-transparent text-white border-secondary" required>
+                                class="form-control bg-transparent text-body border-secondary" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label text-gray-300">المبلغ <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <input type="number" step="0.01" name="amount"
-                                    class="form-control bg-transparent text-white border-secondary fw-bold fs-5 text-end"
+                                    class="form-control bg-transparent text-body border-secondary fw-bold fs-5 text-end"
                                     placeholder="0.00" required>
-                                <span class="input-group-text bg-transparent text-white border-secondary">ج.م</span>
+                                <span class="input-group-text bg-transparent text-body border-secondary">ج.م</span>
                             </div>
                         </div>
 
@@ -49,7 +49,7 @@
                             <label class="form-label text-gray-300">إلى خزينة / بنك (المدين) <span
                                     class="text-danger">*</span></label>
                             <select name="treasury_account_id"
-                                class="form-select bg-transparent text-white border-secondary" required>
+                                class="form-select bg-transparent text-body border-secondary" required>
                                 <option value="">-- اختر حساب النقدية --</option>
                                 @foreach($treasuryAccounts as $account)
                                     <option value="{{ $account->id }}">{{ $account->name }}
@@ -62,27 +62,27 @@
                         <div class="col-md-6">
                             <label class="form-label text-gray-300">من حساب (الدائن) <span
                                     class="text-danger">*</span></label>
-                            <select name="counter_account_id" class="form-select bg-transparent text-white border-secondary"
+                            <select name="counter_account_id" class="form-select bg-transparent text-body border-secondary"
                                 required>
                                 <option value="">-- اختر الحساب الدافع --</option>
                                 @foreach($counterAccounts as $account)
                                     <option value="{{ $account->id }}">{{ $account->name }} ({{ $account->code }})</option>
                                 @endforeach
                             </select>
-                            <div class="form-text text-white-50 small">عميل، إيراد، أو أي مصدر آخر.</div>
+                            <div class="form-text text-muted small">عميل، إيراد، أو أي مصدر آخر.</div>
                         </div>
 
                         <!-- Details -->
                         <div class="col-md-12">
                             <label class="form-label text-gray-300">البيان / الوصف</label>
-                            <textarea name="description" class="form-control bg-transparent text-white border-secondary"
+                            <textarea name="description" class="form-control bg-transparent text-body border-secondary"
                                 rows="2" placeholder="اكتب تفاصيل عملية القبض هنا..."></textarea>
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label text-gray-300">رقم مرجعي (اختياري)</label>
                             <input type="text" name="reference"
-                                class="form-control bg-transparent text-white border-secondary"
+                                class="form-control bg-transparent text-body border-secondary"
                                 placeholder="رقم إيصال ورقي مثلاً">
                         </div>
                     </div>

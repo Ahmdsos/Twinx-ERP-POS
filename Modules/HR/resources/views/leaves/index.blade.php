@@ -8,7 +8,7 @@
         <!-- Header -->
         <div class="row align-items-center mb-4">
             <div class="col-md-6 text-start">
-                <h2 class="fw-black text-white mb-0">إدارة <span class="text-primary">الإجازات</span></h2>
+                <h2 class="fw-black text-heading mb-0">إدارة <span class="text-primary">الإجازات</span></h2>
                 <p class="text-secondary small opacity-75">مراجعة واعتماد طلبات الإجازات ومتابعة الأرصدة.</p>
             </div>
             <div class="col-md-6 text-md-end">
@@ -21,21 +21,21 @@
         </div>
 
         <!-- Filters -->
-        <div class="glass-card mb-4 p-3 rounded-4 border-white border-opacity-10 bg-dark bg-opacity-25">
+        <div class="glass-card mb-4 p-3 rounded-4 border-secondary border-opacity-10 border-opacity-10 bg-surface-secondary bg-opacity-25">
             <form action="{{ route('hr.leaves.index') }}" method="GET" class="row g-3 align-items-end">
                 <div class="col-md-4">
                     <label class="text-secondary x-small fw-bold mb-1">بحث عن موظف</label>
                     <div class="input-group">
-                        <span class="input-group-text bg-dark border-white border-opacity-10 text-secondary"><i
+                        <span class="input-group-text bg-surface-secondary border-secondary border-opacity-10 border-opacity-10 text-secondary"><i
                                 class="bi bi-search"></i></span>
                         <input type="text" name="search" value="{{ request('search') }}"
-                            class="form-control bg-dark text-white border-white border-opacity-10 shadow-none"
+                            class="form-control bg-surface-secondary text-body border-secondary border-opacity-10 border-opacity-10 shadow-none"
                             placeholder="اسم الموظف...">
                     </div>
                 </div>
                 <div class="col-md-3">
                     <label class="text-secondary x-small fw-bold mb-1">الحالة</label>
-                    <select name="status" class="form-select bg-dark text-white border-white border-opacity-10 shadow-none">
+                    <select name="status" class="form-select bg-surface-secondary text-body border-secondary border-opacity-10 border-opacity-10 shadow-none">
                         <option value="">الكل</option>
                         <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>قيد الانتظار</option>
                         <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>مقبولة</option>
@@ -51,10 +51,10 @@
         </div>
 
         <!-- Leaves Table -->
-        <div class="glass-card rounded-4 border-white border-opacity-10 overflow-hidden shadow-lg bg-dark bg-opacity-40">
+        <div class="glass-card rounded-4 border-secondary border-opacity-10 border-opacity-10 overflow-hidden shadow-lg bg-surface-secondary bg-opacity-40">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0 text-white text-start">
-                    <thead class="bg-white bg-opacity-5 border-bottom border-white border-opacity-10">
+                <table class="table table-hover align-middle mb-0 text-heading text-start">
+                    <thead class="bg-white bg-opacity-5 border-bottom border-secondary border-opacity-10 border-opacity-10">
                         <tr>
                             <th class="ps-4 py-3 border-0 text-secondary x-small fw-black text-uppercase">الموظف</th>
                             <th class="py-3 border-0 text-secondary x-small fw-black text-uppercase">نوع الإجازة</th>
@@ -67,7 +67,7 @@
                     </thead>
                     <tbody>
                         @forelse($leaves as $leave)
-                            <tr class="border-bottom border-white border-opacity-5 transition-hover">
+                            <tr class="border-bottom border-secondary border-opacity-10 border-opacity-5 transition-hover">
                                 <td class="ps-4 py-3">
                                     <div class="d-flex align-items-center gap-3">
                                         <div class="avatar-sm rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold shadow-sm"
@@ -75,7 +75,7 @@
                                             {{ mb_substr($leave->employee->first_name ?? '?', 0, 1) }}
                                         </div>
                                         <div>
-                                            <div class="fw-bold fs-6 text-white">
+                                            <div class="fw-bold fs-6 text-heading">
                                                 {{ $leave->employee->full_name ?? 'غير معروف' }}
                                             </div>
                                             <div class="text-secondary x-small opacity-75">
@@ -101,7 +101,7 @@
                                 </td>
                                 <td class="py-3 text-center">
                                     <span
-                                        class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-10 rounded-pill px-3 py-2 fw-normal">
+                                        class="badge bg-white bg-opacity-10 text-body border border-secondary border-opacity-10 border-opacity-10 rounded-pill px-3 py-2 fw-normal">
                                         {{ $leave->total_days }} يوم
                                     </span>
                                 </td>
@@ -167,7 +167,7 @@
             </div>
 
             @if($leaves->hasPages())
-                <div class="p-4 border-top border-white border-opacity-10">
+                <div class="p-4 border-top border-secondary border-opacity-10 border-opacity-10">
                     {{ $leaves->links() }}
                 </div>
             @endif
@@ -178,9 +178,9 @@
     <!-- Create Leave Modal -->
     <div class="modal fade" id="createLeaveModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content glass-card border-white border-opacity-10 rounded-4 shadow-lg bg-dark">
-                <div class="modal-header border-bottom border-white border-opacity-5 p-4">
-                    <h5 class="modal-title text-white fw-bold">تسجيل إجازة جديدة</h5>
+            <div class="modal-content glass-card border-secondary border-opacity-10 border-opacity-10 rounded-4 shadow-lg bg-surface-secondary">
+                <div class="modal-header border-bottom border-secondary border-opacity-10 border-opacity-5 p-4">
+                    <h5 class="modal-title text-heading fw-bold">تسجيل إجازة جديدة</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <form action="{{ route('hr.leaves.store', ['employee' => 0]) }}" method="POST">
@@ -192,7 +192,7 @@
                             <label class="form-label text-secondary small fw-bold">الموظف <span
                                     class="text-danger">*</span></label>
                             <select name="employee_id"
-                                class="form-select bg-dark text-white border-secondary border-opacity-25 shadow-none"
+                                class="form-select bg-surface-secondary text-body border-secondary border-opacity-25 shadow-none"
                                 required>
                                 <option value="" selected disabled>اختر الموظف...</option>
                                 @foreach($employees as $emp)
@@ -204,7 +204,7 @@
                             <label class="form-label text-secondary small fw-bold">نوع الإجازة <span
                                     class="text-danger">*</span></label>
                             <select name="leave_type"
-                                class="form-select bg-dark text-white border-secondary border-opacity-25 shadow-none"
+                                class="form-select bg-surface-secondary text-body border-secondary border-opacity-25 shadow-none"
                                 required>
                                 <option value="annual">إجازة سنوية</option>
                                 <option value="sick">إجازة مرضية</option>
@@ -217,25 +217,25 @@
                                 <label class="form-label text-secondary small fw-bold">من تاريخ <span
                                         class="text-danger">*</span></label>
                                 <input type="date" name="start_date"
-                                    class="form-control bg-dark text-white border-secondary border-opacity-25 shadow-none"
+                                    class="form-control bg-surface-secondary text-body border-secondary border-opacity-25 shadow-none"
                                     required>
                             </div>
                             <div class="col-6">
                                 <label class="form-label text-secondary small fw-bold">إلى تاريخ <span
                                         class="text-danger">*</span></label>
                                 <input type="date" name="end_date"
-                                    class="form-control bg-dark text-white border-secondary border-opacity-25 shadow-none"
+                                    class="form-control bg-surface-secondary text-body border-secondary border-opacity-25 shadow-none"
                                     required>
                             </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label text-secondary small fw-bold">سبب الإجازة</label>
                             <textarea name="reason"
-                                class="form-control bg-dark text-white border-secondary border-opacity-25 shadow-none"
+                                class="form-control bg-surface-secondary text-body border-secondary border-opacity-25 shadow-none"
                                 rows="3" placeholder="اختياري..."></textarea>
                         </div>
                     </div>
-                    <div class="modal-footer border-top border-white border-opacity-5 p-4">
+                    <div class="modal-footer border-top border-secondary border-opacity-10 border-opacity-5 p-4">
                         <button type="button" class="btn btn-link text-secondary text-decoration-none fw-bold"
                             data-bs-dismiss="modal">إلغاء</button>
                         <button type="submit" class="btn btn-primary px-5 rounded-pill fw-black shadow-lg border-0">حفظ

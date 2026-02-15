@@ -52,4 +52,28 @@ trait HasTaxCalculations
             'is_inclusive' => $isInclusive
         ];
     }
+
+    /**
+     * Calculate tax and totals starting from a NET price
+     * Useful for model level recalculations where price is already Net
+     */
+    public function calculateLineFromNet(float $quantity, float $netPrice, float $discount = 0, ?float $taxRate = null): array
+    {
+        $globalTax = (float) Setting::getValue('default_tax_rate', 14);
+        $taxRate = $taxRate ?? $globalTax;
+
+        $lineNet = round(($quantity * $netPrice) - $discount, 4);
+        $taxAmount = round(($lineNet * $taxRate) / 100, 2);
+        $lineGross = round($lineNet + $taxAmount, 2);
+
+        return [
+            'quantity' => $quantity,
+            'unit_price_net' => $netPrice,
+            'discount_amount' => $discount,
+            'tax_percent' => $taxRate,
+            'tax_amount' => $taxAmount,
+            'line_total' => $lineGross,
+            'subtotal' => $lineNet,
+        ];
+    }
 }

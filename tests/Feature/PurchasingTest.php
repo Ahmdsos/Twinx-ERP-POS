@@ -24,7 +24,7 @@ class PurchasingTest extends TestCase
     {
         parent::setUp();
 
-        $this->user = User::factory()->create();
+        $this->user = $this->createUserWithPermissions(['purchases.manage']);
 
         // Create required dependencies
         Category::create(['name' => 'Test', 'code' => 'TST']);

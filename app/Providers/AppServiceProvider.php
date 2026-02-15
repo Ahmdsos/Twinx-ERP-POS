@@ -37,5 +37,14 @@ class AppServiceProvider extends ServiceProvider
 
         // View Composer for Notifications
         \Illuminate\Support\Facades\View::composer('layouts.app', \App\View\Composers\NotificationComposer::class);
+
+        // POS Rate Limiters
+        \Illuminate\Support\Facades\RateLimiter::for('pos-checkout', function (\Illuminate\Http\Request $request) {
+            return \Illuminate\Cache\RateLimiting\Limit::perMinute(5)->by($request->user()?->id ?: $request->ip());
+        });
+
+        \Illuminate\Support\Facades\RateLimiter::for('pos-api', function (\Illuminate\Http\Request $request) {
+            return \Illuminate\Cache\RateLimiting\Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
     }
 }

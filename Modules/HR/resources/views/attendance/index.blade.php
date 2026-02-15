@@ -7,7 +7,7 @@
     <div class="dashboard-wrapper">
         <div class="row align-items-center mb-4">
             <div class="col-md-6">
-                <h3 class="fw-black text-white mb-1">سجل <span class="text-primary">الحضور</span></h3>
+                <h3 class="fw-black text-heading mb-1">سجل <span class="text-primary">الحضور</span></h3>
                 <p class="text-secondary small opacity-75">متابعة الانضباط والمواعيد اليومية للموظفين.</p>
             </div>
             <div class="col-md-6 text-md-end">
@@ -25,7 +25,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-secondary small mb-1">حضور اليوم</h6>
-                            <h3 class="text-white fw-black mb-0">{{ $todayCount ?? 0 }}</h3>
+                            <h3 class="text-heading fw-black mb-0">{{ $todayCount ?? 0 }}</h3>
                         </div>
                         <div class="icon-box bg-primary bg-opacity-10 text-primary rounded-circle p-3">
                             <i class="bi bi-person-check fs-4"></i>
@@ -41,7 +41,7 @@
                 <div class="col-md-3">
                     <label class="form-label text-secondary small fw-bold">الموظف</label>
                     <select name="employee_id"
-                        class="form-select bg-dark text-white border-secondary border-opacity-25 shadow-none"
+                        class="form-select bg-surface-secondary text-body border-secondary border-opacity-25 shadow-none"
                         onchange="document.getElementById('filterForm').submit()">
                         <option value="">كل الموظفين</option>
                         @foreach($employees as $employee)
@@ -54,7 +54,7 @@
                 <div class="col-md-2">
                     <label class="form-label text-secondary small fw-bold">الحالة</label>
                     <select name="status"
-                        class="form-select bg-dark text-white border-secondary border-opacity-25 shadow-none"
+                        class="form-select bg-surface-secondary text-body border-secondary border-opacity-25 shadow-none"
                         onchange="document.getElementById('filterForm').submit()">
                         <option value="">كل الحالات</option>
                         @foreach(\Modules\HR\Enums\AttendanceStatus::cases() as $status)
@@ -66,13 +66,13 @@
                 <div class="col-md-2">
                     <label class="form-label text-secondary small fw-bold">من تاريخ</label>
                     <input type="date" name="from_date"
-                        class="form-control bg-dark text-white border-secondary border-opacity-25 shadow-none"
+                        class="form-control bg-surface-secondary text-body border-secondary border-opacity-25 shadow-none"
                         value="{{ request('from_date') }}">
                 </div>
                 <div class="col-md-2">
                     <label class="form-label text-secondary small fw-bold">إلى تاريخ</label>
                     <input type="date" name="to_date"
-                        class="form-control bg-dark text-white border-secondary border-opacity-25 shadow-none"
+                        class="form-control bg-surface-secondary text-body border-secondary border-opacity-25 shadow-none"
                         value="{{ request('to_date') }}">
                 </div>
                 <div class="col-md-3 d-flex gap-2">
@@ -103,7 +103,7 @@
                     </thead>
                     <tbody class="border-top-0">
                         @forelse($attendances as $record)
-                            <tr class="align-middle border-bottom border-white border-opacity-5">
+                            <tr class="align-middle border-bottom border-secondary border-opacity-10 border-opacity-5">
                                 <td class="px-4 py-3">
                                     <div class="d-flex align-items-center gap-3">
                                         <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center"
@@ -111,7 +111,7 @@
                                             <i class="bi bi-person h6 mb-0"></i>
                                         </div>
                                         <div>
-                                            <div class="fw-bold text-white small">{{ $record->employee->full_name }}</div>
+                                            <div class="fw-bold text-heading small">{{ $record->employee->full_name }}</div>
                                             <div class="text-secondary x-small">{{ $record->employee->position }}</div>
                                         </div>
                                     </div>
@@ -149,7 +149,7 @@
                 </table>
             </div>
             @if($attendances->hasPages())
-                <div class="p-4 border-top border-white border-opacity-5">
+                <div class="p-4 border-top border-secondary border-opacity-10 border-opacity-5">
                     {{ $attendances->links() }}
                 </div>
             @endif
@@ -159,9 +159,9 @@
     <!-- Manual Log Modal -->
     <div class="modal fade" id="manualLogModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content glass-card border-white border-opacity-10 rounded-4">
-                <div class="modal-header border-bottom border-white border-opacity-10 p-4">
-                    <h5 class="modal-title text-white fw-bold">تسجيل حضور يدوي (HR)</h5>
+            <div class="modal-content glass-card border-secondary border-opacity-10 border-opacity-10 rounded-4">
+                <div class="modal-header border-bottom border-secondary border-opacity-10 border-opacity-10 p-4">
+                    <h5 class="modal-title text-heading fw-bold">تسجيل حضور يدوي (HR)</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <form action="{{ route('hr.attendance.manual-log') }}" method="POST">
@@ -170,7 +170,7 @@
                         <div class="mb-3">
                             <label class="form-label text-secondary small fw-bold">اختيار الموظف</label>
                             <select name="employee_id"
-                                class="form-select bg-dark text-white border-secondary border-opacity-25" required>
+                                class="form-select bg-surface-secondary text-body border-secondary border-opacity-25" required>
                                 @foreach($employees as $employee)
                                     <option value="{{ $employee->id }}">{{ $employee->full_name }}
                                         ({{ $employee->employee_code }})</option>
@@ -181,23 +181,23 @@
                             <div class="col-12">
                                 <label class="form-label text-secondary small fw-bold">تاريخ الحضور</label>
                                 <input type="date" name="attendance_date"
-                                    class="form-control bg-dark text-white border-secondary border-opacity-25" required
+                                    class="form-control bg-surface-secondary text-body border-secondary border-opacity-25" required
                                     value="{{ date('Y-m-d') }}">
                             </div>
                             <div class="col-6">
                                 <label class="form-label text-secondary small fw-bold">وقت الحضور</label>
                                 <input type="time" name="clock_in"
-                                    class="form-control bg-dark text-white border-secondary border-opacity-25">
+                                    class="form-control bg-surface-secondary text-body border-secondary border-opacity-25">
                             </div>
                             <div class="col-6">
                                 <label class="form-label text-secondary small fw-bold">وقت الانصراف</label>
                                 <input type="time" name="clock_out"
-                                    class="form-control bg-dark text-white border-secondary border-opacity-25">
+                                    class="form-control bg-surface-secondary text-body border-secondary border-opacity-25">
                             </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label text-secondary small fw-bold">الحالة</label>
-                            <select name="status" class="form-select bg-dark text-white border-secondary border-opacity-25"
+                            <select name="status" class="form-select bg-surface-secondary text-body border-secondary border-opacity-25"
                                 required>
                                 @foreach(\Modules\HR\Enums\AttendanceStatus::cases() as $status)
                                     <option value="{{ $status->value }}">{{ $status->label() }}</option>
@@ -207,11 +207,11 @@
                         <div class="mb-0">
                             <label class="form-label text-secondary small fw-bold">ملاحظات السبب</label>
                             <textarea name="notes"
-                                class="form-control bg-dark text-white border-secondary border-opacity-25" rows="2"
+                                class="form-control bg-surface-secondary text-body border-secondary border-opacity-25" rows="2"
                                 placeholder="أدخل سبب التسجيل اليدوي..."></textarea>
                         </div>
                     </div>
-                    <div class="modal-footer border-top border-white border-opacity-10 p-4">
+                    <div class="modal-footer border-top border-secondary border-opacity-10 border-opacity-10 p-4">
                         <button type="button" class="btn btn-link text-secondary text-decoration-none fw-bold"
                             data-bs-dismiss="modal">إلغاء</button>
                         <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm">حفظ السجل</button>

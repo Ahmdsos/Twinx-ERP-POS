@@ -34,7 +34,9 @@ class NativeAppServiceProvider implements ProvidesPhpIni
             ->height(800)
             ->title('Twinx ERP System')
             ->rememberState()
-            ->showDevTools(false);
+            ->showDevTools(false)
+            ->maximize()
+            ->kiosk(); // Uncommented for final build
     }
 
     /**

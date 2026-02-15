@@ -12,9 +12,9 @@
                     <i class="bi bi-arrow-right"></i>
                 </a>
                 <div>
-                    <h3 class="fw-black text-white mb-0 d-flex align-items-center gap-2">
+                    <h3 class="fw-black text-heading mb-0 d-flex align-items-center gap-2">
                         {{ $employee->full_name }}
-                        <span class="badge bg-white bg-opacity-10 text-white fw-normal fs-6 rounded-pill px-2 py-1 border border-white border-opacity-10">
+                        <span class="badge bg-white bg-opacity-10 text-body fw-normal fs-6 rounded-pill px-2 py-1 border border-secondary border-opacity-10 border-opacity-10">
                             {{ $employee->employee_code }}
                         </span>
                         @if($employee->deliveryDriver)
@@ -57,7 +57,7 @@
                     </div>
                     <div class="mt-2">
                         <div class="text-secondary x-small">تاريخ التعيين</div>
-                        <div class="fw-bold text-white fs-5">{{ $employee->date_of_joining ? $employee->date_of_joining->format('d M Y') : '-' }}</div>
+                        <div class="fw-bold text-heading fs-5">{{ $employee->date_of_joining ? $employee->date_of_joining->format('d M Y') : '-' }}</div>
                         <div class="text-secondary x-small opacity-75 mt-1">
                             {{ $employee->date_of_joining ? $employee->date_of_joining->diffForHumans() : '' }}
                         </div>
@@ -67,7 +67,7 @@
 
             <!-- Card 2: Financials -->
             <div class="col-md-3">
-                <div class="glass-card h-100 p-3 text-white">
+                <div class="glass-card h-100 p-3 text-heading">
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <div class="icon-box-sm bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center">
                             <i class="bi bi-cash-stack"></i>
@@ -75,7 +75,7 @@
                         <span class="text-secondary x-small fw-bold">المستحقات المالية</span>
                     </div>
                     <div class="fw-black fs-4 text-info">{{ number_format($employee->basic_salary, 0) }} <span class="fs-6 text-secondary fw-normal">ج.م</span></div>
-                    <div class="d-flex justify-content-between mt-2 pt-2 border-top border-white border-opacity-10">
+                    <div class="d-flex justify-content-between mt-2 pt-2 border-top border-secondary border-opacity-10 border-opacity-10">
                         <span class="x-small text-secondary">{{ $employee->contract_type }}</span>
                         <span class="x-small text-secondary">{{ $employee->bank_name ?? 'نقدي' }}</span>
                     </div>
@@ -84,7 +84,7 @@
 
             <!-- Card 3: User Link -->
             <div class="col-md-3">
-                <div class="glass-card h-100 p-3 text-white">
+                <div class="glass-card h-100 p-3 text-heading">
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <div class="icon-box-sm bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center">
                             <i class="bi bi-person-badge"></i>
@@ -93,7 +93,7 @@
                     </div>
                     @if($employee->user)
                         <div class="d-flex align-items-center gap-2 mt-2">
-                            <div class="avatar-xs bg-primary rounded-circle text-white d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px;">
+                            <div class="avatar-xs bg-primary rounded-circle text-heading d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px;">
                                 {{ mb_substr($employee->user->name, 0, 1) }}
                             </div>
                             <div class="overflow-hidden">
@@ -127,11 +127,11 @@
                         <div class="mt-2">
                             <div class="d-flex justify-content-between align-items-center mb-1">
                                 <span class="text-secondary x-small">الرخصة:</span>
-                                <span class="text-white x-small fw-bold">{{ $employee->deliveryDriver->license_number }}</span>
+                                <span class="text-heading x-small fw-bold">{{ $employee->deliveryDriver->license_number }}</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center">
                                 <span class="text-secondary x-small">المركبة:</span>
-                                <span class="text-white x-small fw-bold text-truncate" style="max-width: 100px;" title="{{ $employee->deliveryDriver->vehicle_info }}">{{ $employee->deliveryDriver->vehicle_info }}</span>
+                                <span class="text-heading x-small fw-bold text-truncate" style="max-width: 100px;" title="{{ $employee->deliveryDriver->vehicle_info }}">{{ $employee->deliveryDriver->vehicle_info }}</span>
                             </div>
                         </div>
                     </div>
@@ -143,7 +143,7 @@
                             </div>
                             <span class="text-secondary x-small fw-bold">الطوارئ</span>
                         </div>
-                        <div class="fw-bold text-white text-truncate">{{ $employee->emergency_contact_name ?? '---' }}</div>
+                        <div class="fw-bold text-heading text-truncate">{{ $employee->emergency_contact_name ?? '---' }}</div>
                         <div class="x-small text-secondary">{{ $employee->emergency_contact_phone ?? '---' }}</div>
                     </div>
                 @endif
@@ -154,49 +154,49 @@
             <!-- Left Sidebar: Personal Details -->
             <div class="col-lg-3">
                 <div class="glass-card rounded-4 p-3 mb-3">
-                    <h6 class="text-white fw-bold mb-3 border-bottom border-white border-opacity-10 pb-2">
+                    <h6 class="text-heading fw-bold mb-3 border-bottom border-secondary border-opacity-10 border-opacity-10 pb-2">
                         <i class="bi bi-person-lines-fill me-2 text-primary"></i> بيانات التواصل
                     </h6>
                     <ul class="list-unstyled mb-0">
                         <li class="mb-3">
                             <label class="d-block text-secondary x-small mb-1">البريد الإلكتروني</label>
-                            <div class="text-white small text-break">{{ $employee->email }}</div>
+                            <div class="text-heading small text-break">{{ $employee->email }}</div>
                         </li>
                         <li class="mb-3">
                             <label class="d-block text-secondary x-small mb-1">رقم الهاتف</label>
-                            <div class="text-white small font-monospace">{{ $employee->phone }}</div>
+                            <div class="text-heading small font-monospace">{{ $employee->phone }}</div>
                         </li>
                         <li class="mb-3">
                             <label class="d-block text-secondary x-small mb-1">العنوان</label>
-                            <div class="text-white small">{{ $employee->address ?? '---' }}</div>
+                            <div class="text-heading small">{{ $employee->address ?? '---' }}</div>
                         </li>
                         <li class="mb-3">
                             <label class="d-block text-secondary x-small mb-1">رقم الهوية</label>
-                            <div class="text-white small font-monospace">{{ $employee->id_number ?? '---' }}</div>
+                            <div class="text-heading small font-monospace">{{ $employee->id_number ?? '---' }}</div>
                         </li>
                         <li>
                             <label class="d-block text-secondary x-small mb-1">تاريخ الميلاد</label>
-                            <div class="text-white small">{{ $employee->birth_date ? $employee->birth_date->format('Y-m-d') : '---' }}</div>
+                            <div class="text-heading small">{{ $employee->birth_date ? $employee->birth_date->format('Y-m-d') : '---' }}</div>
                         </li>
                     </ul>
                 </div>
 
                 <div class="glass-card rounded-4 p-3">
-                    <h6 class="text-white fw-bold mb-3 border-bottom border-white border-opacity-10 pb-2">
+                    <h6 class="text-heading fw-bold mb-3 border-bottom border-secondary border-opacity-10 border-opacity-10 pb-2">
                         <i class="bi bi-bank me-2 text-info"></i> بيانات بنكية
                     </h6>
                      <ul class="list-unstyled mb-0">
                         <li class="mb-2 d-flex justify-content-between">
                             <span class="text-secondary x-small">البنك</span>
-                            <span class="text-white x-small fw-bold">{{ $employee->bank_name ?? '-' }}</span>
+                            <span class="text-heading x-small fw-bold">{{ $employee->bank_name ?? '-' }}</span>
                         </li>
                         <li class="mb-2">
                             <span class="text-secondary x-small d-block">رقم الحساب</span>
-                            <span class="text-white x-small font-monospace">{{ $employee->bank_account_number ?? '-' }}</span>
+                            <span class="text-heading x-small font-monospace">{{ $employee->bank_account_number ?? '-' }}</span>
                         </li>
                         <li>
                             <span class="text-secondary x-small d-block">IBAN</span>
-                            <span class="text-white x-small font-monospace">{{ $employee->iban ?? '-' }}</span>
+                            <span class="text-heading x-small font-monospace">{{ $employee->iban ?? '-' }}</span>
                         </li>
                     </ul>
                 </div>
@@ -205,7 +205,7 @@
             <!-- Right Content: Tabs -->
             <div class="col-lg-9">
                 <div class="glass-card rounded-4 p-0 overflow-hidden h-100">
-                    <div class="p-2 border-bottom border-white border-opacity-10">
+                    <div class="p-2 border-bottom border-secondary border-opacity-10 border-opacity-10">
                         <ul class="nav nav-pills nav-fill gap-2" id="myTab" role="tablist">
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link active rounded-pill py-2 small fw-bold" id="attendance-tab" data-bs-toggle="tab" data-bs-target="#attendance" type="button" role="tab" aria-selected="true">
@@ -234,7 +234,7 @@
                         <!-- Attendance Tab -->
                         <div class="tab-pane fade show active" id="attendance" role="tabpanel">
                             <div class="table-responsive">
-                                <table class="table table-hover table-sm text-white mb-0 align-middle">
+                                <table class="table table-hover table-sm text-heading mb-0 align-middle">
                                     <thead class="text-secondary x-small text-uppercase">
                                         <tr>
                                             <th class="border-0">التاريخ</th>
@@ -247,10 +247,10 @@
                                     <tbody>
                                         @forelse($employee->attendance as $record)
                                             <tr>
-                                                <td class="border-white border-opacity-5 fw-bold x-small">{{ $record->attendance_date->format('Y-m-d') }}</td>
-                                                <td class="border-white border-opacity-5 x-small">{{ $record->clock_in ? \Carbon\Carbon::parse($record->clock_in)->format('H:i') : '--' }}</td>
-                                                <td class="border-white border-opacity-5 x-small">{{ $record->clock_out ? \Carbon\Carbon::parse($record->clock_out)->format('H:i') : '--' }}</td>
-                                                <td class="border-white border-opacity-5">
+                                                <td class="border-secondary border-opacity-10 border-opacity-5 fw-bold x-small">{{ $record->attendance_date->format('Y-m-d') }}</td>
+                                                <td class="border-secondary border-opacity-10 border-opacity-5 x-small">{{ $record->clock_in ? \Carbon\Carbon::parse($record->clock_in)->format('H:i') : '--' }}</td>
+                                                <td class="border-secondary border-opacity-10 border-opacity-5 x-small">{{ $record->clock_out ? \Carbon\Carbon::parse($record->clock_out)->format('H:i') : '--' }}</td>
+                                                <td class="border-secondary border-opacity-10 border-opacity-5">
                                                     @php
                                                         $statusEnum = $record->status instanceof \Modules\HR\Enums\AttendanceStatus ? $record->status : \Modules\HR\Enums\AttendanceStatus::tryFrom($record->status);
                                                         $color = $statusEnum ? $statusEnum->color() : 'secondary';
@@ -258,7 +258,7 @@
                                                     @endphp
                                                     <span class="badge bg-{{ $color }} bg-opacity-25 text-{{ $color }} x-small px-2 py-1 rounded-1">{{ $label }}</span>
                                                 </td>
-                                                <td class="border-white border-opacity-5 x-small text-secondary text-truncate" style="max-width: 150px;">{{ $record->notes ?? '-' }}</td>
+                                                <td class="border-secondary border-opacity-10 border-opacity-5 x-small text-secondary text-truncate" style="max-width: 150px;">{{ $record->notes ?? '-' }}</td>
                                             </tr>
                                         @empty
                                             <tr>
@@ -276,7 +276,7 @@
                         <!-- Payroll Tab -->
                         <div class="tab-pane fade" id="payroll" role="tabpanel">
                              <div class="table-responsive">
-                                <table class="table table-hover table-sm text-white mb-0 align-middle">
+                                <table class="table table-hover table-sm text-heading mb-0 align-middle">
                                     <thead class="text-secondary x-small text-uppercase">
                                         <tr>
                                             <th class="border-0">الفترة</th>
@@ -290,12 +290,12 @@
                                     <tbody>
                                         @forelse($employee->payrollItems as $item)
                                             <tr>
-                                                <td class="border-white border-opacity-5 fw-bold x-small">{{ $item->payroll->month }}/{{ $item->payroll->year }}</td>
-                                                <td class="border-white border-opacity-5 x-small">{{ number_format($item->basic_salary, 2) }}</td>
-                                                <td class="border-white border-opacity-5 text-success x-small">+{{ number_format($item->allowances, 2) }}</td>
-                                                <td class="border-white border-opacity-5 text-danger x-small">-{{ number_format($item->deductions, 2) }}</td>
-                                                <td class="border-white border-opacity-5 fw-black text-info x-small">{{ number_format($item->net_salary, 2) }}</td>
-                                                <td class="border-white border-opacity-5">
+                                                <td class="border-secondary border-opacity-10 border-opacity-5 fw-bold x-small">{{ $item->payroll->month }}/{{ $item->payroll->year }}</td>
+                                                <td class="border-secondary border-opacity-10 border-opacity-5 x-small">{{ number_format($item->basic_salary, 2) }}</td>
+                                                <td class="border-secondary border-opacity-10 border-opacity-5 text-success x-small">+{{ number_format($item->allowances, 2) }}</td>
+                                                <td class="border-secondary border-opacity-10 border-opacity-5 text-danger x-small">-{{ number_format($item->deductions, 2) }}</td>
+                                                <td class="border-secondary border-opacity-10 border-opacity-5 fw-black text-info x-small">{{ number_format($item->net_salary, 2) }}</td>
+                                                <td class="border-secondary border-opacity-10 border-opacity-5">
                                                     <span class="badge bg-success bg-opacity-25 text-success x-small px-2 py-1 rounded-1">مدفوع</span>
                                                 </td>
                                             </tr>
@@ -315,7 +315,7 @@
                         <!-- Leaves Tab -->
                         <div class="tab-pane fade" id="leaves" role="tabpanel">
                             <div class="table-responsive">
-                                <table class="table table-hover table-sm text-white mb-0 align-middle">
+                                <table class="table table-hover table-sm text-heading mb-0 align-middle">
                                     <thead class="text-secondary x-small text-uppercase">
                                         <tr>
                                             <th class="border-0">النوع</th>
@@ -328,11 +328,11 @@
                                     <tbody>
                                         @forelse($employee->leaves as $leave)
                                             <tr>
-                                                <td class="border-white border-opacity-5 fw-bold x-small">{{ $leave->type }}</td>
-                                                <td class="border-white border-opacity-5 x-small">{{ $leave->start_date->format('Y-m-d') }}</td>
-                                                <td class="border-white border-opacity-5 x-small">{{ $leave->end_date->format('Y-m-d') }}</td>
-                                                <td class="border-white border-opacity-5 text-center x-small">{{ $leave->days }}</td>
-                                                <td class="border-white border-opacity-5">
+                                                <td class="border-secondary border-opacity-10 border-opacity-5 fw-bold x-small">{{ $leave->type }}</td>
+                                                <td class="border-secondary border-opacity-10 border-opacity-5 x-small">{{ $leave->start_date->format('Y-m-d') }}</td>
+                                                <td class="border-secondary border-opacity-10 border-opacity-5 x-small">{{ $leave->end_date->format('Y-m-d') }}</td>
+                                                <td class="border-secondary border-opacity-10 border-opacity-5 text-center x-small">{{ $leave->days }}</td>
+                                                <td class="border-secondary border-opacity-10 border-opacity-5">
                                                     @php
                                                         $color = match ($leave->status) {
                                                             'approved' => 'success',
@@ -363,10 +363,10 @@
                                 <div class="row g-2">
                                     @foreach($employee->documents as $doc)
                                         <div class="col-md-4">
-                                            <div class="p-2 border border-white border-opacity-10 rounded-2 bg-white bg-opacity-5 d-flex align-items-center gap-2">
+                                            <div class="p-2 border border-secondary border-opacity-10 border-opacity-10 rounded-2 bg-white bg-opacity-5 d-flex align-items-center gap-2">
                                                 <i class="bi bi-file-earmark-text text-primary fs-4"></i>
                                                 <div class="overflow-hidden flex-grow-1">
-                                                    <div class="text-white x-small fw-bold text-truncate" title="{{ $doc->title }}">{{ $doc->title }}</div>
+                                                    <div class="text-heading x-small fw-bold text-truncate" title="{{ $doc->title }}">{{ $doc->title }}</div>
                                                     <div class="text-secondary x-small opacity-75">{{ $doc->created_at->format('Y-m-d') }}</div>
                                                 </div>
                                                 <a href="{{ Storage::url($doc->file_path) }}" target="_blank" class="btn btn-sm btn-icon btn-outline-light rounded-circle opacity-50"><i class="bi bi-download"></i></a>

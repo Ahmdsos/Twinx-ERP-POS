@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'العملاء')
+@section('title', __('Customers'))
 
 @section('content')
     <div class="container-fluid p-0">
@@ -8,10 +8,10 @@
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-5 gap-4">
             <div class="d-flex align-items-center gap-4">
                 <div class="icon-box bg-gradient-indigo shadow-neon-indigo">
-                    <i class="bi bi-people-fill fs-3 text-white"></i>
+                    <i class="bi bi-people-fill fs-3 text-body"></i>
                 </div>
                 <div>
-                    <h2 class="fw-bold text-white mb-1 tracking-wide">إدارة العملاء</h2>
+                    <h2 class="fw-bold text-heading mb-1 tracking-wide">{{ __('Manage customers') }}</h2>
                     <p class="mb-0 text-gray-400 small">قاعدة بيانات المتسوقين والشركات</p>
                 </div>
             </div>
@@ -20,9 +20,9 @@
                     <button class="btn btn-success-glass d-flex align-items-center gap-2 shadow-lg dropdown-toggle"
                         type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-download"></i>
-                        <span class="fw-bold d-none d-md-inline">تصدير</span>
+                        <span class="fw-bold d-none d-md-inline">{{ __('Export') }}</span>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-dark bg-slate-900 border-white-10 shadow-neon"
+                    <ul class="dropdown-menu dropdown-menu-dark bg-slate-900 border-secondary border-opacity-10-10 shadow-neon"
                         aria-labelledby="exportDropdown">
                         <li>
                             <a class="dropdown-item d-flex align-items-center gap-2"
@@ -41,7 +41,7 @@
                 <a href="{{ route('customers.import.form') }}"
                     class="btn btn-info-glass d-flex align-items-center gap-2 shadow-lg">
                     <i class="bi bi-cloud-upload"></i>
-                    <span class="fw-bold d-none d-md-inline">استيراد</span>
+                    <span class="fw-bold d-none d-md-inline">{{ __('Import') }}</span>
                 </a>
                 <a href="{{ route('customers.create') }}"
                     class="btn btn-action-indigo d-flex align-items-center gap-2 shadow-lg">
@@ -52,23 +52,23 @@
         </div>
 
         <!-- Filters Section (Glass) -->
-        <div class="bg-slate-900 bg-opacity-50 border border-white-5 rounded-4 p-4 mb-5">
+        <div class="bg-slate-900 bg-opacity-50 border border-secondary border-opacity-10-5 rounded-4 p-4 mb-5">
             <form action="{{ route('customers.index') }}" method="GET" class="row g-3 align-items-end">
                 <div class="col-md-5">
-                    <label class="form-label text-indigo-400 x-small fw-bold text-uppercase ps-1">بحث</label>
+                    <label class="form-label text-indigo-400 x-small fw-bold text-uppercase ps-1">{{ __('Search') }}</label>
                     <div class="input-group">
                         <span class="input-group-text bg-dark-input border-end-0 text-gray-500"><i
                                 class="bi bi-search"></i></span>
                         <input type="text" name="search"
-                            class="form-control form-control-dark border-start-0 ps-0 text-white placeholder-gray-600 focus-ring-indigo"
+                            class="form-control form-control-dark border-start-0 ps-0 text-body placeholder-gray-600 focus-ring-indigo"
                             value="{{ request('search') }}" placeholder="اسم العميل، الهاتف، أو العنوان...">
                     </div>
                 </div>
 
                 <div class="col-md-3">
-                    <label class="form-label text-indigo-400 x-small fw-bold text-uppercase ps-1">الحالة</label>
+                    <label class="form-label text-indigo-400 x-small fw-bold text-uppercase ps-1">{{ __('Status') }}</label>
                     <select name="active_only"
-                        class="form-select form-select-dark text-white cursor-pointer hover:bg-white-5">
+                        class="form-select form-select-dark text-body cursor-pointer hover:bg-surface-5">
                         <option value="0">-- الكل --</option>
                         <option value="1" {{ request('active_only') ? 'selected' : '' }}>نشط فقط</option>
                     </select>
@@ -76,8 +76,7 @@
 
                 <div class="col-md-4">
                     <button type="submit" class="btn btn-indigo-glass w-100 fw-bold">
-                        <i class="bi bi-funnel"></i> تصفية
-                    </button>
+                        <i class="bi bi-funnel"></i>{{ __('Filter') }}</button>
                 </div>
             </form>
         </div>
@@ -88,12 +87,12 @@
                 <table class="table table-dark-custom align-middle mb-0">
                     <thead>
                         <tr>
-                            <th class="ps-4">العميل</th>
+                            <th class="ps-4">{{ __('Customer') }}</th>
                             <th>معلومات الاتصال</th>
-                            <th>النوع</th>
-                            <th>المدينة</th>
-                            <th>حد الائتمان</th>
-                            <th class="pe-4 text-end">إجراءات</th>
+                            <th>{{ __('Type') }}</th>
+                            <th>{{ __('City') }}</th>
+                            <th>{{ __('Credit Limit') }}</th>
+                            <th class="pe-4 text-end">{{ __('Actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -101,12 +100,12 @@
                             <tr class="table-row-hover position-relative group-hover-actions">
                                 <td class="ps-4">
                                     <div class="d-flex align-items-center gap-3">
-                                        <div class="avatar-xs bg-indigo-500 rounded-circle text-white d-flex align-items-center justify-content-center fw-bold"
+                                        <div class="avatar-xs bg-indigo-500 rounded-circle text-body d-flex align-items-center justify-content-center fw-bold"
                                             style="width: 40px; height: 40px;">
                                             {{ strtoupper(substr($customer->name, 0, 1)) }}
                                         </div>
                                         <div>
-                                            <h6 class="text-white mb-0 fw-bold">{{ $customer->name }}</h6>
+                                            <h6 class="text-heading mb-0 fw-bold">{{ $customer->name }}</h6>
                                             @if($customer->is_blocked)
                                                 <span class="badge bg-red-500 bg-opacity-20 text-red-400 x-small px-2">موقوف</span>
                                             @endif
@@ -152,7 +151,7 @@
                                 </td>
                                 <td class="text-gray-400">{{ $customer->billing_city ?? '-' }}</td>
                                 <td>
-                                    <span class="fw-bold text-white">{{ number_format($customer->credit_limit, 2) }}</span>
+                                    <span class="fw-bold text-body">{{ number_format($customer->credit_limit, 2) }}</span>
                                     <span class="x-small text-gray-500">EGP</span>
                                 </td>
                                 <td class="pe-4 text-end">
@@ -162,7 +161,7 @@
                                             <i class="bi bi-eye"></i>
                                         </a>
                                         <a href="{{ route('customers.statement', $customer->id) }}" class="btn-icon-glass"
-                                            title="كشف حساب">
+                                            title="{{ __('Account Statement') }}">
                                             <i class="bi bi-file-spreadsheet"></i>
                                         </a>
                                         <a href="{{ route('customer-payments.create', ['customer_id' => $customer->id]) }}"
@@ -170,14 +169,14 @@
                                             <i class="bi bi-cash-stack"></i>
                                         </a>
                                         <a href="{{ route('customers.edit', $customer->id) }}" class="btn-icon-glass"
-                                            title="تعديل">
+                                            title="{{ __('Edit') }}">
                                             <i class="bi bi-pencil"></i>
                                         </a>
                                         <form action="{{ route('customers.destroy', $customer->id) }}" method="POST"
                                             class="d-inline" data-confirm="هل أنت متأكد من حذف هذا العميل؟">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn-icon-glass text-danger hover-danger" title="حذف">
+                                            <button type="submit" class="btn-icon-glass text-danger hover-danger" title="{{ __('Delete') }}">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
@@ -189,7 +188,7 @@
                                 <td colspan="6" class="text-center py-5">
                                     <div class="d-flex flex-column align-items-center justify-content-center opacity-50">
                                         <i class="bi bi-people fs-1 text-gray-500 mb-3"></i>
-                                        <h5 class="text-gray-400">لا يوجد عملاء</h5>
+                                        <h5 class="text-gray-400">{{ __('No customers found') }}</h5>
                                         <p class="text-gray-600 small">ابدأ بإضافة عملاء لقاعدة البيانات</p>
                                     </div>
                                 </td>
@@ -200,7 +199,7 @@
             </div>
 
             @if($customers->hasPages())
-                <div class="p-4 border-top border-white-5">
+                <div class="p-4 border-top border-secondary border-opacity-10-5">
                     {{ $customers->links('partials.pagination') }}
                 </div>
             @endif
@@ -228,7 +227,7 @@
         .btn-action-indigo {
             background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
             border: none;
-            color: white;
+            color: var(--text-primary);
             padding: 10px 24px;
             border-radius: 10px;
             transition: all 0.3s;
@@ -250,7 +249,7 @@
 
         .btn-indigo-glass:hover {
             background: rgba(99, 102, 241, 0.25);
-            color: white;
+            color: var(--text-primary);
             border-color: #818cf8;
         }
 
@@ -284,8 +283,8 @@
         .form-control-dark,
         .form-select-dark {
             background: rgba(15, 23, 42, 0.6) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            color: white !important;
+            border: 1px solid var(--btn-glass-border); !important;
+            color: var(--text-primary); !important;
         }
 
         .table-dark-custom {
@@ -295,8 +294,8 @@
         }
 
         .table-dark-custom th {
-            background: rgba(255, 255, 255, 0.05);
-            color: #94a3b8;
+            background: var(--btn-glass-bg);
+            color: var(--text-secondary);
             font-weight: 600;
             padding: 1rem;
         }
@@ -316,14 +315,14 @@
             align-items: center;
             justify-content: center;
             border-radius: 6px;
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--btn-glass-bg);
             color: #cbd5e1;
             transition: 0.2s;
         }
 
         .btn-icon-glass:hover {
             background: rgba(255, 255, 255, 0.1);
-            color: white;
+            color: var(--text-primary);
         }
 
         .hover-danger:hover {

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() == 'ar' ? 'rtl' : 'ltr' }}"
-    data-theme="{{ session('theme', 'dark') }}">
+    data-theme="{{ session('theme', 'dark') }}" data-bs-theme="{{ session('theme', 'dark') }}">
 
 <head>
     <meta charset="UTF-8">
@@ -274,6 +274,7 @@
 
                     html.classList.add('theme-transitioning');
                     html.setAttribute('data-theme', next);
+                    html.setAttribute('data-bs-theme', next);
                     applyIcon();
 
                     setTimeout(function () {

@@ -18,6 +18,7 @@ class PayrollItem extends Model
         'basic_salary',
         'allowances',
         'deductions',
+        'advance_deductions',
         'net_salary',
         'notes',
     ];
@@ -26,6 +27,7 @@ class PayrollItem extends Model
         'basic_salary' => 'decimal:2',
         'allowances' => 'decimal:2',
         'deductions' => 'decimal:2',
+        'advance_deductions' => 'decimal:2',
         'net_salary' => 'decimal:2',
     ];
 

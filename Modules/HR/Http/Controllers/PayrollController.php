@@ -108,7 +108,7 @@ class PayrollController extends Controller
                     'allowances' => $request->allowances,
                     'deductions' => $request->deductions,
                     'notes' => $request->notes,
-                    'net_salary' => $item->basic_salary + $request->allowances - $request->deductions,
+                    'net_salary' => $item->basic_salary + $request->allowances - $request->deductions - $item->advance_deductions,
                 ]);
 
                 // Update parent payroll totals
@@ -116,6 +116,7 @@ class PayrollController extends Controller
                 $payroll->update([
                     'total_allowances' => $payroll->items()->sum('allowances'),
                     'total_deductions' => $payroll->items()->sum('deductions'),
+                    'total_advance_deductions' => $payroll->items()->sum('advance_deductions'),
                     'net_salary' => $payroll->items()->sum('net_salary'),
                 ]);
             });

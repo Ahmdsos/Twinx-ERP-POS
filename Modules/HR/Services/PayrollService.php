@@ -5,6 +5,7 @@ namespace Modules\HR\Services;
 use Modules\HR\Models\Employee;
 use Modules\HR\Models\Payroll;
 use Modules\HR\Models\PayrollItem;
+use Modules\HR\Models\Advance;
 use Modules\Accounting\Models\Account;
 use Modules\Accounting\Services\JournalService;
 use App\Models\Setting;
@@ -77,10 +78,42 @@ class PayrollService
 
                 $calculatedDeductions += ($absentCount * $dailyRate);
 
-                // 2. Future: Link with automated allowances or other modules
+                // 2. Advances Deduction
+                // Fetch advances due this month that are APPROVED and NOT YET PAID/DEDUCTED
+                // Actually, status should be 'paid' (money given to employee) before we can deduct it?
+                // Yes, only 'paid' advances are valid debts. 'deducted' means it's already paid back.
+                $advances = \Modules\HR\Models\Advance::where('employee_id', $employee->id)
+                    ->where('status', 'paid')
+                    ->where('repayment_month', $month)
+                    ->where('repayment_year', $year)
+                    ->get();
+
+                $advanceDeductionAmount = $advances->sum('amount');
+                // Note: we track this separately in the DB for accounting, but for net salary calc it's a deduction
+
+                // 3. Future: Link with automated allowances or other modules
                 // For now, we initialize as 0 and allow manual override in the UI.
 
-                $netSalary = max(0, $baseSalary + $calculatedAllowances - $calculatedDeductions);
+                // Calculate distributable salary (Before Advance Deduction)
+                $distributableSalary = max(0, $baseSalary + $calculatedAllowances - $calculatedDeductions);
+
+                $targetAdvanceDeduction = $advances->sum('amount');
+
+                // Cap the deduction at what is available
+                $actualAdvanceDeduction = min($targetAdvanceDeduction, $distributableSalary);
+
+                $netSalary = $distributableSalary - $actualAdvanceDeduction;
+
+                $notes = [];
+                if ($absentCount > 0)
+                    $notes[] = "خصم غياب $absentCount يوم";
+                if ($targetAdvanceDeduction > 0) {
+                    if ($actualAdvanceDeduction < $targetAdvanceDeduction) {
+                        $notes[] = "خصم سلفة (جزئي): " . number_format($actualAdvanceDeduction, 2) . " من أصل " . number_format($targetAdvanceDeduction, 2);
+                    } else {
+                        $notes[] = "خصم سلفة: " . number_format($actualAdvanceDeduction, 2);
+                    }
+                }
 
                 PayrollItem::create([
                     'payroll_id' => $payroll->id,
@@ -88,18 +121,21 @@ class PayrollService
                     'basic_salary' => $baseSalary,
                     'allowances' => $calculatedAllowances,
                     'deductions' => $calculatedDeductions,
+                    'advance_deductions' => $actualAdvanceDeduction,
                     'net_salary' => $netSalary,
-                    'notes' => $absentCount > 0 ? "خصم غياب $absentCount يوم" : null,
+                    'notes' => count($notes) > 0 ? implode(' | ', $notes) : null,
                 ]);
-
-                $grandTotal += $netSalary;
             }
 
+            // Force reload items
+            $payroll->load('items');
+
             $payroll->update([
-                'total_basic' => $employees->sum('basic_salary'),
-                'total_allowances' => $payroll->items()->sum('allowances'),
-                'total_deductions' => $payroll->items()->sum('deductions'),
-                'net_salary' => $grandTotal,
+                'total_basic' => $payroll->items->sum('basic_salary'),
+                'total_allowances' => $payroll->items->sum('allowances'),
+                'total_deductions' => $payroll->items->sum('deductions'),
+                'total_advance_deductions' => $payroll->items->sum('advance_deductions'),
+                'net_salary' => $payroll->items->sum('net_salary'),
             ]);
 
             return $payroll;
@@ -149,13 +185,36 @@ class PayrollService
 
                 $calculatedDeductions += ($absentCount * $dailyRate);
 
-                $netSalary = max(0, $baseSalary + $calculatedAllowances - $calculatedDeductions);
+                // 2. Advances Deduction (Re-fetch to be safe or keep existing if not paid?)
+                // Better to re-fetch to ensure data consistency with current state of advances
+                $advances = \Modules\HR\Models\Advance::where('employee_id', $employee->id)
+                    ->where('status', 'paid')
+                    ->where('repayment_month', $month)
+                    ->where('repayment_year', $year)
+                    ->get();
+
+                $targetAdvanceDeduction = $advances->sum('amount');
+
+                // Calculate distributable salary (Before Advance Deduction)
+                $distributableSalary = max(0, $baseSalary + $calculatedAllowances - $calculatedDeductions);
+
+                // Cap the deduction at what is available
+                $actualAdvanceDeduction = min($targetAdvanceDeduction, $distributableSalary);
+
+                $netSalary = $distributableSalary - $actualAdvanceDeduction;
 
                 $notes = [];
                 if ($absentCount > 0)
                     $notes[] = "خصم غياب $absentCount يوم";
                 if ($leaveCount > 0)
                     $notes[] = "إجازة $leaveCount يوم";
+                if ($targetAdvanceDeduction > 0) {
+                    if ($actualAdvanceDeduction < $targetAdvanceDeduction) {
+                        $notes[] = "خصم سلفة (جزئي): " . number_format($actualAdvanceDeduction, 2) . " من أصل " . number_format($targetAdvanceDeduction, 2);
+                    } else {
+                        $notes[] = "خصم سلفة: " . number_format($actualAdvanceDeduction, 2);
+                    }
+                }
 
                 PayrollItem::create([
                     'payroll_id' => $payroll->id,
@@ -163,18 +222,21 @@ class PayrollService
                     'basic_salary' => $baseSalary,
                     'allowances' => $calculatedAllowances,
                     'deductions' => $calculatedDeductions,
+                    'advance_deductions' => $actualAdvanceDeduction,
                     'net_salary' => $netSalary,
                     'notes' => count($notes) > 0 ? implode(' | ', $notes) : null,
                 ]);
-
-                $grandTotal += $netSalary;
             }
 
+            // Force reload of relationship to ensure we capture all created items
+            $payroll->load('items');
+
             $payroll->update([
-                'total_basic' => $employees->sum('basic_salary'),
-                'total_allowances' => $payroll->items()->sum('allowances'),
-                'total_deductions' => $payroll->items()->sum('deductions'),
-                'net_salary' => $grandTotal,
+                'total_basic' => $payroll->items->sum('basic_salary'),
+                'total_allowances' => $payroll->items->sum('allowances'),
+                'total_deductions' => $payroll->items->sum('deductions'),
+                'total_advance_deductions' => $payroll->items->sum('advance_deductions'),
+                'net_salary' => $payroll->items->sum('net_salary'),
             ]);
 
             return $payroll;

@@ -59,6 +59,22 @@ Route::prefix('hr')->name('hr.')->middleware(['auth'])->group(function () {
         Route::post('leaves/{leave}/approve', [LeaveController::class, 'approve'])->name('leaves.approve');
         Route::post('leaves/{leave}/reject', [LeaveController::class, 'reject'])->name('leaves.reject');
         Route::post('employees/{employee}/leaves', [LeaveController::class, 'store'])->name('leaves.store');
+        Route::post('employees/{employee}/leaves', [LeaveController::class, 'store'])->name('leaves.store');
+    });
+
+    // ==========================================
+    // ADVANCES
+    // ==========================================
+    Route::middleware(['can:hr.advances.view'])->group(function () {
+        Route::get('advances', [\Modules\HR\Http\Controllers\AdvanceController::class, 'index'])->name('advances.index');
+        Route::get('advances/create', [\Modules\HR\Http\Controllers\AdvanceController::class, 'create'])->name('advances.create');
+        Route::get('advances/{advance}', [\Modules\HR\Http\Controllers\AdvanceController::class, 'show'])->name('advances.show');
+    });
+
+    Route::middleware(['can:hr.advances.manage'])->group(function () {
+        Route::post('advances', [\Modules\HR\Http\Controllers\AdvanceController::class, 'store'])->name('advances.store');
+        Route::post('advances/{advance}/approve', [\Modules\HR\Http\Controllers\AdvanceController::class, 'approve'])->name('advances.approve');
+        Route::post('advances/{advance}/pay', [\Modules\HR\Http\Controllers\AdvanceController::class, 'pay'])->name('advances.pay');
     });
 
     // ==========================================

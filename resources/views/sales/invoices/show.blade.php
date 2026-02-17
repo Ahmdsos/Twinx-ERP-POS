@@ -55,11 +55,7 @@
                         <i class="bi bi-three-dots-vertical"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-dark shadow-lg border border-secondary border-opacity-10/10">
-                        <li><a class="dropdown-item" href="#"><i class="bi bi-envelope me-2"></i> إرسال بالبريد</a></li>
-                        <li>
-                        <li>
-                            <hr class="dropdown-divider border-secondary border-opacity-10/10">
-                        </li>
+
                         <li><a class="dropdown-item text-danger"
                                 href="{{ route('sales-returns.create', ['invoice_id' => $salesInvoice->id, 'customer_id' => $salesInvoice->customer_id]) }}">
                                 <i class="bi bi-arrow-return-left me-2"></i> مرتجع مبيعات

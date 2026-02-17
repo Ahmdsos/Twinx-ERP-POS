@@ -26,6 +26,7 @@ class Payroll extends Model implements AccountableContract
         'total_basic',
         'total_allowances',
         'total_deductions',
+        'total_advance_deductions',
         'net_salary',
         'status',
         'processed_by',
@@ -83,6 +84,7 @@ class Payroll extends Model implements AccountableContract
         'total_basic' => 'decimal:2',
         'total_allowances' => 'decimal:2',
         'total_deductions' => 'decimal:2',
+        'total_advance_deductions' => 'decimal:2',
         'net_salary' => 'decimal:2',
         'journal_entry_id' => 'integer',
     ];
@@ -120,19 +122,20 @@ class Payroll extends Model implements AccountableContract
         $basicTotal = $this->total_basic;
         $allowancesTotal = $this->total_allowances;
         $deductionsTotal = $this->total_deductions;
+        $advanceDeductionsTotal = $this->total_advance_deductions ?? $this->items()->sum('advance_deductions');
         $netTotal = $this->net_salary;
 
         // CRITICAL FIX: Validate journal will be balanced before creating lines
-        // Formula: Debits (Basic + Allowances) - Credits (Deductions) = Credits (Net)
-        // Therefore: Net MUST equal Basic + Allowances - Deductions
-        $calculatedNet = $basicTotal + $allowancesTotal - $deductionsTotal;
+        // Formula: Debits (Basic + Allowances) - Credits (Deductions + Advances) = Credits (Net)
+        // Therefore: Net MUST equal Basic + Allowances - Deductions - Advances
+        $calculatedNet = $basicTotal + $allowancesTotal - $deductionsTotal - $advanceDeductionsTotal;
         $tolerance = 0.01; // Allow 1 cent tolerance for decimal precision issues
 
         if (abs($calculatedNet - $netTotal) > $tolerance) {
             throw new \RuntimeException(
                 "Payroll journal would be unbalanced! " .
                 "Stored net_salary ({$netTotal}) does not match calculated " .
-                "(Basic {$basicTotal} + Allowances {$allowancesTotal} - Deductions {$deductionsTotal} = {$calculatedNet}). " .
+                "(Basic {$basicTotal} + Allowances {$allowancesTotal} - Deductions {$deductionsTotal} - Advance Deductions {$advanceDeductionsTotal} = {$calculatedNet}). " .
                 "Please recalculate payroll totals before posting."
             );
         }
@@ -167,7 +170,32 @@ class Payroll extends Model implements AccountableContract
             ];
         }
 
-        // 4. Credit Payable: Net Salary
+        // 4. Credit Asset: Employee Advances (Repayment)
+        // This reduces the employee's debt, so we CREDIT the Asset account.
+        $advancesTotal = $this->items()->sum('advance_deductions');
+        if ($advancesTotal > 0) {
+            // Using a specific account for Advances or falling back to a generic one?
+            // Ideally, we should have a setting 'acc_employee_advances'.
+            // For now, let's assume it's set or use a placeholder.
+            $advancesAccountCode = \Modules\Core\Models\Setting::getValue('acc_employee_advances');
+            $advancesAccount = $advancesAccountCode ? \Modules\Accounting\Models\Account::where('code', $advancesAccountCode)->first() : null;
+
+            if ($advancesAccount) {
+                $lines[] = [
+                    'account_id' => $advancesAccount->id,
+                    'debit' => 0,
+                    'credit' => $advancesTotal,
+                    'description' => "سداد سلف موظفين شهر {$this->month}-{$this->year}",
+                ];
+            } else {
+                // If no specific account, it might be lumped into other deductions, 
+                // BUT that would be wrong accounting (reducing expense instead of asset).
+                // We must throw an error if this account is missing to ensure data integrity.
+                throw new \Exception("حساب 'سلف العاملين' غير محدد في الإعدادات. لا يمكن ترحيل الرواتب التي تحتوي على سداد سلف.");
+            }
+        }
+
+        // 5. Credit Payable: Net Salary
         $lines[] = [
             'account_id' => $payableAccount->id,
             'debit' => 0,

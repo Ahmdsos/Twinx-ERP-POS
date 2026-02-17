@@ -178,6 +178,7 @@ class SettingsController extends Controller
             'acc_inventory_other',
             'acc_salaries_exp',
             'acc_salaries_payable',
+            'acc_employee_advances',
             'acc_opening_balance'
         ];
 

@@ -10,6 +10,8 @@
         </a>
     </li>
 
+
+
     <!-- Divider -->
     <div class="nav-group-label">{{ __('Operations') }}</div>
 
@@ -314,6 +316,14 @@
                             </a>
                         </li>
                     @endcan
+                    @can('hr.advances.view')
+                        <li class="nav-item">
+                            <a class="nav-link py-2 fs-6 {{ request()->routeIs('hr.advances.*') ? 'text-body fw-bold' : '' }}"
+                                href="{{ route('hr.advances.index') }}">
+                                {{ __('Advances') }}
+                            </a>
+                        </li>
+                    @endcan
                     @can('couriers.manage')
                         <li class="nav-item">
                             <a class="nav-link py-2 fs-6 {{ request()->routeIs('hr.delivery.*') ? 'text-body fw-bold' : '' }}"
@@ -400,6 +410,8 @@
         </li>
     @endcan
 
+
+
     <!-- Settings Module -->
     @can('settings.manage')
         <li class="nav-item mb-1">
@@ -454,6 +466,13 @@
             </div>
         </li>
     @endcan
+    <!-- Documentation -->
+    <li class="nav-item mb-1">
+        <a class="nav-link" href="/manual/index.html" target="_blank">
+            <i class="bi bi-book-half me-3 fs-5 text-white"></i>
+            <span class="fw-medium">{{ __('System Manual') }}</span>
+        </a>
+    </li>
 </ul>
 
 <style>
@@ -464,7 +483,8 @@
     }
 
     .text-secondary-light {
-        color: var(--text-secondary); !important;
+        color: var(--text-secondary);
+        !important;
     }
 
     .text-secondary-light:hover {

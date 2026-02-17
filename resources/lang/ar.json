@@ -695,7 +695,17 @@
     "Bank - USD Account": "البنك - حساب دولاري",
     "Receivables": "المدينون والذمم",
     "Accounts Receivable": "العملاء / المدينون",
-    "Employee Advances": "سلف موظفين",
+    "Employee": "الموظف",
+    "Employee Advances": "سلف العاملين",
+    "Advances": "سلف العاملين",
+    "Request Advance": "طلب سلفة",
+    "New Advance": "سلفة جديدة",
+    "Repayment Month": "شهر السداد",
+    "Advance Amount": "مبلغ السلفة",
+    "Advance Date": "تاريخ السلفة",
+    "Approved By": "تم الاعتماد بواسطة",
+    "Paid By": "تم الصرف بواسطة",
+    "Deducted": "مخصوم",
     "Other Receivables": "أرصدة مدينة أخرى",
     "Merchandise Inventory": "مخزون بضاعة",
     "Inventory in Transit": "مخزون بالطريق",
@@ -762,5 +772,6 @@
     "Other Expenses": "مصروفات أخرى",
     "Interest Expense": "مصروف فوائد",
     "Foreign Exchange Loss": "خسائر فروق عملة",
-    "Miscellaneous Expense": "مصروفات متنوعة"
+    "Miscellaneous Expense": "مصروفات متنوعة",
+    "System Manual": "دليل النظام"
 }

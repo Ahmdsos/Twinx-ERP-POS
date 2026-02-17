@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
+
+
 // Auth routes (login, register, logout)
 Route::get('login', function () {
     return view('auth.login');
@@ -22,6 +24,7 @@ Route::post('login', function () {
         'email' => 'required|email',
         'password' => 'required',
     ]);
+
 
     if (\Illuminate\Support\Facades\Auth::attempt($credentials)) {
         request()->session()->regenerate();

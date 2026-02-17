@@ -3,7 +3,7 @@
 @section('title', 'تحكم مهام التوصيل - Mission Control')
 
 @section('content')
-    <div class="container-fluid py-4" id="mission-app">
+    <div class="container-fluid py-4" x-data="missionControl()">
         <!-- Header Section with Glassmorphism -->
         <div
             class="mission-header p-4 rounded-4 shadow-lg mb-4 text-body d-flex justify-content-between align-items-center">
@@ -15,15 +15,15 @@
             <div class="d-flex gap-3">
                 <div class="stat-glass-card">
                     <span class="small opacity-75">في الميدان</span>
-                    <div class="h3 mb-0 fw-bold">@{{ stats.active }}</div>
+                    <div class="h3 mb-0 fw-bold">{{ $stats['active'] }}</div>
                 </div>
                 <div class="stat-glass-card success">
                     <span class="small opacity-75">نجاح (اليوم)</span>
-                    <div class="h3 mb-0 fw-bold">@{{ stats.delivered }}</div>
+                    <div class="h3 mb-0 fw-bold">{{ $stats['delivered'] }}</div>
                 </div>
                 <div class="stat-glass-card danger">
                     <span class="small opacity-75">مرتجع (اليوم)</span>
-                    <div class="h3 mb-0 fw-bold">@{{ stats.returned }}</div>
+                    <div class="h3 mb-0 fw-bold">{{ $stats['returned'] }}</div>
                 </div>
             </div>
         </div>
@@ -36,7 +36,8 @@
                         <form action="{{ route('mission.control') }}" method="GET" class="row g-3">
                             <div class="col-md-4">
                                 <div class="input-group">
-                                    <span class="input-group-text bg-surface-secondary border-0"><i class="bi bi-search"></i></span>
+                                    <span class="input-group-text bg-surface-secondary border-0"><i
+                                            class="bi bi-search"></i></span>
                                     <input type="text" name="driver_name" class="form-control border-0 bg-surface-secondary"
                                         placeholder="ابحث باسم المندوب..." value="{{ request('driver_name') }}">
                                 </div>
@@ -71,18 +72,19 @@
                                 @forelse($missions as $mission)
                                     @php
                                         $isSettled = in_array($mission->status->value, [\Modules\Sales\Enums\DeliveryStatus::DELIVERED->value, \Modules\Sales\Enums\DeliveryStatus::RETURNED->value]);
+                                        $statusValue = $mission->status->value;
                                     @endphp
                                     <tr class="{{ $isSettled ? 'bg-settled' : '' }}">
                                         <td class="ps-4">
                                             <div class="d-flex align-items-center">
-                                                <div class="mission-icon-circle me-3" :class="'{{ $mission->status->value }}'">
+                                                <div class="mission-icon-circle me-3 {{ $statusValue }}">
                                                     <i
-                                                        class="bi @if($mission->status->value == 'delivered') bi-check-lg @elseif($mission->status->value == 'returned') bi-arrow-counterclockwise @else bi-truck @endif"></i>
+                                                        class="bi @if($statusValue == 'delivered') bi-check-lg @elseif($statusValue == 'returned') bi-arrow-counterclockwise @else bi-truck @endif"></i>
                                                 </div>
                                                 <div>
                                                     <div class="fw-bold text-body">{{ $mission->do_number }}</div>
                                                     <div class="x-small text-muted">INV:
-                                                        {{ $mission->salesOrder->reference ?? $mission->salesInvoice->invoice_number ?? 'N/A' }}
+                                                        {{ $mission->salesOrder->reference ?? ($mission->salesInvoice->invoice_number ?? 'N/A') }}
                                                     </div>
                                                 </div>
                                             </div>
@@ -111,7 +113,7 @@
                                         </td>
                                         <td>
                                             @if($mission->status)
-                                                <span class="mission-badge {{ $mission->status->value }}">
+                                                <span class="mission-badge {{ $statusValue }}">
                                                     {{ $mission->status->label() }}
                                                 </span>
                                             @else
@@ -121,11 +123,11 @@
                                         <td class="text-center pe-4">
                                             @if(!$isSettled)
                                                 <div class="btn-group rounded-pill shadow-sm overflow-hidden">
-                                                    <button @click="openSettleModal({{ $mission->id }}, 'delivered')"
+                                                    <button @click="openModal('{{ $mission->id }}', 'delivered')"
                                                         class="btn btn-success btn-sm px-3">
                                                         <i class="bi bi-check2-circle me-1"></i> نجاح
                                                     </button>
-                                                    <button @click="openSettleModal({{ $mission->id }}, 'returned')"
+                                                    <button @click="openModal('{{ $mission->id }}', 'returned')"
                                                         class="btn btn-danger btn-sm px-3">
                                                         <i class="bi bi-x-circle me-1"></i> فشل
                                                     </button>
@@ -161,7 +163,7 @@
         </div>
 
         <!-- Settlement Modal -->
-        <div class="modal fade" id="settleModal" tabindex="-1" aria-hidden="true">
+        <div class="modal fade" id="settleModal" tabindex="-1" aria-hidden="true" x-ref="modal">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
                     <div class="modal-header border-0 p-4"
@@ -169,8 +171,8 @@
                         <h5 class="modal-title fw-bold">
                             <i class="bi me-2"
                                 :class="settleType === 'delivered' ? 'bi-check2-all' : 'bi-arrow-counterclockwise'"></i>
-                            تأكيد تسوية المهمة رقم <span class="bg-surface text-body px-2 rounded small">@{{ currentMissionId
-                                }}</span>
+                            تأكيد تسوية المهمة رقم <span class="bg-surface text-body px-2 rounded small"
+                                x-text="currentMissionId"></span>
                         </h5>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
@@ -180,30 +182,31 @@
                                 <i class="bi"
                                     :class="settleType === 'delivered' ? 'bi-cash-coin' : 'bi-box-arrow-in-left'"></i>
                             </div>
-                            <h5 class="fw-bold mt-2">@{{ settleType === 'delivered' ? 'تم التسليم بنجاح' : 'تم استرجاع
-                                الطلب' }}</h5>
+                            <h5 class="fw-bold mt-2"
+                                x-text="settleType === 'delivered' ? 'تم التسليم بنجاح' : 'تم استرجاع الطلب'"></h5>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label fw-bold">ملاحظات العملية <span
                                     class="text-muted font-normal">(اختياري)</span></label>
-                            <textarea v-model="settleNotes" class="form-control rounded-3 bg-surface-secondary border-0" rows="3"
-                                placeholder="أدخل تفاصيل إضافية للمرجعية..."></textarea>
+                            <textarea x-model="settleNotes" class="form-control rounded-3 bg-surface-secondary border-0"
+                                rows="3" placeholder="أدخل تفاصيل إضافية للمرجعية..."></textarea>
                         </div>
 
                         <div class="alert small rounded-3"
                             :class="settleType === 'delivered' ? 'alert-success border-0 bg-success-soft' : 'alert-danger border-0 bg-danger-soft'">
                             <i class="bi bi-info-circle-fill me-2"></i>
-                            <span v-if="settleType === 'delivered'">سيتم تحرير رسوم التوصيل وتسجيلها كإيرادات في
+                            <span x-show="settleType === 'delivered'">سيتم تحرير رسوم التوصيل وتسجيلها كإيرادات في
                                 الخزينة.</span>
-                            <span v-else>سيتم إعادة الأصناف للمخزن وعكس القيد المحاسبي لرسوم التوصيل.</span>
+                            <span x-show="settleType === 'returned'">سيتم إعادة الأصناف للمخزن وعكس القيد المحاسبي لرسوم
+                                التوصيل.</span>
                         </div>
                     </div>
                     <div class="modal-footer border-0 p-4 pt-0">
                         <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">تراجع</button>
                         <button @click="processSettlement" class="btn rounded-pill px-4 fw-bold"
                             :class="settleType === 'delivered' ? 'btn-success' : 'btn-danger'" :disabled="isProcessing">
-                            <span v-if="isProcessing" class="spinner-border spinner-border-sm me-1"></span>
+                            <span x-show="isProcessing" class="spinner-border spinner-border-sm me-1"></span>
                             تأكيد وإتمام التسوية
                         </button>
                     </div>
@@ -213,23 +216,68 @@
     </div>
 
     <style>
+        :root {
+            --mc-bg: #f8f9fa;
+            --mc-text: #212529;
+            --mc-card-bg: #ffffff;
+            --mc-border: rgba(0, 0, 0, 0.05);
+            --mc-header-bg: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+            --mc-header-text: #ffffff;
+            --mc-glass-bg: rgba(255, 255, 255, 0.9);
+            --mc-glass-border: rgba(255, 255, 255, 0.5);
+            --mc-table-head: #f1f5f9;
+            --mc-table-head-text: #475569;
+            --mc-hover: rgba(0, 0, 0, 0.02);
+            --mc-input-bg: #ffffff;
+            --mc-pagination-bg: #ffffff;
+            --mc-pagination-border: #dee2e6;
+        }
+
+        [data-bs-theme="dark"] {
+            --mc-bg: #0f172a;
+            --mc-text: #e2e8f0;
+            --mc-card-bg: #1e293b;
+            --mc-border: rgba(255, 255, 255, 0.05);
+            --mc-header-bg: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            --mc-header-text: #f1f5f9;
+            --mc-glass-bg: rgba(30, 41, 59, 0.7);
+            --mc-glass-border: rgba(255, 255, 255, 0.1);
+            --mc-table-head: #334155;
+            --mc-table-head-text: #94a3b8;
+            --mc-hover: rgba(255, 255, 255, 0.02);
+            --mc-input-bg: #334155;
+            --mc-pagination-bg: #1e293b;
+            --mc-pagination-border: #334155;
+        }
+
         body {
-            background-color: #0f172a !important;
-            color: #e2e8f0 !important;
+            background-color: var(--mc-bg) !important;
+            color: var(--mc-text) !important;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         .mission-header {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: var(--mc-header-bg);
+            border: 1px solid var(--mc-border);
+            color: var(--mc-header-text) !important;
+        }
+
+        /* Force header text to be white in light mode if gradient is blue, 
+               or inherit if using clean style. The gradient above implies white text. */
+        .mission-header .text-body,
+        .mission-header .h2,
+        .mission-header p {
+            color: var(--mc-header-text) !important;
         }
 
         .stat-glass-card {
-            background: var(--btn-glass-bg);
+            background: var(--mc-glass-bg);
             backdrop-filter: blur(8px);
             padding: 10px 20px;
             border-radius: 15px;
             min-width: 120px;
-            border: 1px solid var(--btn-glass-border);
+            border: 1px solid var(--mc-glass-border);
+            color: var(--mc-text);
         }
 
         .stat-glass-card.success {
@@ -241,22 +289,22 @@
         }
 
         .card {
-            background-color: var(--input-bg); !important;
-            border: 1px solid rgba(255, 255, 255, 0.05) !important;
+            background-color: var(--mc-card-bg) !important;
+            border: 1px solid var(--mc-border) !important;
         }
 
         .table {
-            color: #cbd5e1 !important;
+            color: var(--mc-text) !important;
         }
 
         .table thead th {
-            background-color: #334155 !important;
-            color: var(--table-head-color) !important;
+            background-color: var(--mc-table-head) !important;
+            color: var(--mc-table-head-text) !important;
             border-bottom: 0;
         }
 
         .table tbody td {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid var(--mc-border);
         }
 
         .mission-icon-circle {
@@ -318,7 +366,7 @@
         }
 
         .bg-settled {
-            background-color: rgba(0, 0, 0, 0.2) !important;
+            background-color: var(--mc-border) !important;
             opacity: 0.7;
         }
 
@@ -333,19 +381,23 @@
         }
 
         .text-body {
-            color: #f1f5f9 !important;
+            color: var(--mc-text) !important;
         }
 
         .text-secondary {
-            color: var(--text-secondary); !important;
+            color: #64748b !important;
+        }
+
+        [data-bs-theme="dark"] .text-secondary {
+            color: #94a3b8 !important;
         }
 
         .bg-surface {
-            background-color: var(--input-bg); !important;
+            background-color: var(--mc-card-bg) !important;
         }
 
         .bg-surface-secondary {
-            background-color: #334155 !important;
+            background-color: var(--mc-input-bg) !important;
         }
 
         .animate-pulse {
@@ -367,7 +419,7 @@
         }
 
         .table-hover tbody tr:hover {
-            background-color: rgba(255, 255, 255, 0.02) !important;
+            background-color: var(--mc-hover) !important;
         }
 
         .x-small {
@@ -378,69 +430,104 @@
             font-weight: 400;
         }
 
-        /* Fix Pagination for Dark Mode */
         .pagination .page-link {
-            background-color: var(--input-bg);
-            border-color: #334155;
-            color: var(--text-secondary);
+            background-color: var(--mc-pagination-bg);
+            border-color: var(--mc-pagination-border);
+            color: var(--mc-text);
         }
 
         .pagination .page-item.active .page-link {
             background-color: #3b82f6;
             border-color: #3b82f6;
-            color: var(--text-primary);
+            color: white;
         }
     </style>
 @endsection
 
 @push('scripts')
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
-        const { createApp } = Vue;
+        function missionControl() {
+            return {
+                settleType: '',
+                currentMissionId: null,
+                settleNotes: '',
+                isProcessing: false,
+                bsModal: null,
 
-        createApp({
-            data() {
-                return {
-                    stats: @json($stats ?? ['active' => 0, 'delivered' => 0, 'returned' => 0]),
-                    settleType: '',
-                    currentMissionId: null,
-                    settleNotes: '',
-                    isProcessing: false
-                }
-            },
-            methods: {
-                openSettleModal(id, type) {
+                init() {
+                    // Logic to init if needed
+                },
+
+                openModal(id, type) {
                     this.currentMissionId = id;
                     this.settleType = type;
                     this.settleNotes = '';
-                    new bootstrap.Modal(document.getElementById('settleModal')).show();
-                },
-                processSettlement() {
-                    this.isProcessing = true;
-                    const url = '{{ route("mission.settle", ":id") }}'.replace(':id', this.currentMissionId);
 
-                    axios.post(url, {
-                        status: this.settleType,
-                        notes: this.settleNotes
+                    const el = document.getElementById('settleModal');
+                    if (el) {
+                        this.bsModal = new bootstrap.Modal(el);
+                        this.bsModal.show();
+                    }
+                },
+
+                processSettlement() {
+                    if (!this.currentMissionId) return;
+
+                    this.isProcessing = true;
+                    // We construct the URL by replacing a placeholder
+                    const baseUrl = '/sales/missions/settle';
+
+                    // Or strictly: we can't key by ID correctly if we don't have the ID.
+                    // Let's use the explicit route pattern from previous code but handle ID carefully
+                    // Actually, simpler is to just POST to a fixed endpoint with ID in body? 
+                    // No, controller expects route param: Route::post('/settle/{delivery}', ...)
+
+                    const url = `{{ route('mission.settle', ['delivery' => 'DATE_ID']) }}`.replace('DATE_ID', this.currentMissionId);
+
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            status: this.settleType,
+                            notes: this.settleNotes
+                        })
                     })
+                        .then(response => response.json().then(data => ({ status: response.status, body: data })))
                         .then(res => {
-                            if (res.data.success) {
-                                location.reload();
+                            this.isProcessing = false;
+                            if (res.body.success) {
+                                if (this.bsModal) this.bsModal.hide();
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'تمت العملية',
+                                    text: res.body.message,
+                                    background: '#1e293b',
+                                    color: '#fff',
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                }).then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                throw new Error(res.body.message || 'حدث خطأ غير معروف');
                             }
                         })
-                        .catch(err => {
+                        .catch(error => {
+                            this.isProcessing = false;
                             Swal.fire({
                                 icon: 'error',
-                                title: 'خطأ في التسوية',
-                                text: (err.response?.data?.message || err.message),
+                                title: 'خطأ',
+                                text: error.message,
                                 background: '#1e293b',
                                 color: '#fff'
                             });
-                            this.isProcessing = false;
                         });
                 }
             }
-        }).mount('#mission-app');
+        }
     </script>
 @endpush

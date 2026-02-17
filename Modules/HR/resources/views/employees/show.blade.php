@@ -31,7 +31,12 @@
                 </div>
             </div>
             <div class="d-flex gap-2">
-                <a href="{{ route('hr.employees.edit', $employee->id) }}" class="btn btn-primary rounded-pill px-4 fw-bold shadow-lg">
+                @can('hr.advances.manage')
+                    <a href="{{ route('hr.advances.create', ['employee_id' => $employee->id]) }}" class="btn btn-primary rounded-pill px-4 fw-bold shadow-lg">
+                        <i class="bi bi-cash-stack me-2"></i> طلب سلفة
+                    </a>
+                @endcan
+                <a href="{{ route('hr.employees.edit', $employee->id) }}" class="btn btn-outline-primary rounded-pill px-4 fw-bold shadow-lg">
                     <i class="bi bi-pencil-square me-2"></i> تعديل
                 </a>
             </div>
@@ -227,6 +232,11 @@
                                     <i class="bi bi-file-earmark-text me-1"></i> الوظائف
                                 </button>
                             </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link rounded-pill py-2 small fw-bold" id="advances-tab" data-bs-toggle="tab" data-bs-target="#advances" type="button" role="tab" aria-selected="false">
+                                    <i class="bi bi-cash-coin me-1"></i> {{ __('Advances') }}
+                                </button>
+                            </li>
                         </ul>
                     </div>
 
@@ -381,9 +391,65 @@
                                 </div>
                             @endif
                         </div>
-                    </div>
-                </div>
-            </div>
+
+                        <!-- Advances Tab -->
+                        <div class="tab-pane fade" id="advances" role="tabpanel">
+                             <div class="table-responsive">
+                                <table class="table table-hover table-sm text-heading mb-0 align-middle">
+                                    <thead class="text-secondary x-small text-uppercase">
+                                        <tr>
+                                            <th class="border-0">{{ __('Date') }}</th>
+                                            <th class="border-0">{{ __('Amount') }}</th>
+                                            <th class="border-0">{{ __('Repayment') }}</th>
+                                            <th class="border-0">{{ __('Status') }}</th>
+                                            <th class="border-0 text-end">{{ __('Actions') }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse($employee->advances as $advance)
+                                            <tr>
+                                                <td class="border-secondary border-opacity-10 border-opacity-5 fw-bold x-small">{{ $advance->request_date->format('Y-m-d') }}</td>
+                                                <td class="border-secondary border-opacity-10 border-opacity-5 text-primary fw-bold x-small">{{ number_format($advance->amount, 2) }}</td>
+                                                <td class="border-secondary border-opacity-10 border-opacity-5 x-small">{{ $advance->repayment_month }}/{{ $advance->repayment_year }}</td>
+                                                <td class="border-secondary border-opacity-10 border-opacity-5">
+                                                    @php
+                                                        $color = match ($advance->status) {
+                                                            'paid' => 'success',
+                                                            'approved' => 'info',
+                                                            'pending' => 'warning',
+                                                            'rejected' => 'danger',
+                                                            'deducted' => 'secondary',
+                                                            default => 'secondary'
+                                                        };
+                                                        $label = match ($advance->status) {
+                                                            'paid' => __('Paid'),
+                                                            'approved' => __('Approved'),
+                                                            'pending' => __('Pending'),
+                                                            'rejected' => __('Rejected'),
+                                                            'deducted' => __('Deducted'),
+                                                             default => $advance->status
+                                                        };
+                                                    @endphp
+                                                    <span class="badge bg-{{ $color }} bg-opacity-25 text-{{ $color }} x-small px-2 py-1 rounded-1">{{ $label }}</span>
+                                                </td>
+                                                <td class="border-secondary border-opacity-10 border-opacity-5 text-end">
+                                                    <a href="{{ route('hr.advances.show', $advance->id) }}" class="btn btn-sm btn-icon btn-outline-light rounded-circle opacity-50">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="5" class="text-center py-4 text-secondary opacity-50">
+                                                    <i class="bi bi-cash-stack d-block fs-4 mb-2"></i>
+                                                    {{ __('No records found') }}
+                                                </td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
         </div>
     </div>
 

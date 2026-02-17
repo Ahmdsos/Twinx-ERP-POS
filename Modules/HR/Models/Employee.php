@@ -158,6 +158,14 @@ class Employee extends Model
     }
 
     /**
+     * Get the advances for the employee.
+     */
+    public function advances(): HasMany
+    {
+        return $this->hasMany(Advance::class, 'employee_id');
+    }
+
+    /**
      * Get the full name of the employee.
      */
     public function getFullNameAttribute(): string

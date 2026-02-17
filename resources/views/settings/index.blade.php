@@ -514,6 +514,7 @@
                                     $hrKeys = [
                                         'acc_salaries_exp' => __('Salary Expense Account'),
                                         'acc_salaries_payable' => __('Salaries & Wages Payable Account'),
+                                        'acc_employee_advances' => __('Employee Advances'),
                                     ];
                                 @endphp
                                 @foreach($hrKeys as $key => $label)

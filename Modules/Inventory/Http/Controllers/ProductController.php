@@ -260,6 +260,18 @@ class ProductController extends Controller
             }
         }
 
+        // Auto-generate numeric barcode if not provided
+        if (empty($product->barcode)) {
+            $barcodeService = app(\App\Services\BarcodeService::class);
+            $product->update(['barcode' => $barcodeService->generateAutoBarcode($product)]);
+        }
+
+        // Redirect: if Save & Print was clicked, go to barcode print page
+        if ($request->input('_print_barcode') == '1') {
+            return redirect()->route('barcode.print', $product)
+                ->with('success', 'تم إنشاء المنتج بنجاح');
+        }
+
         return redirect()->route('products.index')
             ->with('success', 'تم إنشاء المنتج بنجاح');
     }
@@ -370,6 +382,18 @@ class ProductController extends Controller
                     'sort_order' => $currentMaxSort + 1 + $index,
                 ]);
             }
+        }
+
+        // Auto-generate barcode if empty after update
+        if (empty($product->barcode)) {
+            $barcodeService = app(\App\Services\BarcodeService::class);
+            $product->update(['barcode' => $barcodeService->generateAutoBarcode($product)]);
+        }
+
+        // Redirect: if Save & Print was clicked, go to barcode print page
+        if ($request->input('_print_barcode') == '1') {
+            return redirect()->route('barcode.print', $product)
+                ->with('success', 'تم تحديث المنتج بنجاح');
         }
 
         return redirect()->route('products.index')

@@ -4,7 +4,7 @@
     $method = $isEdit ? 'PUT' : 'POST';
 @endphp
 
-<form action="{{ $action }}" method="POST" enctype="multipart/form-data">
+<form action="{{ $action }}" method="POST" enctype="multipart/form-data" id="productForm">
     @csrf
     @if($isEdit)
         @method('PUT')
@@ -55,10 +55,14 @@
 
                     <!-- 1. Basic Details -->
                     <div class="tab-pane fade show active" id="basic">
-                        <h4 class="text-heading fw-bold mb-4 border-bottom border-secondary border-opacity-10-10 pb-3">{{ __('Basic Information') }}</h4>
+                        <h4 class="text-heading fw-bold mb-4 border-bottom border-secondary border-opacity-10-10 pb-3">
+                            {{ __('Basic Information') }}
+                        </h4>
                         <div class="row g-4">
                             <div class="col-md-8">
-                                <label class="form-label text-purple-400 small fw-bold text-uppercase ps-1">{{ __('Product Name') }}<span class="text-danger">*</span></label>
+                                <label
+                                    class="form-label text-purple-400 small fw-bold text-uppercase ps-1">{{ __('Product Name') }}<span
+                                        class="text-danger">*</span></label>
                                 <input type="text" name="name"
                                     class="form-control form-control text-body placeholder-gray-600 focus-ring-purple"
                                     value="{{ old('name', $product->name ?? '') }}"
@@ -70,7 +74,8 @@
                                 <label class="form-label text-purple-400 small fw-bold text-uppercase ps-1">SKU <span
                                         class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-surface-secondary-input border-end-0 text-gray-500"><i
+                                    <span
+                                        class="input-group-text bg-surface-secondary-input border-end-0 text-gray-500"><i
                                             class="bi bi-barcode"></i></span>
                                     <input type="text" name="sku" id="skuInput"
                                         class="form-control form-control border-start-0 border-end-0 ps-0 text-body font-monospace placeholder-gray-600 focus-ring-purple"
@@ -95,8 +100,7 @@
                             <div class="col-md-6">
                                 <label class="form-label text-purple-400 small fw-bold text-uppercase ps-1">نوع المنتج
                                     <span class="text-danger">*</span></label>
-                                <select name="type" class="form-select form-select text-body cursor-pointer"
-                                    required>
+                                <select name="type" class="form-select form-select text-body cursor-pointer" required>
                                     @foreach($types as $type)
                                         <option value="{{ $type->value }}" {{ old('type', $product->type->value ?? '') == $type->value ? 'selected' : '' }}>
                                             {{ $type->label() }}
@@ -109,7 +113,8 @@
                                 <label class="form-label text-purple-400 small fw-bold text-uppercase ps-1">باركود
                                     (Scan)</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-surface-secondary-input border-end-0 text-gray-500"><i
+                                    <span
+                                        class="input-group-text bg-surface-secondary-input border-end-0 text-gray-500"><i
                                             class="bi bi-upc-scan"></i></span>
                                     <input type="text" name="barcode" id="barcodeInput"
                                         class="form-control form-control border-start-0 border-end-0 ps-0 text-body font-monospace placeholder-gray-600 focus-ring-purple"
@@ -126,8 +131,7 @@
                             <div class="col-md-6">
                                 <label class="form-label text-purple-400 small fw-bold text-uppercase ps-1">القسم /
                                     التصنيف</label>
-                                <select name="category_id"
-                                    class="form-select form-select text-body cursor-pointer">
+                                <select name="category_id" class="form-select form-select text-body cursor-pointer">
                                     <option value="">-- بدون تصنيف --</option>
                                     @foreach($categories as $category)
                                         <option value="{{ $category->id }}" {{ old('category_id', $product->category_id ?? '') == $category->id ? 'selected' : '' }}>
@@ -165,7 +169,8 @@
 
                             <!-- Status Toggles (Custom CSS) -->
                             <div class="col-12 mt-4">
-                                <div class="p-4 rounded-3 bg-surface bg-opacity-30 border border-secondary border-opacity-10-5">
+                                <div
+                                    class="p-4 rounded-3 bg-surface bg-opacity-30 border border-secondary border-opacity-10-5">
                                     <div class="d-flex flex-wrap gap-4 justify-content-center">
 
                                         <!-- Active Toggle -->
@@ -209,7 +214,8 @@
 
                     <!-- 2. Pricing -->
                     <div class="tab-pane fade" id="pricing">
-                        <h4 class="text-heading fw-bold mb-4 border-bottom border-secondary border-opacity-10-10 pb-3">بيانات التسعير</h4>
+                        <h4 class="text-heading fw-bold mb-4 border-bottom border-secondary border-opacity-10-10 pb-3">
+                            بيانات التسعير</h4>
                         <div class="row g-4">
                             <div class="col-md-6">
                                 <label class="form-label text-purple-400 small fw-bold text-uppercase ps-1">سعر التكلفة
@@ -249,7 +255,8 @@
                                         class="form-control form-control border-end-0 text-body placeholder-gray-600 focus-ring-purple"
                                         value="{{ old('tax_rate', $product->tax_rate ?? \App\Models\Setting::getValue('default_tax_rate', 14)) }}"
                                         placeholder="{{ \App\Models\Setting::getValue('default_tax_rate', 14) }}">
-                                    <span class="input-group-text bg-surface-secondary-input border-start-0 text-gray-500">%</span>
+                                    <span
+                                        class="input-group-text bg-surface-secondary-input border-start-0 text-gray-500">%</span>
                                 </div>
                             </div>
 
@@ -262,14 +269,17 @@
                             </div>
                         </div>
 
-                        <h5 class="text-heading fw-bold mt-5 mb-4 border-bottom border-secondary border-opacity-10-10 pb-3">شرائح الأسعار
+                        <h5
+                            class="text-heading fw-bold mt-5 mb-4 border-bottom border-secondary border-opacity-10-10 pb-3">
+                            شرائح الأسعار
                             (Multi-Tier Pricing)</h5>
                         <div class="row g-4">
                             <div class="col-md-4">
                                 <label class="form-label text-secondary small fw-bold text-uppercase ps-1">سعر الموزع
                                     (Distributor)</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-surface-secondary-input border-end-0 text-gray-500">EGP</span>
+                                    <span
+                                        class="input-group-text bg-surface-secondary-input border-end-0 text-gray-500">EGP</span>
                                     <input type="number" step="0.01" name="price_distributor"
                                         class="form-control form-control border-start-0 ps-0 text-body placeholder-gray-600 focus-ring-purple"
                                         value="{{ old('price_distributor', $product->price_distributor ?? '') }}"
@@ -280,7 +290,8 @@
                                 <label class="form-label text-secondary small fw-bold text-uppercase ps-1">سعر الجملة
                                     (Wholesale)</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-surface-secondary-input border-end-0 text-gray-500">EGP</span>
+                                    <span
+                                        class="input-group-text bg-surface-secondary-input border-end-0 text-gray-500">EGP</span>
                                     <input type="number" step="0.01" name="price_wholesale"
                                         class="form-control form-control border-start-0 ps-0 text-body placeholder-gray-600 focus-ring-purple"
                                         value="{{ old('price_wholesale', $product->price_wholesale ?? '') }}"
@@ -288,10 +299,12 @@
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label text-secondary small fw-bold text-uppercase ps-1">نصف جملة (Half
+                                <label class="form-label text-secondary small fw-bold text-uppercase ps-1">نصف جملة
+                                    (Half
                                     Wholesale)</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-surface-secondary-input border-end-0 text-gray-500">EGP</span>
+                                    <span
+                                        class="input-group-text bg-surface-secondary-input border-end-0 text-gray-500">EGP</span>
                                     <input type="number" step="0.01" name="price_half_wholesale"
                                         class="form-control form-control border-start-0 ps-0 text-body placeholder-gray-600 focus-ring-purple"
                                         value="{{ old('price_half_wholesale', $product->price_half_wholesale ?? '') }}"
@@ -302,7 +315,8 @@
                                 <label class="form-label text-secondary small fw-bold text-uppercase ps-1">ربع جملة
                                     (Quarter Wholesale)</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-surface-secondary-input border-end-0 text-gray-500">EGP</span>
+                                    <span
+                                        class="input-group-text bg-surface-secondary-input border-end-0 text-gray-500">EGP</span>
                                     <input type="number" step="0.01" name="price_quarter_wholesale"
                                         class="form-control form-control border-start-0 ps-0 text-body placeholder-gray-600 focus-ring-purple"
                                         value="{{ old('price_quarter_wholesale', $product->price_quarter_wholesale ?? '') }}"
@@ -313,7 +327,8 @@
                                 <label class="form-label text-secondary small fw-bold text-uppercase ps-1">سعر خاص
                                     (فني/موظف)</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-surface-secondary-input border-end-0 text-gray-500">EGP</span>
+                                    <span
+                                        class="input-group-text bg-surface-secondary-input border-end-0 text-gray-500">EGP</span>
                                     <input type="number" step="0.01" name="price_special"
                                         class="form-control form-control border-start-0 ps-0 text-body placeholder-gray-600 focus-ring-purple"
                                         value="{{ old('price_special', $product->price_special ?? '') }}"
@@ -325,7 +340,9 @@
 
                     <!-- 3. Inventory -->
                     <div class="tab-pane fade" id="inventory">
-                        <h4 class="text-heading fw-bold mb-4 border-bottom border-secondary border-opacity-10-10 pb-3">{{ __('Inventory Settings') }}</h4>
+                        <h4 class="text-heading fw-bold mb-4 border-bottom border-secondary border-opacity-10-10 pb-3">
+                            {{ __('Inventory Settings') }}
+                        </h4>
                         <div class="row g-4">
                             <div class="col-md-6">
                                 <label class="form-label text-purple-400 small fw-bold text-uppercase ps-1">تنبيه انخفاض
@@ -391,7 +408,8 @@
 
                     <!-- 4. Attributes -->
                     <div class="tab-pane fade" id="attributes">
-                        <h4 class="text-heading fw-bold mb-4 border-bottom border-secondary border-opacity-10-10 pb-3">المواصفات والأبعاد</h4>
+                        <h4 class="text-heading fw-bold mb-4 border-bottom border-secondary border-opacity-10-10 pb-3">
+                            المواصفات والأبعاد</h4>
                         <div class="row g-4">
 
                             <div class="col-md-6">
@@ -473,7 +491,8 @@
 
                     <!-- 5. Images -->
                     <div class="tab-pane fade" id="images">
-                        <h4 class="text-heading fw-bold mb-4 border-bottom border-secondary border-opacity-10-10 pb-3">صور المنتج</h4>
+                        <h4 class="text-heading fw-bold mb-4 border-bottom border-secondary border-opacity-10-10 pb-3">
+                            صور المنتج</h4>
 
                         @if($isEdit && $product->images->count() > 0)
                             <div class="mb-4">
@@ -514,13 +533,19 @@
             </div>
 
             <!-- Footer Actions -->
+            <input type="hidden" name="_print_barcode" id="printBarcodeFlag" value="0">
             <div class="d-flex justify-content-end align-items-center gap-3 mt-4">
                 <a href="{{ route('products.index') }}"
                     class="btn btn-link text-secondary text-decoration-none hover-text-white">{{ __('Cancel') }}</a>
+                <button type="button" onclick="submitWithPrint()"
+                    class="btn btn-outline-success px-4 py-3 rounded-pill fw-bold d-flex align-items-center gap-2">
+                    <i class="bi bi-printer"></i>
+                    <span>{{ __('Save & Print Barcode') }}</span>
+                </button>
                 <button type="submit"
                     class="btn btn-action-purple px-5 py-3 rounded-pill fw-bold shadow-neon-purple d-flex align-items-center gap-2">
                     <i class="bi bi-save"></i>
-                    <span>{{ $isEdit ? 'حفظ التعديلات' : 'إنشاء المنتج' }}</span>
+                    <span>{{ $isEdit ? __('Save Changes') : __('Create Product') }}</span>
                 </button>
             </div>
         </div>
@@ -532,7 +557,7 @@
     window.blockGlobalScanner = true;
 
     // 2. Local Scanner Listener
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
         // If focusing on some other input, let it be (e.g. typing name)
         // BUT if it's the barcode input, we want to handle 'Enter' to not submit form
         if (e.target.tagName === 'INPUT' && e.target.id !== 'barcodeInput') return;
@@ -547,13 +572,13 @@
         if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
             // Re-use logic or simple capture
             if (!window.localBarcodeBuffer) window.localBarcodeBuffer = '';
-            
+
             if (e.key === 'Enter') {
                 if (window.localBarcodeBuffer.length > 2) {
                     const input = document.getElementById('barcodeInput');
                     input.value = window.localBarcodeBuffer;
                     input.focus();
-                    
+
                     // Optional: Visual feedback
                     input.style.backgroundColor = 'rgba(168, 85, 247, 0.2)';
                     setTimeout(() => input.style.backgroundColor = '', 500);
@@ -563,7 +588,7 @@
             } else if (e.key.length === 1) {
                 window.localBarcodeBuffer += e.key;
             }
-            
+
             // Timeout reset (500ms for manual typing vs scanner)
             clearTimeout(window.barcodeTimer);
             window.barcodeTimer = setTimeout(() => {
@@ -573,10 +598,28 @@
     });
 
     function generateBarcode() {
-        const timestamp = Date.now().toString().slice(-8); // Last 8 digits of timestamp
-        const randomInfo = Math.floor(Math.random() * 9000) + 1000; // 4 random digits
-        const barcode = `800${timestamp}${randomInfo}`; // Simple generation
-        document.getElementById('barcodeInput').value = barcode;
+        // Generate 8-digit barcode matching server format: 20 + 5-digit random + check digit
+        const prefix = '20';
+        const random5 = String(Math.floor(Math.random() * 100000)).padStart(5, '0');
+        const base = prefix + random5; // 7 digits
+        // EAN-8 check digit
+        let sum = 0;
+        for (let i = 0; i < base.length; i++) {
+            sum += parseInt(base[i]) * (i % 2 === 0 ? 3 : 1);
+        }
+        const check = (10 - (sum % 10)) % 10;
+        document.getElementById('barcodeInput').value = base + check;
+    }
+
+    function submitWithPrint() {
+        document.getElementById('printBarcodeFlag').value = '1';
+        const form = document.getElementById('productForm');
+        // Use requestSubmit() to trigger HTML5 validation
+        if (form.requestSubmit) {
+            form.requestSubmit();
+        } else {
+            form.submit();
+        }
     }
 
     function generateSKU() {
@@ -619,8 +662,10 @@
     .form-control-dark,
     .form-select-dark {
         background: rgba(15, 23, 42, 0.6) !important;
-        border: 1px solid var(--btn-glass-border); !important;
-        color: var(--text-primary); !important;
+        border: 1px solid var(--btn-glass-border);
+        !important;
+        color: var(--text-primary);
+        !important;
         padding: 0.8rem 1rem;
         border-radius: 12px;
     }

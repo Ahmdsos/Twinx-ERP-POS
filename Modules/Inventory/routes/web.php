@@ -71,6 +71,8 @@ Route::middleware(['auth', 'can:inventory.manage'])->group(function () {
     // Barcode Generation
     // ==========================================
     Route::prefix('barcode')->name('barcode.')->group(function () {
+        Route::get('/manager', [BarcodeController::class, 'manager'])->name('manager');
+        Route::get('/search-products', [BarcodeController::class, 'searchProducts'])->name('searchProducts');
         Route::get('/product/{product}', [BarcodeController::class, 'show'])->name('show');
         Route::get('/product/{product}/label', [BarcodeController::class, 'label'])->name('label');
         Route::get('/product/{product}/print', [BarcodeController::class, 'printPreview'])->name('print');

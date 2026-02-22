@@ -159,7 +159,7 @@
                 </div>
                 <i class="bi bi-chevron-down small transition-icon opacity-50"></i>
             </a>
-            <div class="collapse {{ request()->routeIs('products.*', 'stock.*', 'warehouses.*', 'categories.*', 'units.*') ? 'show' : '' }}"
+            <div class="collapse {{ request()->routeIs('products.*', 'stock.*', 'warehouses.*', 'categories.*', 'units.*', 'barcode.manager') ? 'show' : '' }}"
                 id="inventoryMenu">
                 <ul class="nav flex-column ms-3 mt-1 border-secondary border-opacity-10 ps-3"
                     style="border-right: 1px solid rgba(255,255,255,0.1);">
@@ -167,6 +167,12 @@
                         <a class="nav-link py-2 fs-6 {{ request()->routeIs('products.*') ? 'text-body fw-bold' : '' }}"
                             href="{{ route('products.index') }}">
                             {{ __('Products') }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link py-2 fs-6 {{ request()->routeIs('barcode.manager') ? 'text-body fw-bold' : '' }}"
+                            href="{{ route('barcode.manager') }}">
+                            <i class="bi bi-upc-scan me-1"></i>{{ __('Barcode Management') }}
                         </a>
                     </li>
                     <li class="nav-item">

@@ -1,6 +1,0 @@
-
-Path                                                                LineNumber Line
-----                                                                ---------- ----
-C:\Users\20127\.gemini\antigravity\scratch\twinx-erp\routes\web.php         94         Route::get('/customers/{id}/brief', [POSController::class,…
-C:\Users\20127\.gemini\antigravity\scratch\twinx-erp\routes\web.php        472         Route::post('/{id}/read', [\App\Http\Controllers\Notificat…
-

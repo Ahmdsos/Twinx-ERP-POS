@@ -1,0 +1,78 @@
+/* Zenith Portal Theme */
+
+:root {
+    --brand-primary: #2563eb;
+    --slate-900: #0f172a;
+}
+
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Typography Utils */
+.font-heading {
+    letter-spacing: -0.025em;
+}
+
+[dir="rtl"] .font-heading {
+    letter-spacing: 0;
+}
+
+/* Markdown Styling overrides for "Clean Slate" look */
+.prose h3 {
+    font-family: 'Outfit', sans-serif;
+    color: var(--slate-900);
+    margin-top: 2rem;
+}
+
+.prose blockquote {
+    border-left: 4px solid var(--brand-primary);
+    background: #eff6ff;
+    /* blue-50 */
+    color: #1e40af;
+    /* blue-800 */
+    padding: 1rem 1.5rem;
+    border-radius: 0.5rem;
+    font-style: normal;
+    font-weight: 500;
+}
+
+.prose code {
+    color: #db2777;
+    /* pink-600 */
+    background: #fdf2f8;
+    /* pink-50 */
+    padding: 0.2em 0.4em;
+    border-radius: 0.25rem;
+    font-weight: 600;
+}
+
+.prose ul>li::marker {
+    color: #cbd5e1;
+    /* slate-300 */
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Smooth Focus Rings */
+*:focus-visible {
+    outline: 2px solid var(--brand-primary);
+    outline-offset: 2px;
+}

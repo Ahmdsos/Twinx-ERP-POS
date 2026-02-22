@@ -1,0 +1,45 @@
+═══════════════════════════════════════════════════
+   Twinx ERP — Required Software Downloads
+═══════════════════════════════════════════════════
+
+You need to install ONLY ONE program: XAMPP
+Everything else is included in this package.
+
+───────────────────────────────────────────────────
+  ★ XAMPP (REQUIRED)
+───────────────────────────────────────────────────
+  Contains: Apache + MySQL + PHP 8.2+
+  
+  Download Link:
+  https://www.apachefriends.org/download.html
+
+  ⚠ Choose the version with PHP 8.2 or higher!
+  
+  Installation:
+  1. Run the installer
+  2. Use default path: C:\xampp
+  3. Select: Apache, MySQL, PHP
+  4. Click Install
+
+───────────────────────────────────────────────────
+  ★ After installing XAMPP:
+───────────────────────────────────────────────────
+  1. Close this file
+  2. Double-click SETUP.bat
+  3. Everything else is automatic!
+
+═══════════════════════════════════════════════════
+  Additional Links (usually NOT needed):
+═══════════════════════════════════════════════════
+
+  Composer (PHP package manager):
+  https://getcomposer.org/download/
+
+  Node.js (JavaScript runtime):
+  https://nodejs.org/en/download/
+
+  NOTE: These are only needed if you want to
+  modify and rebuild the project's source code.
+  For normal usage, XAMPP alone is sufficient.
+
+═══════════════════════════════════════════════════

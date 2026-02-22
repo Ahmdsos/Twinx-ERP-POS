@@ -1,0 +1,7 @@
+@font-face {
+    font-family: 'Cairo';
+    src: url('Cairo.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}

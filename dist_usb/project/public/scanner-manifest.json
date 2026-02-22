@@ -1,0 +1,19 @@
+{
+    "name": "Twinx Scanner",
+    "short_name": "Scanner",
+    "description": "Twinx ERP Barcode Scanner",
+    "start_url": "/twinx-erp/public/scanner",
+    "scope": "/twinx-erp/public/",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#0f172a",
+    "theme_color": "#0f172a",
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "/twinx-erp/public/favicon.ico",
+            "sizes": "64x64 32x32 16x16",
+            "type": "image/x-icon"
+        }
+    ]
+}

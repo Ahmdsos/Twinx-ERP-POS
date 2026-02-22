@@ -161,7 +161,21 @@
         <div class="header">
             @if(\App\Models\Setting::getValue('printer_show_logo', true) && \App\Models\Setting::getValue('company_logo'))
                 <div class="text-center">
-                    <img src="{{ Storage::url(\App\Models\Setting::getValue('company_logo')) }}" class="logo">
+                    @php
+                        $logoPath = \App\Models\Setting::getValue('company_logo');
+                        $fullPath = storage_path('app/public/' . $logoPath);
+                        $base64 = '';
+                        if (file_exists($fullPath)) {
+                            $type = pathinfo($fullPath, PATHINFO_EXTENSION);
+                            $data = file_get_contents($fullPath);
+                            $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+                        }
+                    @endphp
+                    @if($base64)
+                        <img src="{{ $base64 }}" class="logo">
+                    @else
+                        <!-- Logo file not found at: {{ $fullPath }} -->
+                    @endif
                 </div>
             @endif
 
